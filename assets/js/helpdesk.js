@@ -1,11 +1,10 @@
-<!-- ==========================================
-     HELP DESK AVANÇADO - SISTEMA CORE
-     Sistema de gerenciamento de chamados
-     Modalidades: Cloud, Treinamento, Acesso, 
-     Implementações, BI, BPO, Integrações, Suporte
-     ========================================== -->
+// ==========================================
+// HELP DESK AVANÇADO - SISTEMA CORE
+// Sistema de gerenciamento de chamados
+// Modalidades: Cloud, Treinamento, Acesso, 
+// Implementações, BI, BPO, Integrações, Suporte
+// ==========================================
 
-<script>
 // ==========================================
 // CONFIGURAÇÃO CENTRAL DO HELP DESK
 // ==========================================
@@ -157,7 +156,7 @@ const ChamadosDB = {
                     autor: dados.clienteName,
                     tipoAutor: 'cliente',
                     descricao: 'Chamado aberto',
-                    visivel: false // Não aparece para cliente
+                    visivel: false
                 }
             ],
             comentarios: [],
@@ -184,7 +183,6 @@ const ChamadosDB = {
             chamado.status = novoStatus;
             chamado.dataAtualizacao = new Date().toISOString();
             
-            // Adicionar ao histórico (interno - não aparece para cliente)
             chamado.historico.push({
                 data: new Date().toISOString(),
                 acao: 'MUDANCA_STATUS',
@@ -193,12 +191,11 @@ const ChamadosDB = {
                 autor: autorEmail || 'Sistema',
                 tipoAutor: tipoAutor,
                 descricao: descricaoInterno,
-                visivel: false // Interno
+                visivel: false
             });
             
             localStorage.setItem('helpdesk_chamados', JSON.stringify(chamados));
             
-            // Simular envio de email
             this.enviarEmailStatusAtualizado(chamado, novoStatus);
             
             return chamado;
@@ -218,14 +215,13 @@ const ChamadosDB = {
                 autor: autorEmail,
                 tipoAutor: tipoAutor,
                 texto: texto,
-                visivel: visivel, // Define se aparece para cliente
+                visivel: visivel,
                 resposta: null
             };
             
             chamado.comentarios.push(comentario);
             chamado.dataAtualizacao = new Date().toISOString();
             
-            // Adicionar ao histórico
             chamado.historico.push({
                 data: new Date().toISOString(),
                 acao: 'COMENTARIO_ADICIONADO',
@@ -268,7 +264,7 @@ const ChamadosDB = {
                 autor: 'Sistema',
                 tipoAutor: 'sistema',
                 descricao: `Proposta enviada ao cliente - R$ ${proposta.valor}`,
-                visivel: true // Cliente pode ver
+                visivel: true
             });
             
             localStorage.setItem('helpdesk_chamados', JSON.stringify(chamados));
@@ -318,20 +314,7 @@ const ChamadosDB = {
         const email = {
             para: chamado.clienteName + '@empresa.com.br',
             assunto: `[${chamado.numeroSequencial}] Seu chamado teve atualização: ${HelpDeskConfig.status[novoStatus].label}`,
-            corpo: `
-                Prezado Cliente,
-                
-                Informamos que seu chamado #${chamado.numeroSequencial} - ${chamado.titulo}
-                teve a situação atualizada para: ${HelpDeskConfig.status[novoStatus].label}
-                
-                Modalidade: ${HelpDeskConfig.modalidades[chamado.modalidade].nome}
-                Data de Atualização: ${new Date(chamado.dataAtualizacao).toLocaleString('pt-BR')}
-                
-                Acesse o portal para mais detalhes: https://bpigovernanca.com.br/portal/dashboard.html
-                
-                Atenciosamente,
-                BPI Governança - Help Desk
-            `,
+            corpo: `Prezado Cliente,\n\nInformamos que seu chamado #${chamado.numeroSequencial} - ${chamado.titulo}\nteve a situação atualizada para: ${HelpDeskConfig.status[novoStatus].label}\n\nModalidade: ${HelpDeskConfig.modalidades[chamado.modalidade].nome}\nData de Atualização: ${new Date(chamado.dataAtualizacao).toLocaleString('pt-BR')}\n\nAcesse o portal para mais detalhes: https://bpigovernanca.com.br/portal/dashboard.html\n\nAtenciosamente,\nBPI Governança - Help Desk`,
             tipo: 'status_atualizado',
             chamadoId: chamado.id,
             dataPedido: new Date().toISOString(),
@@ -346,19 +329,7 @@ const ChamadosDB = {
         const email = {
             para: chamado.clienteName + '@empresa.com.br',
             assunto: `[${chamado.numeroSequencial}] Proposta enviada para seu chamado`,
-            corpo: `
-                Prezado Cliente,
-                
-                Uma proposta foi enviada para seu chamado #${chamado.numeroSequencial}
-                
-                Valor: R$ ${chamado.proposta.valor}
-                Prazo: ${chamado.proposta.prazo}
-                
-                Clique aqui para visualizar os detalhes e aceitar a proposta.
-                
-                Atenciosamente,
-                BPI Governança - Help Desk
-            `,
+            corpo: `Prezado Cliente,\n\nUma proposta foi enviada para seu chamado #${chamado.numeroSequencial}\n\nValor: R$ ${chamado.proposta.valor}\nPrazo: ${chamado.proposta.prazo}\n\nClique aqui para visualizar os detalhes e aceitar a proposta.\n\nAtenciosamente,\nBPI Governança - Help Desk`,
             tipo: 'proposta_enviada',
             chamadoId: chamado.id,
             dataPedido: new Date().toISOString(),
@@ -451,7 +422,6 @@ const BaseConhecimento = {
 const ChatIA = {
     
     sugerirSolucao: function(titulo, descricao, modalidade) {
-        // Simular IA buscando artigos relevantes
         const artigos = BaseConhecimento.buscarPorModalidade(modalidade);
         
         return {
@@ -462,7 +432,6 @@ const ChatIA = {
     },
 
     analisarDescricao: function(descricao) {
-        // Análise simulada de urgência
         const palavrasUrgentesCriticas = ['urgente', 'crítico', 'parado', 'quebrado', 'não funciona', 'erro'];
         const palavrasUrgentesAltas = ['problema', 'issue', 'dificuldade', 'não consegue'];
         
@@ -481,4 +450,3 @@ const ChatIA = {
 console.log('✅ Help Desk Core System Carregado');
 console.log('📋 Modalidades disponíveis:', Object.keys(HelpDeskConfig.modalidades).length);
 console.log('📚 Artigos na base de conhecimento:', BaseConhecimento.artigos.length);
-</script>
