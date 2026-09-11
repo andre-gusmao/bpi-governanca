@@ -144,54 +144,6 @@
             box-shadow: 0 10px 25px rgba(201, 166, 107, 0.3);
         }
 
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e8e8e8;
-        }
-
-        .login-footer p {
-            color: #666;
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        .login-footer a {
-            color: #C9A66B;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .login-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            display: none;
-        }
-
-        .alert.error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-            display: block;
-        }
-
-        .alert.success {
-            background: #efe;
-            color: #3c3;
-            border: 1px solid #cfc;
-            display: block;
-        }
-
         .demo-credentials {
             background: #f9f9f9;
             padding: 1rem;
@@ -211,29 +163,6 @@
             color: #666;
             font-size: 0.85rem;
         }
-
-        .demo-credentials code {
-            background: white;
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            color: #C9A66B;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 2rem 1.5rem;
-                margin: 1rem;
-            }
-
-            .login-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .login-type {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
@@ -244,8 +173,6 @@
             <p>BPI Governança - Help Desk</p>
         </div>
 
-        <div class="alert" id="alertMessage"></div>
-
         <div class="demo-credentials">
             <h4>🔐 Credenciais de Demonstração:</h4>
             <p><strong>Admin:</strong> admin@bpi.com.br / admin123</p>
@@ -253,10 +180,10 @@
         </div>
 
         <div class="login-type">
-            <button class="login-type-btn active" onclick="setLoginType('admin')">
+            <button class="login-type-btn active" onclick="setLoginType('admin')" type="button">
                 👨‍💼 Administrador
             </button>
-            <button class="login-type-btn" onclick="setLoginType('atendente')">
+            <button class="login-type-btn" onclick="setLoginType('atendente')" type="button">
                 👨‍💻 Atendente
             </button>
         </div>
@@ -275,11 +202,8 @@
             <button type="submit" class="btn-login">Entrar no Painel</button>
         </form>
 
-        <div class="login-footer">
-            <p>Voltar para <a href="../index.html">página inicial</a></p>
-            <p style="margin-top: 0.5rem; font-size: 0.85rem;">
-                🔒 Este é um ambiente de teste com dados simulados
-            </p>
+        <div class="login-footer" style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e8e8e8;">
+            <p style="color: #666; margin: 0;">Voltar para <a href="../index.html" style="color: #C9A66B; text-decoration: none; font-weight: 600;">página inicial</a></p>
         </div>
     </div>
 
@@ -297,65 +221,29 @@
 
         function fazerLogin(e) {
             e.preventDefault();
-
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
-            const alert = document.getElementById('alertMessage');
 
-            // Validação simples
-            if (!email || !senha) {
-                mostrarAlerta('Por favor, preencha todos os campos', 'error');
-                return;
-            }
+            if (email && senha) {
+                const userData = {
+                    type: tipoLoginAtual,
+                    email: email,
+                    name: tipoLoginAtual === 'admin' ? 'Administrador BPI' : 'Atendente BPI',
+                    loginTime: new Date().toISOString(),
+                    id: 'USER-' + Date.now()
+                };
 
-            // Simular validação
-            if (tipoLoginAtual === 'admin' && email === 'admin@bpi.com.br' && senha === 'admin123') {
-                loginSucesso('admin', email);
-            } else if (tipoLoginAtual === 'atendente' && email === 'atendente@bpi.com.br' && senha === '12345') {
-                loginSucesso('atendente', email);
-            } else if (email && senha) {
-                // Aceitar qualquer combinação para demo
-                loginSucesso(tipoLoginAtual, email);
-            } else {
-                mostrarAlerta('Email ou senha inválidos', 'error');
-            }
-        }
-
-        function loginSucesso(tipo, email) {
-            const userData = {
-                type: tipo,
-                email: email,
-                name: tipo === 'admin' ? 'Administrador BPI' : 'Atendente BPI',
-                loginTime: new Date().toISOString(),
-                id: 'USER-' + Date.now()
-            };
-
-            localStorage.setItem('adminSession', JSON.stringify(userData));
-            
-            mostrarAlerta('✅ Login realizado com sucesso!', 'success');
-            
-            setTimeout(() => {
-                if (tipo === 'admin') {
+                localStorage.setItem('adminSession', JSON.stringify(userData));
+                alert('✅ Login realizado com sucesso!');
+                
+                if (tipoLoginAtual === 'admin') {
                     window.location.href = 'dashboard-admin.html';
                 } else {
                     window.location.href = 'dashboard-atendente.html';
                 }
-            }, 1000);
-        }
-
-        function mostrarAlerta(mensagem, tipo) {
-            const alert = document.getElementById('alertMessage');
-            alert.textContent = mensagem;
-            alert.className = 'alert ' + tipo;
-            
-            if (tipo === 'error') {
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                }, 5000);
             }
         }
 
-        // Verificar se já está logado
         window.addEventListener('load', () => {
             const session = localStorage.getItem('adminSession');
             if (session) {

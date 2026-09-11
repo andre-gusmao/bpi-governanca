@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Atendente | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi.png" alt="BPI">
+                <span style="font-weight: 700;">BPI</span>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="dashboard-atendente.html" class="active">📊 Meus Chamados</a></li>
+                <li><a href="chamados-admin.html">🎫 Todos os Chamados</a></li>
+                <li><a href="clientes.html">👥 Clientes</a></li>
+            </ul>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                <button onclick="logoutAdmin()" class="btn btn-primary" style="width: 100%; background-color: rgba(201, 166, 107, 0.8);">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Dashboard do Atendente</h1>
+                    <p style="color: #555555; margin: 0;">Seus chamados atribuídos</p>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Atribuídos a Mim</h3>
+                    <div class="number" id="meusChamados">0</div>
+                    <p style="color: #555555; margin: 0;">Para atender</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Em Progresso</h3>
+                    <div class="number" id="meuAndamento" style="color: #FFA500;">0</div>
+                    <p style="color: #555555; margin: 0;">Sendo trabalhados</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Resolvidos Hoje</h3>
+                    <div class="number" id="resolvidosHoje" style="color: #28A745;">0</div>
+                    <p style="color: #555555; margin: 0;">Sucesso!</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Média Satisfação</h3>
+                    <div class="number" id="satisfacao" style="color: #C9A66B;">0%</div>
+                    <p style="color: #555555; margin: 0;">Rating do cliente</p>
+                </div>
+            </div>
+
+            <!-- Meus Chamados -->
+            <div class="table-wrapper" style="margin-top: 2rem;">
+                <h3>🎫 Meus Chamados</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Título</th>
+                            <th>Prioridade</th>
+                            <th>Status</th>
+                            <th>SLA</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyMeusChamados">
+                        <!-- Preenchido dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/helpdesk.js"></script>
+    <script>
+        function verificarAutenticacao() {
+            const session = localStorage.getItem('adminSession');
+            if (!session) {
+                window.location.href = 'login-admin.html';
+            } else {
+                const user = JSON.parse(session);
+                if (user.type !== 'atendente') {
+                    alert('Acesso restrito a atendentes');
+                    window.location.href = 'dashboard-admin.html';
+                }
+            }
+        }
+
+        function logoutAdmin() {
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.removeItem('adminSession');
+                window.location.href = 'login-admin.html';
+            }
+        }
+
+        function carregarDashboard() {
+            const chamados = ChamadosDB.obterTodos();
+            const hoje = new Date().toDateString();
+            
+            // Simular chamados do atendente
+            const meusChamados = chamados.slice(-5);
+            const emProgresso = meusChamados.filter(c => c.status === 'EM_PROGRESSO').length;
+            const resolvidos = meusChamados.filter(c => c.status === 'RESOLVIDO').length;
+
+            document.getElementById('meusChamados').textContent = meusChamados.length;
+            document.getElementById('meuAndamento').textContent = emProgresso;
+            document.getElementById('resolvidosHoje').textContent = resolvidos;
+            document.getElementById('satisfacao').textContent = Math.floor(Math.random() * 20 + 80) + '%';
+
+            // Tabela de chamados
+            const tbody = document.getElementById('tbodyMeusChamados');
+            tbody.innerHTML = '';
+
+            meusChamados.forEach(c => {
+                const config = HelpDeskConfig.status[c.status];
+                const prioridade = HelpDeskConfig.prioridades[c.prioridade];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>#${c.numeroSequencial}</td>
+                    <td>${c.clienteName}</td>
+                    <td>${c.titulo}</td>
+                    <td><span style="color: ${prioridade?.cor}; font-weight: 600;">${prioridade?.label}</span></td>
+                    <td><span class="status-badge" style="background: ${config?.cor}; color: white;">${config?.label}</span></td>
+                    <td>
+                        <span style="color: ${new Date(c.dataVencimentoSLA) > new Date() ? '#28A745' : '#DC143C'};">
+                            ${new Date(c.dataVencimentoSLA) > new Date() ? '✓ OK' : '✗ Vencido'}
+                        </span>
+                    </td>
+                    <td><a href="chamados-admin.html#${c.id}" style="color: #C9A66B; font-weight: 600;">Atender</a></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            verificarAutenticacao();
+            carregarDashboard();
+        });
+    </script>
+</body>
+</html>
