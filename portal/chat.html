@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Base de Conhecimento | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .chat-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .chat-main {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #f5f5f5;
+            background: linear-gradient(135deg, #0F1117 0%, #171C25 100%);
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .message.usuario {
+            justify-content: flex-end;
+        }
+
+        .message.usuario .conteudo {
+            background: #C9A66B;
+            color: #0F1117;
+        }
+
+        .message.sistema .conteudo {
+            background: white;
+            color: #333;
+            border: 1px solid #e8e8e8;
+        }
+
+        .conteudo {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 8px;
+            word-wrap: break-word;
+        }
+
+        .chat-input-area {
+            padding: 1.5rem;
+            border-top: 2px solid #f5f5f5;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 0.875rem;
+            border: 2px solid #e8e8e8;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .chat-input-area button {
+            padding: 0.875rem 1.5rem;
+            background: #C9A66B;
+            color: #0F1117;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .sidebar-conhecimento {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .artigos-lista {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .artigo-card {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f9f9f9;
+            border-left: 4px solid #C9A66B;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .artigo-card:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .artigo-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #0F1117;
+            font-size: 0.95rem;
+        }
+
+        .artigo-tag {
+            display: inline-block;
+            background: #e8e8e8;
+            color: #555;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .sugestoes-rapidas {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-rapido {
+            padding: 0.75rem;
+            background: #f5f5f5;
+            border: 1px solid #e8e8e8;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-rapido:hover {
+            background: #e8e8e8;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .conteudo {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar de Navegação -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi.png" alt="BPI Governança">
+                <span style="font-weight: 700;">BPI</span>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html">📊 Dashboard</a></li>
+                <li><a href="chamados.html">🎫 Meus Chamados</a></li>
+                <li><a href="chat.html" class="active">💬 Chat & Conhecimento</a></li>
+                <li><a href="#documentos">📄 Documentos</a></li>
+                <li><a href="#relatorios">📈 Relatórios</a></li>
+                <li><a href="#faturamento">💳 Faturamento</a></li>
+                <li><a href="#perfil">👤 Meu Perfil</a></li>
+                <li><a href="#suporte">🆘 Suporte</a></li>
+            </ul>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.2);">
+                <button onclick="logout()" class="btn btn-primary" style="width: 100%; background-color: rgba(201, 166, 107, 0.8);">
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="dashboard-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1>💬 Chat & Base de Conhecimento</h1>
+                    <p style="color: #555555; margin: 0;">Encontre soluções rapidamente ou inicie um atendimento</p>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <!-- Chat Principal -->
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <h3 style="margin: 0;">Assistente BPI Governança</h3>
+                        <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 0.9rem;">Estou aqui para ajudar</p>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message sistema">
+                            <div class="conteudo">
+                                <strong>Olá! 👋</strong><br>
+                                Seja bem-vindo ao chat de suporte BPI Governança. Como posso ajudá-lo hoje?<br><br>
+                                Você pode:
+                                <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                    <li>Buscar artigos na base de conhecimento</li>
+                                    <li>Abrir um novo chamado</li>
+                                    <li>Tirar dúvidas gerais</li>
+                                    <li>Falar sobre implementações</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Digite sua dúvida ou descrição do problema..." autocomplete="off">
+                        <button onclick="enviarMensagemChat()">Enviar</button>
+                    </div>
+                </div>
+
+                <!-- Sidebar com Artigos de Conhecimento -->
+                <div class="sidebar-conhecimento">
+                    <h3 style="margin-top: 0;">📚 Base de Conhecimento</h3>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filtrar por Serviço:</label>
+                        <select id="filtroModalidade" onchange="filtrarArtigosPorModalidade()" 
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #e8e8e8; border-radius: 5px;">
+                            <option value="">Todos</option>
+                            <option value="CLOUD">☁️ Cloud</option>
+                            <option value="TREINAMENTO">📚 Treinamento</option>
+                            <option value="ACESSO">🔐 Acesso</option>
+                            <option value="IMPLEMENTACAO">🚀 Implementação</option>
+                            <option value="NOTAS">📝 Notas</option>
+                            <option value="BI">📊 Business Intelligence</option>
+                            <option value="DASHBOARD">📈 Dashboard</option>
+                            <option value="BPO_FINANCEIRO">💰 BPO Financeiro</option>
+                            <option value="BPO_CONTABIL">📋 BPO Contábil</option>
+                            <option value="INTEGRACAO">🔄 Integrações</option>
+                            <option value="DUVIDA">❓ Dúvidas Gerais</option>
+                        </select>
+                    </div>
+
+                    <div class="artigos-lista" id="artigosList">
+                        <!-- Preenchido dinamicamente -->
+                    </div>
+
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e8e8e8;">
+                        <h4>⚡ Ações Rápidas:</h4>
+                        <div class="sugestoes-rapidas">
+                            <button class="btn-rapido" onclick="abrirChamadoRapido('DUVIDA')">❓ Tirar Dúvida</button>
+                            <button class="btn-rapido" onclick="abrirChamadoRapido('SUPORTE')">🆘 Reportar Problema</button>
+                            <button class="btn-rapido" onclick="window.location.href='chamados.html'">🎫 Ver Chamados</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/app.js"></script>
+    <script>
+        let conversaAtual = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticação
+            const userSession = localStorage.getItem('userSession');
+            if (!userSession) {
+                window.location.href = 'login.html';
+            }
+
+            // Carregar artigos iniciais
+            carregarArtigosPrincipais();
+
+            // Setup Enter key
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    enviarMensagemChat();
+                }
+            });
+        });
+
+        function carregarArtigosPrincipais() {
+            const artigosList = document.getElementById('artigosList');
+            artigosList.innerHTML = '';
+
+            BaseConhecimento.artigos.forEach(artigo => {
+                const card = document.createElement('div');
+                card.className = 'artigo-card';
+                card.onclick = () => selecionarArtigo(artigo);
+                
+                card.innerHTML = `
+                    <h4>${artigo.titulo}</h4>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #666;">
+                        ${artigo.categoria}
+                    </p>
+                `;
+                
+                artigosList.appendChild(card);
+            });
+        }
+
+        function filtrarArtigosPorModalidade() {
+            const filtro = document.getElementById('filtroModalidade').value;
+            const artigosList = document.getElementById('artigosList');
+            artigosList.innerHTML = '';
+
+            let artigos = BaseConhecimento.artigos;
+            
+            if (filtro) {
+                artigos = BaseConhecimento.buscarPorModalidade(filtro);
+            }
+
+            if (artigos.length === 0) {
+                artigosList.innerHTML = '<p style="color: #999; text-align: center;">Nenhum artigo encontrado</p>';
+                return;
+            }
+
+            artigos.forEach(artigo => {
+                const card = document.createElement('div');
+                card.className = 'artigo-card';
+                card.onclick = () => selecionarArtigo(artigo);
+                
+                card.innerHTML = `
+                    <h4>${artigo.titulo}</h4>
+                    <div style="margin-top: 0.5rem;">
+                        ${artigo.tags.map(t => `<span class="artigo-tag">${t}</span>`).join('')}
+                    </div>
+                `;
+                
+                artigosList.appendChild(card);
+            });
+        }
+
+        function selecionarArtigo(artigo) {
+            adicionarMensagemChat(`Vejo que você está interessado em: "${artigo.titulo}"`, 'usuario');
+            
+            setTimeout(() => {
+                adicionarMensagemChat(
+                    `<strong>${artigo.titulo}</strong><br><br>` +
+                    `${artigo.conteudo}<br><br>` +
+                    `<button onclick="abrirChamadoComArtigo('${artigo.id}')" class="btn btn-primary" style="margin-top: 1rem;">` +
+                    `Abrir Chamado sobre isso</button>`,
+                    'sistema'
+                );
+            }, 300);
+        }
+
+        function enviarMensagemChat() {
+            const input = document.getElementById('chatInput');
+            const mensagem = input.value.trim();
+
+            if (!mensagem) return;
+
+            // Adicionar mensagem do usuário
+            adicionarMensagemChat(mensagem, 'usuario');
+            input.value = '';
+
+            // Simular resposta do assistente
+            setTimeout(() => {
+                const resposta = processarMensagem(mensagem);
+                adicionarMensagemChat(resposta, 'sistema');
+            }, 800);
+        }
+
+        function processarMensagem(mensagem) {
+            // Análise de intenção da mensagem
+            const mensagemLower = mensagem.toLowerCase();
+
+            // Detectar modalidade
+            let modalidadeDetectada = null;
+            for (const [key, config] of Object.entries(HelpDeskConfig.modalidades)) {
+                if (mensagemLower.includes(config.nome.toLowerCase()) || 
+                    mensagemLower.includes(key.toLowerCase())) {
+                    modalidadeDetectada = key;
+                    break;
+                }
+            }
+
+            // Buscar artigos relevantes
+            const artigos = BaseConhecimento.buscar(mensagem);
+
+            if (artigos.length > 0) {
+                let resposta = `Encontrei ${artigos.length} artigo(s) que podem ajudar:<br><br>`;
+                artigos.forEach(a => {
+                    resposta += `• <strong>${a.titulo}</strong><br>`;
+                });
+                resposta += `<br>Clique em um artigo na lista ao lado ou me diga se precisa abrir um chamado.`;
+                return resposta;
+            }
+
+            // Se não encontrou artigos, sugerir abertura de chamado
+            if (mensagem.length > 20) {
+                return `Não encontrei um artigo sobre isso, mas posso ajudar a abrir um chamado!<br><br>` +
+                       `Deixe-me entender melhor:` +
+                       `<ul>` +
+                       `<li>Qual é a modalidade de serviço? (Cloud, Treinamento, BI, etc)</li>` +
+                       `<li>Qual é a prioridade? (Crítica, Alta, Média, Baixa)</li>` +
+                       `</ul>` +
+                       `Ou clique em "Tirar Dúvida" para abrir um chamado rapidamente.`;
+            }
+
+            // Resposta padrão amigável
+            return `Ótimo! Parece que você está buscando informações. Como posso ajudar melhor?<br><br>` +
+                   `Dicas:<br>` +
+                   `🔍 Busque por palavras-chave específicas<br>` +
+                   `🎫 Abra um chamado se precisar de atendimento personalizado<br>` +
+                   `📚 Explore a base de conhecimento ao lado`;
+        }
+
+        function adicionarMensagemChat(texto, tipo) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${tipo}`;
+            
+            const conteudoDiv = document.createElement('div');
+            conteudoDiv.className = 'conteudo';
+            conteudoDiv.innerHTML = texto;
+            
+            messageDiv.appendChild(conteudoDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll para última mensagem
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function abrirChamadoRapido(tipo) {
+            const userSession = JSON.parse(localStorage.getItem('userSession'));
+            
+            const chamado = ChamadosDB.criar({
+                clientId: userSession.clientId,
+                clienteName: userSession.name,
+                modalidade: tipo === 'DUVIDA' ? 'DUVIDA' : 'SUPORTE',
+                titulo: tipo === 'DUVIDA' ? 'Dúvida geral' : 'Reportar problema',
+                descricao: 'Aberto via chat',
+                prioridade: 'MEDIA'
+            });
+
+            alert(`✅ Chamado #${chamado.numeroSequencial} aberto com sucesso!\n\nRedirecionando para seus chamados...`);
+            window.location.href = 'chamados.html';
+        }
+
+        function abrirChamadoComArtigo(artigoId) {
+            const userSession = JSON.parse(localStorage.getItem('userSession'));
+            const artigo = BaseConhecimento.artigos.find(a => a.id === artigoId);
+
+            const chamado = ChamadosDB.criar({
+                clientId: userSession.clientId,
+                clienteName: userSession.name,
+                modalidade: artigo.modalidades[0],
+                titulo: `Dúvida sobre: ${artigo.titulo}`,
+                descricao: `Cliente consultou artigo: ${artigo.titulo}`,
+                prioridade: 'MEDIA'
+            });
+
+            alert(`✅ Chamado #${chamado.numeroSequencial} aberto!\n\nNosso time analisará sua dúvida em breve.`);
+            window.location.href = 'chamados.html';
+        }
+    </script>
+</body>
+</html>
