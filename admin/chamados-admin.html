@@ -226,9 +226,6 @@
 
                 <div class="chamado-detail">
                     <div class="chamado-main">
-                        <!-- Informações do Chamado -->
-                        <div id="infoChamado"></div>
-
                         <!-- Descrição -->
                         <div class="section-title">📝 Descrição</div>
                         <div id="descricaoChamado" style="background: #f9f9f9; padding: 1rem; border-radius: 8px; line-height: 1.6; color: #555;"></div>
@@ -246,6 +243,281 @@
                             </div>
 
                             <div>
-                                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer;\">\n                                    <input type=\"checkbox\" id=\"comentarioVisivel\" checked>\n                                    <span style=\"font-weight: 600;\">Visível ao Cliente</span>\n                                </label>\n                            </div>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer;">
+                                    <input type="checkbox" id="comentarioVisivel" checked>
+                                    <span style="font-weight: 600;">Visível ao Cliente</span>
+                                </label>
+                            </div>
 
-                            <button type="submit\" class=\"btn btn-primary\">Publicar Comentário</button>\n                        </form>\n                    </div>\n\n                    <!-- Sidebar - Informações e Ações -->\n                    <div class=\"chamado-sidebar\">\n                        <div class=\"section-title\">⚡ Ações Rápidas</div>\n\n                        <div class=\"status-transition\">\n                            <label style=\"font-weight: 600; font-size: 0.95rem;\">Mudar Status:</label>\n                            <select id=\"novoStatus\" style=\"padding: 0.75rem; border: 2px solid #C9A66B; border-radius: 8px; font-size: 0.95rem;\">\n                                <option value=\"\">Selecione novo status...</option>\n                            </select>\n                            <button onclick=\"mudarStatus()\" class=\"btn btn-primary\">Atualizar Status</button>\n                        </div>\n\n                        <div class=\"section-title\">📋 Informações</div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Número Sequencial</div>\n                            <div class=\"info-value\" id=\"infNumero\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Cliente</div>\n                            <div class=\"info-value\" id=\"infCliente\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Modalidade</div>\n                            <div class=\"info-value\" id=\"infModalidade\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Prioridade</div>\n                            <div class=\"info-value\" id=\"infPrioridade\" style=\"color: #DC143C;\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Status Atual</div>\n                            <div class=\"info-value\" id=\"infStatus\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Data de Criação</div>\n                            <div class=\"info-value\" id=\"infDataCriacao\">-</div>\n                        </div>\n\n                        <div class=\"info-group\">\n                            <div class=\"info-label\">Vencimento SLA</div>\n                            <div class=\"info-value\" id=\"infSLA\">-</div>\n                        </div>\n\n                        <div class=\"section-title\">📧 Enviar Proposta</div>\n\n                        <form onsubmit=\"enviarProposta(event)\" style=\"display: grid; gap: 1rem;\">\n                            <div>\n                                <label style=\"display: block; margin-bottom: 0.5rem; font-weight: 600;\">Valor (R$)</label>\n                                <input type=\"number\" id=\"valorProposta\" placeholder=\"0.00\" step=\"0.01\">\n                            </div>\n\n                            <div>\n                                <label style=\"display: block; margin-bottom: 0.5rem; font-weight: 600;\">Prazo</label>\n                                <input type=\"text\" id=\"prazoProposta\" placeholder=\"Ex: 5 dias úteis\">\n                            </div>\n\n                            <div>\n                                <label style=\"display: block; margin-bottom: 0.5rem; font-weight: 600;\">Detalhes</label>\n                                <textarea id=\"detalhesProposta\" placeholder=\"Descreva a proposta...\" style=\"width: 100%; min-height: 80px; padding: 0.75rem; border: 2px solid #e8e8e8; border-radius: 8px; font-family: inherit; resize: vertical;\"></textarea>\n                            </div>\n\n                            <button type=\"submit\" class=\"btn btn-primary\">Enviar Proposta</button>\n                        </form>\n                    </div>\n                </div>\n            </div>\n        </main>\n    </div>\n\n    <script src=\"../assets/js/helpdesk.js\"></script>\n    <script>\n        let chamadoAtualId = null;\n        let chamadosFiltrados = [];\n\n        function verificarAutenticacao() {\n            const session = localStorage.getItem('adminSession');\n            if (!session) {\n                window.location.href = 'login-admin.html';\n            }\n        }\n\n        function logoutAdmin() {\n            if (confirm('Deseja realmente sair?')) {\n                localStorage.removeItem('adminSession');\n                window.location.href = 'login-admin.html';\n            }\n        }\n\n        function carregarChamados() {\n            const chamados = ChamadosDB.obterTodos();\n            chamadosFiltrados = chamados;\n            renderizarTabela();\n        }\n\n        function renderizarTabela() {\n            const tbody = document.getElementById('tbodyChamados');\n            tbody.innerHTML = '';\n\n            chamadosFiltrados.forEach(c => {\n                const config = HelpDeskConfig.status[c.status];\n                const prioridade = HelpDeskConfig.prioridades[c.prioridade];\n                const tr = document.createElement('tr');\n                tr.style.cursor = 'pointer';\n                tr.onclick = () => mostrarDetalhes(c.id);\n                tr.innerHTML = `\n                    <td>#${c.numeroSequencial}</td>\n                    <td>${c.clienteName}</td>\n                    <td>${c.titulo}</td>\n                    <td>${HelpDeskConfig.modalidades[c.modalidade]?.nome || c.modalidade}</td>\n                    <td><span style=\"color: ${prioridade?.cor}; font-weight: 600;\">${prioridade?.label}</span></td>\n                    <td><span class=\"status-badge\" style=\"background: ${config?.cor}; color: white;\">${config?.label}</span></td>\n                    <td>\n                        <span style=\"color: ${new Date(c.dataVencimentoSLA) > new Date() ? '#28A745' : '#DC143C'};\">\n                            ${new Date(c.dataVencimentoSLA) > new Date() ? '✓ OK' : '✗ Vencido'}\n                        </span>\n                    </td>\n                    <td><a href=\"#\" onclick=\"mostrarDetalhes('${c.id}'); return false;\" style=\"color: #C9A66B; font-weight: 600;\">Abrir</a></td>\n                `;\n                tbody.appendChild(tr);\n            });\n        }\n\n        function filtrarChamados() {\n            const status = document.getElementById('filtroStatus').value;\n            const prioridade = document.getElementById('filtroPrioridade').value;\n            const modalidade = document.getElementById('filtroModalidade').value;\n            const busca = document.getElementById('buscaChamados').value.toLowerCase();\n            const todos = ChamadosDB.obterTodos();\n\n            chamadosFiltrados = todos.filter(c => {\n                let passa = true;\n                if (status && c.status !== status) passa = false;\n                if (prioridade && c.prioridade !== prioridade) passa = false;\n                if (modalidade && c.modalidade !== modalidade) passa = false;\n                if (busca && !c.numeroSequencial.includes(busca) && !c.clienteName.toLowerCase().includes(busca)) passa = false;\n                return passa;\n            });\n\n            renderizarTabela();\n        }\n\n        function mostrarDetalhes(id) {\n            chamadoAtualId = id;\n            const chamado = ChamadosDB.obterPorId(id);\n            if (!chamado) return;\n\n            document.getElementById('secaoLista').style.display = 'none';\n            document.getElementById('secaoDetalhes').style.display = 'block';\n\n            // Preencher informações\n            const config = HelpDeskConfig.status[chamado.status];\n            const prioridade = HelpDeskConfig.prioridades[chamado.prioridade];\n            const modalidade = HelpDeskConfig.modalidades[chamado.modalidade];\n\n            document.getElementById('infNumero').textContent = '#' + chamado.numeroSequencial;\n            document.getElementById('infCliente').textContent = chamado.clienteName;\n            document.getElementById('infModalidade').textContent = modalidade?.nome || chamado.modalidade;\n            document.getElementById('infPrioridade').textContent = prioridade?.label;\n            document.getElementById('infStatus').innerHTML = `<span class=\"status-badge\" style=\"background: ${config?.cor}; color: white;\">${config?.label}</span>`;\n            document.getElementById('infDataCriacao').textContent = new Date(chamado.dataCriacao).toLocaleString('pt-BR');\n            document.getElementById('infSLA').innerHTML = `<span style=\"color: ${new Date(chamado.dataVencimentoSLA) > new Date() ? '#28A745' : '#DC143C'};\">${new Date(chamado.dataVencimentoSLA).toLocaleString('pt-BR')}</span>`;\n\n            document.getElementById('descricaoChamado').textContent = chamado.descricao;\n\n            // Carregar comentários\n            const comentariosHtml = chamado.comentarios.map(com => `\n                <div class=\"comment-item\">\n                    <div class=\"comment-header\">\n                        <span class=\"comment-author\">${com.autor}</span>\n                        <span class=\"comment-time\">${new Date(com.data).toLocaleString('pt-BR')}</span>\n                    </div>\n                    <div class=\"comment-header\" style=\"margin-top: 0.5rem;\">\n                        <span class=\"badge-visibility ${com.visivel ? 'public' : 'private'}\">${com.visivel ? '👁️ Público' : '🔒 Privado'}</span>\n                    </div>\n                    <p class=\"comment-text\">${com.texto}</p>\n                </div>\n            `).join('');\n\n            document.getElementById('comentariosChamado').innerHTML = comentariosHtml || '<p style=\"color: #999;\">Nenhum comentário ainda</p>';\n\n            // Carregar opções de status disponíveis\n            const statusAtual = HelpDeskConfig.status[chamado.status];\n            const selectStatus = document.getElementById('novoStatus');\n            selectStatus.innerHTML = '<option value=\"\">Selecione novo status...</option>';\n            \n            if (statusAtual?.permiteTransicao) {\n                statusAtual.permiteTransicao.forEach(novoStatus => {\n                    const opt = document.createElement('option');\n                    opt.value = novoStatus;\n                    opt.textContent = HelpDeskConfig.status[novoStatus]?.label || novoStatus;\n                    selectStatus.appendChild(opt);\n                });\n            }\n        }\n\n        function voltarParaLista() {\n            document.getElementById('secaoLista').style.display = 'block';\n            document.getElementById('secaoDetalhes').style.display = 'none';\n            chamadoAtualId = null;\n        }\n\n        function mudarStatus() {\n            const novoStatus = document.getElementById('novoStatus').value;\n            if (!novoStatus) {\n                alert('Selecione um novo status');\n                return;\n            }\n\n            ChamadosDB.atualizarStatus(chamadoAtualId, novoStatus, 'Status atualizado pelo admin', 'admin@bpi.com.br', 'admin');\n            alert('✅ Status atualizado com sucesso!');\n            mostrarDetalhes(chamadoAtualId);\n            carregarChamados();\n        }\n\n        function adicionarComentario(e) {\n            e.preventDefault();\n            const texto = document.getElementById('textoComentario').value;\n            const visivel = document.getElementById('comentarioVisivel').checked;\n\n            ChamadosDB.adicionarComentario(chamadoAtualId, texto, 'admin@bpi.com.br', 'admin', visivel);\n            alert('✅ Comentário adicionado!');\n            document.getElementById('textoComentario').value = '';\n            mostrarDetalhes(chamadoAtualId);\n        }\n\n        function enviarProposta(e) {\n            e.preventDefault();\n            const valor = document.getElementById('valorProposta').value;\n            const prazo = document.getElementById('prazoProposta').value;\n            const detalhes = document.getElementById('detalhesProposta').value;\n\n            if (!valor || !prazo) {\n                alert('Preencha valor e prazo');\n                return;\n            }\n\n            ChamadosDB.enviarProposta(chamadoAtualId, { valor, prazo, detalhes });\n            alert('✅ Proposta enviada ao cliente!');\n            document.getElementById('valorProposta').value = '';\n            document.getElementById('prazoProposta').value = '';\n            document.getElementById('detalhesProposta').value = '';\n            mostrarDetalhes(chamadoAtualId);\n        }\n\n        function carregarFiltros() {\n            const select = document.getElementById('filtroModalidade');\n            Object.entries(HelpDeskConfig.modalidades).forEach(([key, mod]) => {\n                const opt = document.createElement('option');\n                opt.value = key;\n                opt.textContent = mod.nome;\n                select.appendChild(opt);\n            });\n        }\n\n        window.addEventListener('load', () => {\n            verificarAutenticacao();\n            carregarFiltros();\n            carregarChamados();\n        });\n    </script>\n</body>\n</html>
+                            <button type="submit" class="btn btn-primary">Publicar Comentário</button>
+                        </form>
+                    </div>
+
+                    <!-- Sidebar - Informações e Ações -->
+                    <div class="chamado-sidebar">
+                        <div class="section-title">⚡ Ações Rápidas</div>
+
+                        <div class="status-transition">
+                            <label style="font-weight: 600; font-size: 0.95rem;">Mudar Status:</label>
+                            <select id="novoStatus" style="padding: 0.75rem; border: 2px solid #C9A66B; border-radius: 8px; font-size: 0.95rem;">
+                                <option value="">Selecione novo status...</option>
+                            </select>
+                            <button type="button" onclick="mudarStatus()" class="btn btn-primary">Atualizar Status</button>
+                        </div>
+
+                        <div class="section-title">📋 Informações</div>
+
+                        <div class="info-group">
+                            <div class="info-label">Número Sequencial</div>
+                            <div class="info-value" id="infNumero">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Cliente</div>
+                            <div class="info-value" id="infCliente">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Modalidade</div>
+                            <div class="info-value" id="infModalidade">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Prioridade</div>
+                            <div class="info-value" id="infPrioridade" style="color: #DC143C;">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Status Atual</div>
+                            <div class="info-value" id="infStatus">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Data de Criação</div>
+                            <div class="info-value" id="infDataCriacao">-</div>
+                        </div>
+
+                        <div class="info-group">
+                            <div class="info-label">Vencimento SLA</div>
+                            <div class="info-value" id="infSLA">-</div>
+                        </div>
+
+                        <div class="section-title">📧 Enviar Proposta</div>
+
+                        <form onsubmit="enviarProposta(event)" style="display: grid; gap: 1rem;">
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Valor (R$)</label>
+                                <input type="number" id="valorProposta" placeholder="0.00" step="0.01">
+                            </div>
+
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Prazo</label>
+                                <input type="text" id="prazoProposta" placeholder="Ex: 5 dias úteis">
+                            </div>
+
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Detalhes</label>
+                                <textarea id="detalhesProposta" placeholder="Descreva a proposta..." style="width: 100%; min-height: 80px; padding: 0.75rem; border: 2px solid #e8e8e8; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Enviar Proposta</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/helpdesk.js"></script>
+    <script>
+        let chamadoAtualId = null;
+        let chamadosFiltrados = [];
+
+        function verificarAutenticacao() {
+            const session = localStorage.getItem('adminSession');
+            if (!session) {
+                window.location.href = 'login-admin.html';
+            }
+        }
+
+        function logoutAdmin() {
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.removeItem('adminSession');
+                window.location.href = 'login-admin.html';
+            }
+        }
+
+        function carregarChamados() {
+            const chamados = ChamadosDB.obterTodos();
+            chamadosFiltrados = chamados;
+            renderizarTabela();
+        }
+
+        function renderizarTabela() {
+            const tbody = document.getElementById('tbodyChamados');
+            tbody.innerHTML = '';
+
+            chamadosFiltrados.forEach(c => {
+                const config = HelpDeskConfig.status[c.status];
+                const prioridade = HelpDeskConfig.prioridades[c.prioridade];
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.onclick = () => mostrarDetalhes(c.id);
+                tr.innerHTML = `
+                    <td>#${c.numeroSequencial}</td>
+                    <td>${c.clienteName}</td>
+                    <td>${c.titulo}</td>
+                    <td>${HelpDeskConfig.modalidades[c.modalidade]?.nome || c.modalidade}</td>
+                    <td><span style="color: ${prioridade?.cor}; font-weight: 600;">${prioridade?.label}</span></td>
+                    <td><span class="status-badge" style="background: ${config?.cor}; color: white;">${config?.label}</span></td>
+                    <td>
+                        <span style="color: ${new Date(c.dataVencimentoSLA) > new Date() ? '#28A745' : '#DC143C'};">
+                            ${new Date(c.dataVencimentoSLA) > new Date() ? '✓ OK' : '✗ Vencido'}
+                        </span>
+                    </td>
+                    <td><a href="#" onclick="mostrarDetalhes('${c.id}'); return false;" style="color: #C9A66B; font-weight: 600;">Abrir</a></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filtrarChamados() {
+            const status = document.getElementById('filtroStatus').value;
+            const prioridade = document.getElementById('filtroPrioridade').value;
+            const modalidade = document.getElementById('filtroModalidade').value;
+            const busca = document.getElementById('buscaChamados').value.toLowerCase();
+            const todos = ChamadosDB.obterTodos();
+
+            chamadosFiltrados = todos.filter(c => {
+                let passa = true;
+                if (status && c.status !== status) passa = false;
+                if (prioridade && c.prioridade !== prioridade) passa = false;
+                if (modalidade && c.modalidade !== modalidade) passa = false;
+                if (busca && !c.numeroSequencial.includes(busca) && !c.clienteName.toLowerCase().includes(busca)) passa = false;
+                return passa;
+            });
+
+            renderizarTabela();
+        }
+
+        function mostrarDetalhes(id) {
+            chamadoAtualId = id;
+            const chamado = ChamadosDB.obterPorId(id);
+            if (!chamado) return;
+
+            document.getElementById('secaoLista').style.display = 'none';
+            document.getElementById('secaoDetalhes').style.display = 'block';
+
+            // Preencher informações
+            const config = HelpDeskConfig.status[chamado.status];
+            const prioridade = HelpDeskConfig.prioridades[chamado.prioridade];
+            const modalidade = HelpDeskConfig.modalidades[chamado.modalidade];
+
+            document.getElementById('infNumero').textContent = '#' + chamado.numeroSequencial;
+            document.getElementById('infCliente').textContent = chamado.clienteName;
+            document.getElementById('infModalidade').textContent = modalidade?.nome || chamado.modalidade;
+            document.getElementById('infPrioridade').textContent = prioridade?.label;
+            document.getElementById('infStatus').innerHTML = `<span class="status-badge" style="background: ${config?.cor}; color: white;">${config?.label}</span>`;
+            document.getElementById('infDataCriacao').textContent = new Date(chamado.dataCriacao).toLocaleString('pt-BR');
+            document.getElementById('infSLA').innerHTML = `<span style="color: ${new Date(chamado.dataVencimentoSLA) > new Date() ? '#28A745' : '#DC143C'};">${new Date(chamado.dataVencimentoSLA).toLocaleString('pt-BR')}</span>`;
+
+            document.getElementById('descricaoChamado').textContent = chamado.descricao;
+
+            // Carregar comentários
+            const comentariosHtml = chamado.comentarios.map(com => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">${com.autor}</span>
+                        <span class="comment-time">${new Date(com.data).toLocaleString('pt-BR')}</span>
+                    </div>
+                    <div class="comment-header" style="margin-top: 0.5rem;">
+                        <span class="badge-visibility ${com.visivel ? 'public' : 'private'}">${com.visivel ? '👁️ Público' : '🔒 Privado'}</span>
+                    </div>
+                    <p class="comment-text">${com.texto}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('comentariosChamado').innerHTML = comentariosHtml || '<p style="color: #999;">Nenhum comentário ainda</p>';
+
+            // Carregar opções de status disponíveis
+            const statusAtual = HelpDeskConfig.status[chamado.status];
+            const selectStatus = document.getElementById('novoStatus');
+            selectStatus.innerHTML = '<option value="">Selecione novo status...</option>';
+            
+            if (statusAtual?.permiteTransicao) {
+                statusAtual.permiteTransicao.forEach(novoStatus => {
+                    const opt = document.createElement('option');
+                    opt.value = novoStatus;
+                    opt.textContent = HelpDeskConfig.status[novoStatus]?.label || novoStatus;
+                    selectStatus.appendChild(opt);
+                });
+            }
+        }
+
+        function voltarParaLista() {
+            document.getElementById('secaoLista').style.display = 'block';
+            document.getElementById('secaoDetalhes').style.display = 'none';
+            chamadoAtualId = null;
+        }
+
+        function mudarStatus() {
+            const novoStatus = document.getElementById('novoStatus').value;
+            if (!novoStatus) {
+                alert('Selecione um novo status');
+                return;
+            }
+
+            ChamadosDB.atualizarStatus(chamadoAtualId, novoStatus, 'Status atualizado pelo admin', 'admin@bpi.com.br', 'admin');
+            alert('✅ Status atualizado com sucesso!');
+            mostrarDetalhes(chamadoAtualId);
+            carregarChamados();
+        }
+
+        function adicionarComentario(e) {
+            e.preventDefault();
+            const texto = document.getElementById('textoComentario').value;
+            const visivel = document.getElementById('comentarioVisivel').checked;
+
+            ChamadosDB.adicionarComentario(chamadoAtualId, texto, 'admin@bpi.com.br', 'admin', visivel);
+            alert('✅ Comentário adicionado!');
+            document.getElementById('textoComentario').value = '';
+            mostrarDetalhes(chamadoAtualId);
+        }
+
+        function enviarProposta(e) {
+            e.preventDefault();
+            const valor = document.getElementById('valorProposta').value;
+            const prazo = document.getElementById('prazoProposta').value;
+            const detalhes = document.getElementById('detalhesProposta').value;
+
+            if (!valor || !prazo) {
+                alert('Preencha valor e prazo');
+                return;
+            }
+
+            ChamadosDB.enviarProposta(chamadoAtualId, { valor, prazo, detalhes });
+            alert('✅ Proposta enviada ao cliente!');
+            document.getElementById('valorProposta').value = '';
+            document.getElementById('prazoProposta').value = '';
+            document.getElementById('detalhesProposta').value = '';
+            mostrarDetalhes(chamadoAtualId);
+        }
+
+        function carregarFiltros() {
+            const select = document.getElementById('filtroModalidade');
+            Object.entries(HelpDeskConfig.modalidades).forEach(([key, mod]) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = mod.nome;
+                select.appendChild(opt);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            verificarAutenticacao();
+            carregarFiltros();
+            carregarChamados();
+        });
+    </script>
+</body>
+</html>
