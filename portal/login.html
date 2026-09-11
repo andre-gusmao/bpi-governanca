@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portal do Cliente - BPI Governança">
+    <title>Login - BPI Governança Portal</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img src="../assets/images/logobpi.png" alt="BPI Governança" style="height: 60px; margin-bottom: 1rem;">
+                <h2>Portal do Cliente</h2>
+                <p style="color: #555555; font-size: 0.95rem;">Acesse sua área restrita</p>
+            </div>
+
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group form-checkbox">
+                    <input type="checkbox" id="lembrar" name="lembrar">
+                    <label for="lembrar">Lembrar-me</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">Entrar</button>
+            </form>
+
+            <div class="login-footer">
+                <p><a href="#">Esqueceu a senha?</a></p>
+                <p style="font-size: 0.9rem;">Problemas para acessar? <a href="../pages/contato.html">Entre em contato</a></p>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e8e8e8; text-align: center;">
+                <p style="color: #555555; font-size: 0.9rem;">
+                    Não é cliente? <a href="../index.html">Voltar ao site</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        // Override do comportamento de login para demo
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                if (email && password) {
+                    // Salvar sessão simulada
+                    localStorage.setItem('userSession', JSON.stringify({
+                        email: email,
+                        name: email.split('@')[0],
+                        clientId: 'CLI-001',
+                        clientName: 'Empresa Demo',
+                        role: 'client',
+                        timestamp: new Date().toISOString()
+                    }));
+                    
+                    alert('Login realizado com sucesso!');
+                    window.location.href = 'dashboard.html';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
