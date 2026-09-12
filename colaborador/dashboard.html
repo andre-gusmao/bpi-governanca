@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .content-section {
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .section-title {
+      font-size: var(--fs-2xl);
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-lg);
+      color: var(--color-dark-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: var(--gradient-gold);
+      border-radius: 2px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-lg);
+      margin-top: var(--spacing-lg);
+    }
+
+    .action-card {
+      background: white;
+      border: 2px solid transparent;
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .action-card:hover {
+      border-color: var(--color-primary-gold);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .action-icon {
+      font-size: 40px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .action-title {
+      font-size: var(--fs-base);
+      font-weight: var(--fw-bold);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .chart-title {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .chart-placeholder {
+      width: 100%;
+      height: 200px;
+      background: var(--color-gray-lighter);
+      border-radius: var(--border-radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9CA3AF;
+      font-size: var(--fs-sm);
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">⬤</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link active" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🎯</span>
+            PMO Geral
+          </a>
+          <a class="nav-link" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Referências</div>
+          <a class="nav-link" href="./produtos-servicos.html">
+            <span class="nav-icon">📦</span>
+            Produtos/Serviços
+          </a>
+          <a class="nav-link" href="./escopo-detalhado.html">
+            <span class="nav-icon">📋</span>
+            Escopo
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">PMO</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <div class="header-breadcrumb">Início / Dashboard</div>
+      </div>
+      <div class="header-actions">
+        <div class="notification-badge">
+          🔔
+          <span class="notification-dot"></span>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="portal-content">
+      <!-- KPIs -->
+      <div class="dashboard-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-label">Projetos Ativos</div>
+          <div class="kpi-value" id="kpiProjetos">12</div>
+          <div class="kpi-change positive">↑ +2 este mês</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-label">Propostas Aceitas</div>
+          <div class="kpi-value" id="kpiPropostas">8</div>
+          <div class="kpi-change positive">↑ +1 última semana</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon">⏰</div>
+          <div class="kpi-label">Atividades em Atraso</div>
+          <div class="kpi-value" id="kpiAtrasos">3</div>
+          <div class="kpi-change negative">↑ Ação necessária</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-label">Receita Projetada</div>
+          <div class="kpi-value" id="kpiReceita">R$ 2.5M</div>
+          <div class="kpi-change positive">↑ +15% vs ano anterior</div>
+        </div>
+      </div>
+
+      <!-- AÇÕES RÁPIDAS -->
+      <div class="content-section">
+        <h2 class="section-title">Ações Rápidas</h2>
+        <div class="quick-actions">
+          <a href="./comercial.html" class="action-card">
+            <div class="action-icon">📝</div>
+            <div class="action-title">Nova Proposta</div>
+          </a>
+          <a href="./pmo-geral.html" class="action-card">
+            <div class="action-icon">👁️</div>
+            <div class="action-title">Ver Projetos</div>
+          </a>
+          <a href="./produtos-servicos.html" class="action-card">
+            <div class="action-icon">📦</div>
+            <div class="action-title">Catálogo</div>
+          </a>
+          <a href="#" class="action-card">
+            <div class="action-icon">📊</div>
+            <div class="action-title">Relatórios</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- GRÁFICOS -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="chart-title">📈 Propostas por Mês</h3>
+          <div class="chart-placeholder">Gráfico de propostas (em desenvolvimento)</div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">💼 Receita por Modalidade</h3>
+          <div class="chart-placeholder">Gráfico de receita (em desenvolvimento)</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Verificar sessão
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+      } else {
+        const user = JSON.parse(session);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.avatar;
+        document.getElementById('userRole').textContent = user.role;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      localStorage.removeItem('session_timestamp');
+      window.location.href = './login.html';
+    }
+
+    // Inicializar
+    window.addEventListener('load', checkSession);
+  </script>
+</body>
+</html>
