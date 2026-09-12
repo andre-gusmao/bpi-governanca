@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhes da Proposta - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .proposta-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .proposta-header {
+      background: linear-gradient(135deg, var(--color-primary-gold) 0%, var(--color-primary-gold-dark) 100%);
+      color: white;
+      padding: var(--spacing-2xl);
+      border-radius: var(--border-radius-xl);
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+
+    .proposta-numero {
+      font-family: var(--font-mono);
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .proposta-titulo {
+      font-size: var(--fs-3xl);
+      font-family: var(--font-secondary);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .proposta-cliente {
+      font-size: var(--fs-base);
+      opacity: 0.95;
+    }
+
+    .proposta-content {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    .content-section {
+      padding: var(--spacing-2xl);
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .content-section:last-child {
+      border-bottom: none;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: var(--fs-xl);
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-lg);
+      color: var(--color-dark-primary);
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: var(--gradient-gold);
+      border-radius: 2px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+    }
+
+    .info-item {
+      background: var(--color-gray-lighter);
+      padding: var(--spacing-lg);
+      border-radius: var(--border-radius-lg);
+    }
+
+    .info-label {
+      font-size: var(--fs-xs);
+      color: #9CA3AF;
+      text-transform: uppercase;
+      font-weight: var(--fw-bold);
+      letter-spacing: 0.5px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .info-value {
+      font-size: var(--fs-base);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+    }
+
+    .produtos-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .produtos-table th {
+      background: var(--color-gray-lighter);
+      padding: var(--spacing-md);
+      text-align: left;
+      font-weight: var(--fw-bold);
+      border-bottom: 2px solid #E5E7EB;
+    }
+
+    .produtos-table td {
+      padding: var(--spacing-md);
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .investimento-box {
+      background: linear-gradient(135deg, var(--color-primary-gold) 0%, var(--color-primary-gold-dark) 100%);
+      color: white;
+      padding: var(--spacing-2xl);
+      border-radius: var(--border-radius-lg);
+      text-align: center;
+      margin-top: var(--spacing-lg);
+    }
+
+    .investimento-label {
+      font-size: var(--fs-sm);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .investimento-value {
+      font-size: var(--fs-4xl);
+      font-weight: var(--fw-bold);
+      font-family: var(--font-mono);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+      border-radius: var(--border-radius-full);
+      font-weight: var(--fw-bold);
+      font-size: var(--fs-sm);
+      text-transform: uppercase;
+    }
+
+    .status-badge.enviada {
+      background: rgba(59, 130, 246, 0.1);
+      color: #1E40AF;
+    }
+
+    .status-badge.recusada {
+      background: rgba(239, 68, 68, 0.1);
+      color: #991B1B;
+    }
+
+    .actions {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-2xl);
+      justify-content: center;
+    }
+
+    .btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border: none;
+      border-radius: var(--border-radius-lg);
+      font-weight: var(--fw-bold);
+      cursor: pointer;
+      font-size: var(--fs-base);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: var(--gradient-gold);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--color-gray-light);
+      color: var(--color-dark-secondary);
+      border: 1px solid #D1D5DB;
+    }
+
+    .btn-secondary:hover {
+      background: #E5E7EB;
+    }
+
+    .voltar-link {
+      color: var(--color-primary-gold);
+      text-decoration: none;
+      font-weight: var(--fw-bold);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .voltar-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link active" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">Comercial</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>Proposta Comercial</h1>
+        <div class="header-breadcrumb">Início / Comercial / Detalhes</div>
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="portal-content">
+      <a href="./comercial.html" class="voltar-link">← Voltar para Comercial</a>
+
+      <div class="proposta-container">
+        <!-- HEADER DA PROPOSTA -->
+        <div class="proposta-header">
+          <div class="proposta-numero">PROPOSTA #2026-10-0045</div>
+          <h1 class="proposta-titulo">Implementação ERP - Módulo Financeiro</h1>
+          <p class="proposta-cliente">Cliente: Empresa XYZ Inc</p>
+          <span class="status-badge enviada" style="margin-top: var(--spacing-md);">ENVIADA</span>
+        </div>
+
+        <!-- CONTEÚDO -->
+        <div class="proposta-content">
+          <!-- INFORMAÇÕES GERAIS -->
+          <div class="content-section">
+            <h2 class="section-title">👤 Informações Gerais</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Cliente</div>
+                <div class="info-value">Empresa XYZ Inc</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">contato@xyz.com.br</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Projeto</div>
+                <div class="info-value">Implementação ERP Financeiro</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Modalidade</div>
+                <div class="info-value">Implementações</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Data da Proposta</div>
+                <div class="info-value">12/09/2026</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Validade</div>
+                <div class="info-value">30 dias</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESCOPO -->
+          <div class="content-section">
+            <h2 class="section-title">📋 Escopo do Projeto</h2>
+            <p style="line-height: 1.8; color: #6B7280;">
+              Este projeto compreende a implementação completa do módulo financeiro do ERP, incluindo análise de requisitos, 
+              configuração, testes integrados, treinamento de usuários e suporte de pós-implementação. O objetivo é modernizar 
+              os processos financeiros, aumentar a eficiência operacional e garantir conformidade com normas contábeis e fiscais.
+            </p>
+          </div>
+
+          <!-- SERVIÇOS CONTRATADOS -->
+          <div class="content-section">
+            <h2 class="section-title">🎯 Serviços Contratados</h2>
+            
+            <table class="produtos-table">
+              <thead>
+                <tr>
+                  <th>Serviço</th>
+                  <th>Tipo</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Implementação ERP - Módulo Financeiro</strong></td>
+                  <td>Setup (120 horas)</td>
+                  <td><strong>R$ 30.000,00</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Treinamento de Usuários</strong></td>
+                  <td>Setup (40 horas)</td>
+                  <td><strong>R$ 8.000,00</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Suporte Premium 24/7</strong></td>
+                  <td>Recorrente</td>
+                  <td><strong>R$ 2.000,00/mês</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- INVESTIMENTO -->
+          <div class="content-section">
+            <h2 class="section-title">💰 Investimento</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Setup (Projetos)</div>
+                <div class="info-value">R$ 38.000,00</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Recorrência Mensal</div>
+                <div class="info-value">R$ 2.000,00</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Prazo do Projeto</div>
+                <div class="info-value">45 dias</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Forma de Faturamento</div>
+                <div class="info-value">Parcelado</div>
+              </div>
+            </div>
+
+            <div class="investimento-box">
+              <div class="investimento-label">Investimento Total (1º ano)</div>
+              <div class="investimento-value">R$ 62.000,00</div>
+            </div>
+          </div>
+
+          <!-- PRAZOS E CONDIÇÕES -->
+          <div class="content-section">
+            <h2 class="section-title">⏰ Prazos e Condições</h2>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Prazo do Projeto</div>
+                <div class="info-value">45 dias</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Validade da Proposta</div>
+                <div class="info-value">30 dias</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Forma de Faturamento</div>
+                <div class="info-value">Parcelado (3x)</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Reajustes</div>
+                <div class="info-value">Conforme IPCA</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AÇÕES -->
+          <div class="content-section">
+            <div class="actions">
+              <button class="btn btn-secondary" onclick="gerarPDF()">📄 Gerar PDF</button>
+              <button class="btn btn-primary" onclick="enviarEmail()">📧 Enviar por Email</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/pdf-generator.js"></script>
+  <script>
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+      } else {
+        const user = JSON.parse(session);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.avatar;
+        document.getElementById('userRole').textContent = user.role;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      window.location.href = './login.html';
+    }
+
+    function gerarPDF() {
+      try {
+        const pdfGen = new PDFGenerator();
+        
+        const dadosProposta = {
+          nomeEmpresa: 'Empresa XYZ Inc',
+          emailCliente: 'contato@xyz.com.br',
+          nomeProjeto: 'Implementação ERP - Módulo Financeiro',
+          modalidade: 'Implementações',
+          escopoDescricao: 'Este projeto compreende a implementação completa do módulo financeiro do ERP, incluindo análise de requisitos, configuração, testes integrados, treinamento de usuários e suporte de pós-implementação.',
+          produtos: [
+            { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
+            { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
+            { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 }
+          ],
+          prazo: 45,
+          validade: 30,
+          faturamento: 'Parcelado',
+          desconto: 0,
+          elaboradoPor: 'André Gusmão'
+        };
+
+        const doc = pdfGen.gerarProposta(dadosProposta);
+        pdfGen.downloadPDF(doc, 'proposta-erp-2026-10-0045.pdf');
+        alert('✅ PDF gerado com sucesso!');
+      } catch (e) {
+        alert('❌ Erro ao gerar PDF: ' + e.message);
+      }
+    }
+
+    function enviarEmail() {
+      alert('📧 Email seria enviado agora!\n\nEm breve: Integração com EmailJS');
+      // Aqui entra a integração com EmailJS
+    }
+
+    window.addEventListener('load', checkSession);
+  </script>
+</body>
+</html>
