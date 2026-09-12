@@ -81,19 +81,14 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.requireSession({ allowTypes: ['admin'] });
         }
 
         function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.logout();
         }
 
         function carregarSLA() {
@@ -140,6 +135,7 @@
         }
 
         window.addEventListener('load', () => {
+            BPIAdminCore.renderAdminMenu('configuracoes');
             verificarAutenticacao();
             carregarSLA();
             carregarPrioridades();

@@ -180,10 +180,10 @@
         </div>
 
         <div class="login-type">
-            <button class="login-type-btn active" onclick="setLoginType('admin')" type="button">
+            <button class="login-type-btn active" onclick="setLoginType(event, 'admin')" type="button">
                 👨‍💼 Administrador
             </button>
-            <button class="login-type-btn" onclick="setLoginType('atendente')" type="button">
+            <button class="login-type-btn" onclick="setLoginType(event, 'atendente')" type="button">
                 👨‍💻 Atendente
             </button>
         </div>
@@ -208,15 +208,16 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         let tipoLoginAtual = 'admin';
 
-        function setLoginType(tipo) {
+        function setLoginType(event, tipo) {
             tipoLoginAtual = tipo;
             document.querySelectorAll('.login-type-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
         function fazerLogin(e) {
@@ -233,7 +234,10 @@
                     id: 'USER-' + Date.now()
                 };
 
-                localStorage.setItem('adminSession', JSON.stringify(userData));
+                localStorage.removeItem('userSession');
+                localStorage.removeItem('cliente_session');
+                localStorage.removeItem('colaborador_session');
+                BPIAdminCore.auth.login(userData);
                 alert('✅ Login realizado com sucesso!');
                 
                 if (tipoLoginAtual === 'admin') {
@@ -245,10 +249,9 @@
         }
 
         window.addEventListener('load', () => {
-            const session = localStorage.getItem('adminSession');
+            const session = BPIAdminCore.auth.getSession();
             if (session) {
-                const user = JSON.parse(session);
-                if (user.type === 'admin') {
+                if (session.type === 'admin') {
                     window.location.href = 'dashboard-admin.html';
                 } else {
                     window.location.href = 'dashboard-atendente.html';

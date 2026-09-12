@@ -63,7 +63,7 @@
     </div>
 
     <!-- Modal Novo Cliente -->
-    <div id="modalNovoCliente" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+    <div id="modalNovoCliente" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
         <div class="dashboard-card" style="max-width: 500px; width: 90%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 style="margin: 0;">Novo Cliente</h2>
@@ -100,39 +100,29 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         // Sistema de gerenciamento de clientes
         const ClientesDB = {
             obterTodos: function() {
-                const clientes = localStorage.getItem('helpdesk_clientes');
-                return clientes ? JSON.parse(clientes) : [
-                    { id: 'CLI-001', nome: 'Empresa Demo', email: 'demo@empresa.com', telefone: '(11) 98765-4321', endereco: 'São Paulo, SP', ativo: true }
-                ];
+                return BPIAdminCore.data.clientes();
             },
             
             salvar: function(cliente) {
-                const clientes = this.obterTodos();
-                cliente.id = 'CLI-' + Date.now();
-                cliente.dataCriacao = new Date().toISOString();
-                cliente.ativo = true;
-                clientes.push(cliente);
-                localStorage.setItem('helpdesk_clientes', JSON.stringify(clientes));
-                return cliente;
+                BPIAdminCore.data.salvarCliente(cliente);
+            },
+
+            alternarStatus: function(id) {
+                BPIAdminCore.data.atualizarStatusCliente(id);
             }
         };
 
         function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.requireSession({ allowTypes: ['admin'] });
         }
 
         function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.logout();
         }
 
         function carregarClientes() {
@@ -152,7 +142,7 @@
                     <td><span style="color: #28A745; font-weight: 600;">${cliente.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
                     <td>
                         <a href="#" onclick="editarCliente('${cliente.id}')" style="color: #C9A66B; margin-right: 1rem;">Editar</a>
-                        <a href="#" onclick="excluirCliente('${cliente.id}')" style="color: #DC143C;">Excluir</a>
+                        <a href="#" onclick="excluirCliente('${cliente.id}')" style="color: #DC143C;">${cliente.ativo ? 'Inativar' : 'Reativar'}</a>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -185,17 +175,18 @@
         }
 
         function editarCliente(id) {
-            alert('Função de editar em desenvolvimento');
+            alert('Edição detalhada será disponibilizada na próxima etapa.');
         }
 
         function excluirCliente(id) {
-            if (confirm('Deseja realmente excluir este cliente?')) {
-                alert('Cliente excluído com sucesso');
+            if (confirm('Deseja alterar o status deste cliente?')) {
+                ClientesDB.alternarStatus(id);
                 carregarClientes();
             }
         }
 
         window.addEventListener('load', () => {
+            BPIAdminCore.renderAdminMenu('clientes');
             verificarAutenticacao();
             carregarClientes();
         });
