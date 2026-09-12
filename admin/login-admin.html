@@ -236,9 +236,6 @@
                     id: usuarioValido.id
                 };
 
-                localStorage.removeItem('userSession');
-                localStorage.removeItem('cliente_session');
-                localStorage.removeItem('colaborador_session');
                 BPIAdminCore.auth.login(userData);
                 alert('✅ Login realizado com sucesso!');
                 

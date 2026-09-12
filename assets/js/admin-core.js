@@ -75,6 +75,9 @@
 
       if (!this.isTrustedSession(session)) {
         localStorage.removeItem(KEYS.session);
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('cliente_session');
+        localStorage.removeItem('colaborador_session');
         window.location.href = options.redirectTo || 'login-admin.html';
         return null;
       }
@@ -89,6 +92,10 @@
     },
 
     login(userData) {
+      localStorage.removeItem('userSession');
+      localStorage.removeItem('cliente_session');
+      localStorage.removeItem('colaborador_session');
+      localStorage.removeItem('session_timestamp');
       localStorage.setItem(KEYS.session, JSON.stringify(userData));
     },
 
