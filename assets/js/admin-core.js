@@ -11,10 +11,10 @@
       { id: 'CLI-001', nome: 'Empresa Demo', email: 'demo@empresa.com', telefone: '(11) 98765-4321', endereco: 'São Paulo, SP', ativo: true }
     ],
     usuarios: [
-      { id: 'USR-001', nome: 'João Silva', email: 'joao@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 8, dataCriacao: new Date().toISOString() },
-      { id: 'USR-002', nome: 'Maria Santos', email: 'maria@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 12, dataCriacao: new Date().toISOString() },
-      { id: 'USR-003', nome: 'Admin BPI', email: 'admin@bpi.com.br', tipo: 'admin', senha: 'admin123', ativo: true, chamadosAtribuidos: 0, dataCriacao: new Date().toISOString() },
-      { id: 'USR-004', nome: 'Atendente BPI', email: 'atendente@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 6, dataCriacao: new Date().toISOString() }
+      { id: 'USR-001', nome: 'João Silva', email: 'joao@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 8, dataCriacao: new Date().toISOString() },
+      { id: 'USR-002', nome: 'Maria Santos', email: 'maria@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 12, dataCriacao: new Date().toISOString() },
+      { id: 'USR-003', nome: 'Admin BPI', email: 'admin@bpi.com.br', tipo: 'admin', ativo: true, chamadosAtribuidos: 0, dataCriacao: new Date().toISOString() },
+      { id: 'USR-004', nome: 'Atendente BPI', email: 'atendente@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 6, dataCriacao: new Date().toISOString() }
     ],
     catalogo: [
       { id: 'CAT-001', nome: 'Implantação ERP', categoria: 'Implementação', tipo: 'setup', valor: 30000, prazoDias: 30, ativo: true },

@@ -282,7 +282,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // Verificar autenticação
-            sessaoCliente = BPIPortalSession.requireSession('cliente', 'login.html');
+            const retorno = encodeURIComponent('../portal/chat.html');
+            sessaoCliente = BPIPortalSession.requireSession('cliente', `login.html?return=${retorno}`);
             if (!sessaoCliente) return;
 
             // Carregar artigos iniciais
@@ -297,7 +298,7 @@
         });
 
         function logout() {
-            BPIPortalSession.logout('cliente', 'login.html');
+            BPIPortalSession.logout('cliente', 'login.html?return=../portal/chat.html');
         }
 
         function abrirModuloEmDesenvolvimento(modulo) {

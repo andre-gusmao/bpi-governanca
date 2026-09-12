@@ -34,15 +34,17 @@
   }
 
   function isTrustedSession(role, session) {
-    if (!session || !session.id) return false;
+    if (!session) return false;
     const trusted = TRUSTED_ACCOUNTS[role];
     if (!trusted || trusted.length === 0) return true;
 
     if (role === 'cliente') {
+      const sessionId = (session.id || session.clientId || '').toString().toLowerCase();
+      if (!sessionId) return false;
       return trusted.some((item) => {
         const emailValido = session.email && item.email === session.email;
         const cnpjValido = session.cnpj ? item.cnpj === session.cnpj : true;
-        return item.id === session.id && emailValido && cnpjValido;
+        return item.id === sessionId && emailValido && cnpjValido;
       });
     }
 
@@ -80,23 +82,26 @@
     const legacy = parseSession(localStorage.getItem(KEYS.portalLegado));
     if (!legacy) return null;
     const normalizedId = (legacy.clientId || legacy.id || '').toString().toLowerCase();
-    if (!normalizedId) return null;
+    const normalizedEmail = (legacy.email || '').toString().toLowerCase();
+    const normalizedCnpj = (legacy.cnpj || '').toString();
+    if (!normalizedId || !normalizedEmail) return null;
 
     const trustedCliente = TRUSTED_ACCOUNTS.cliente.find((item) => {
-      return item.email === legacy.email || item.id === normalizedId;
+      const cnpjValido = normalizedCnpj ? item.cnpj === normalizedCnpj : true;
+      return item.id === normalizedId && item.email === normalizedEmail && cnpjValido;
     });
 
     if (!trustedCliente) return null;
 
     const migratedSession = {
-      id: trustedCliente.id,
-      empresa: trustedCliente.empresa,
-      cnpj: trustedCliente.cnpj,
-      email: trustedCliente.email,
+      id: normalizedId,
+      empresa: legacy.clientName || legacy.name || 'Cliente',
+      cnpj: normalizedCnpj,
+      email: normalizedEmail,
       avatar: legacy.avatar || 'CL',
-      name: legacy.name || trustedCliente.empresa,
-      clientId: trustedCliente.id.toUpperCase(),
-      clientName: trustedCliente.empresa,
+      name: legacy.name || legacy.clientName || 'Cliente',
+      clientId: normalizedId.toUpperCase(),
+      clientName: legacy.clientName || legacy.name || 'Cliente',
       role: 'client'
     };
 
@@ -106,9 +111,10 @@
 
   function requireSession(role, redirectTo) {
     const key = getKey(role);
-    let session = parseSession(localStorage.getItem(key));
+    const rawSession = localStorage.getItem(key);
+    let session = parseSession(rawSession);
 
-    if ((!session || !isTrustedSession(role, session)) && role === 'cliente') {
+    if (role === 'cliente' && rawSession === null) {
       session = migrateLegacyClientSession();
     }
 

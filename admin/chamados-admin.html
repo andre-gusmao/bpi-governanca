@@ -510,6 +510,7 @@
 
         window.addEventListener('load', () => {
             const user = verificarAutenticacao();
+            if (!user) return;
             BPIAdminCore.renderAdminMenu('chamados', user ? user.type : 'admin');
             carregarFiltros();
             carregarChamados();
