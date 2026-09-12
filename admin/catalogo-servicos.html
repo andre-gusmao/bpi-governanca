@@ -155,14 +155,14 @@
                     <td>${formatarValor(item.valor)}</td>
                     <td>${item.prazoDias}</td>
                     <td><span style="color: ${item.ativo ? '#16a34a' : '#dc2626'}; font-weight: 600;">${item.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
-                    <td><a href="#" onclick="alternarStatusServico('${item.id}')" style="color: #C9A66B; font-weight: 600;">${item.ativo ? 'Inativar' : 'Reativar'}</a></td>
+                    <td><button type="button" aria-label="${item.ativo ? 'Inativar' : 'Reativar'} serviço ${item.nome}" onclick="alternarStatusServico('${item.id}')" style="color: #7f1d1d; background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">${item.ativo ? '⏸ Inativar' : '▶ Reativar'}</button></td>
                 `;
                 tbody.appendChild(tr);
             });
 
             document.getElementById('totalServicos').textContent = catalogo.length;
             document.getElementById('totalAtivos').textContent = catalogo.filter(item => item.ativo).length;
-            document.getElementById('totalRecorrente').textContent = catalogo.filter(item => item.tipo === 'recorrente').length;
+            document.getElementById('totalRecorrente').textContent = catalogo.filter(item => item.ativo && item.tipo === 'recorrente').length;
         }
 
         function salvarServico(event) {
@@ -189,8 +189,8 @@
         }
 
         window.addEventListener('load', () => {
-            BPIAdminCore.renderAdminMenu('catalogo');
             verificarAutenticacao();
+            BPIAdminCore.renderAdminMenu('catalogo');
             carregarCatalogo();
         });
     </script>

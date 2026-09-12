@@ -224,14 +224,16 @@
             e.preventDefault();
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
+            const usuarios = BPIAdminCore.data.usuarios();
+            const usuarioValido = usuarios.find((usuario) => usuario.email === email && usuario.senha === senha && usuario.tipo === tipoLoginAtual && usuario.ativo);
 
-            if (email && senha) {
+            if (usuarioValido) {
                 const userData = {
                     type: tipoLoginAtual,
                     email: email,
-                    name: tipoLoginAtual === 'admin' ? 'Administrador BPI' : 'Atendente BPI',
+                    name: usuarioValido.nome || (tipoLoginAtual === 'admin' ? 'Administrador BPI' : 'Atendente BPI'),
                     loginTime: new Date().toISOString(),
-                    id: 'USER-' + Date.now()
+                    id: usuarioValido.id
                 };
 
                 localStorage.removeItem('userSession');
@@ -245,12 +247,18 @@
                 } else {
                     window.location.href = 'dashboard-atendente.html';
                 }
+            } else {
+                alert('Credenciais inválidas para o perfil selecionado.');
             }
         }
 
         window.addEventListener('load', () => {
             const session = BPIAdminCore.auth.getSession();
             if (session) {
+                if (!BPIAdminCore.auth.isTrustedSession(session)) {
+                    localStorage.removeItem(BPIAdminCore.KEYS.session);
+                    return;
+                }
                 if (session.type === 'admin') {
                     window.location.href = 'dashboard-admin.html';
                 } else {

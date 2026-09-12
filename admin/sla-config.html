@@ -135,8 +135,8 @@
         }
 
         window.addEventListener('load', () => {
-            BPIAdminCore.renderAdminMenu('configuracoes');
             verificarAutenticacao();
+            BPIAdminCore.renderAdminMenu('configuracoes');
             carregarSLA();
             carregarPrioridades();
         });

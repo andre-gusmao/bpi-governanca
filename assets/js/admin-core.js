@@ -11,9 +11,10 @@
       { id: 'CLI-001', nome: 'Empresa Demo', email: 'demo@empresa.com', telefone: '(11) 98765-4321', endereco: 'São Paulo, SP', ativo: true }
     ],
     usuarios: [
-      { id: 'USR-001', nome: 'João Silva', email: 'joao@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 8, dataCriacao: new Date().toISOString() },
-      { id: 'USR-002', nome: 'Maria Santos', email: 'maria@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 12, dataCriacao: new Date().toISOString() },
-      { id: 'USR-003', nome: 'Admin BPI', email: 'admin@bpi.com.br', tipo: 'admin', ativo: true, chamadosAtribuidos: 0, dataCriacao: new Date().toISOString() }
+      { id: 'USR-001', nome: 'João Silva', email: 'joao@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 8, dataCriacao: new Date().toISOString() },
+      { id: 'USR-002', nome: 'Maria Santos', email: 'maria@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 12, dataCriacao: new Date().toISOString() },
+      { id: 'USR-003', nome: 'Admin BPI', email: 'admin@bpi.com.br', tipo: 'admin', senha: 'admin123', ativo: true, chamadosAtribuidos: 0, dataCriacao: new Date().toISOString() },
+      { id: 'USR-004', nome: 'Atendente BPI', email: 'atendente@bpi.com.br', tipo: 'atendente', senha: '12345', ativo: true, chamadosAtribuidos: 6, dataCriacao: new Date().toISOString() }
     ],
     catalogo: [
       { id: 'CAT-001', nome: 'Implantação ERP', categoria: 'Implementação', tipo: 'setup', valor: 30000, prazoDias: 30, ativo: true },
@@ -49,7 +50,8 @@
   }
 
   function nextId(prefix) {
-    return prefix + '-' + Date.now();
+    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return prefix + '-' + Date.now() + '-' + randomPart;
   }
 
   const auth = {
@@ -57,9 +59,22 @@
       return parseJson(localStorage.getItem(KEYS.session), null);
     },
 
+    isTrustedSession(session) {
+      if (!session || !session.id || !session.email || !session.type) return false;
+      const usuario = data.usuarios().find((item) => item.id === session.id && item.ativo);
+      if (!usuario) return false;
+      return usuario.email === session.email && usuario.tipo === session.type;
+    },
+
     requireSession(options = {}) {
       const session = this.getSession();
       if (!session) {
+        window.location.href = options.redirectTo || 'login-admin.html';
+        return null;
+      }
+
+      if (!this.isTrustedSession(session)) {
+        localStorage.removeItem(KEYS.session);
         window.location.href = options.redirectTo || 'login-admin.html';
         return null;
       }
@@ -188,9 +203,16 @@
       { key: 'configuracoes', href: 'sla-config.html', label: '⚙️ Configurações' }
     ];
 
-    menu.innerHTML = links
-      .map((link) => `<li><a href="${link.href}" class="${link.key === activePage ? 'active' : ''}">${link.label}</a></li>`)
-      .join('');
+    menu.innerHTML = '';
+    links.forEach((link) => {
+      const li = document.createElement('li');
+      const anchor = document.createElement('a');
+      anchor.setAttribute('href', link.href);
+      if (link.key === activePage) anchor.classList.add('active');
+      anchor.textContent = link.label;
+      li.appendChild(anchor);
+      menu.appendChild(li);
+    });
   }
 
   window.BPIAdminCore = {
