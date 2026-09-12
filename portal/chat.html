@@ -275,16 +275,15 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
-    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/portal-session.js"></script>
     <script>
         let conversaAtual = [];
+        let sessaoCliente = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             // Verificar autenticação
-            const userSession = localStorage.getItem('userSession');
-            if (!userSession) {
-                window.location.href = 'login.html';
-            }
+            sessaoCliente = BPIPortalSession.requireSession('cliente', 'login.html');
+            if (!sessaoCliente) return;
 
             // Carregar artigos iniciais
             carregarArtigosPrincipais();
@@ -296,6 +295,10 @@
                 }
             });
         });
+
+        function logout() {
+            BPIPortalSession.logout('cliente', 'login.html');
+        }
 
         function carregarArtigosPrincipais() {
             const artigosList = document.getElementById('artigosList');
@@ -443,12 +446,12 @@
         }
 
         function abrirChamadoRapido(tipo) {
-            const userSession = JSON.parse(localStorage.getItem('userSession'));
+            if (!sessaoCliente) return;
             
             const chamado = ChamadosDB.criar({
-                clientId: userSession.clientId,
-                clienteName: userSession.name,
-                modalidade: tipo === 'DUVIDA' ? 'DUVIDA' : 'SUPORTE',
+                clientId: sessaoCliente.clientId || sessaoCliente.id,
+                clienteName: sessaoCliente.clientName || sessaoCliente.name || sessaoCliente.empresa,
+                modalidade: 'DUVIDA',
                 titulo: tipo === 'DUVIDA' ? 'Dúvida geral' : 'Reportar problema',
                 descricao: 'Aberto via chat',
                 prioridade: 'MEDIA'
@@ -459,12 +462,12 @@
         }
 
         function abrirChamadoComArtigo(artigoId) {
-            const userSession = JSON.parse(localStorage.getItem('userSession'));
+            if (!sessaoCliente) return;
             const artigo = BaseConhecimento.artigos.find(a => a.id === artigoId);
 
             const chamado = ChamadosDB.criar({
-                clientId: userSession.clientId,
-                clienteName: userSession.name,
+                clientId: sessaoCliente.clientId || sessaoCliente.id,
+                clienteName: sessaoCliente.clientName || sessaoCliente.name || sessaoCliente.empresa,
                 modalidade: artigo.modalidades[0],
                 titulo: `Dúvida sobre: ${artigo.titulo}`,
                 descricao: `Cliente consultou artigo: ${artigo.titulo}`,

@@ -54,29 +54,59 @@
         </div>
     </div>
 
-    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/portal-session.js"></script>
     <script>
-        // Override do comportamento de login para demo
+        const clientesTeste = [
+            {
+                id: 'cli-001',
+                empresa: 'Empresa XYZ Inc',
+                cnpj: '12.345.678/0001-90',
+                email: 'contato@xyz.com.br',
+                password: '123456',
+                avatar: 'XYZ'
+            },
+            {
+                id: 'cli-002',
+                empresa: 'Tech Solutions',
+                cnpj: '98.765.432/0001-10',
+                email: 'admin@techsolutions.com.br',
+                password: '123456',
+                avatar: 'TS'
+            },
+            {
+                id: 'cli-003',
+                empresa: 'Holding Internacional',
+                cnpj: '55.555.555/0001-55',
+                email: 'financeiro@holding.com.br',
+                password: '123456',
+                avatar: 'HI'
+            }
+        ];
+
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const email = document.getElementById('email').value;
+                const email = document.getElementById('email').value.toLowerCase();
                 const password = document.getElementById('password').value;
+                const cliente = clientesTeste.find((item) => item.email.toLowerCase() === email && item.password === password);
 
-                if (email && password) {
-                    // Salvar sessão simulada
-                    localStorage.setItem('userSession', JSON.stringify({
-                        email: email,
-                        name: email.split('@')[0],
-                        clientId: 'CLI-001',
-                        clientName: 'Empresa Demo',
-                        role: 'client',
-                        timestamp: new Date().toISOString()
-                    }));
-                    
+                if (cliente) {
+                    BPIPortalSession.setSession('cliente', {
+                        id: cliente.id,
+                        empresa: cliente.empresa,
+                        cnpj: cliente.cnpj,
+                        email: cliente.email,
+                        avatar: cliente.avatar,
+                        name: cliente.empresa,
+                        clientId: cliente.id.toUpperCase(),
+                        clientName: cliente.empresa,
+                        role: 'client'
+                    });
                     alert('Login realizado com sucesso!');
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'chat.html';
+                } else {
+                    alert('Email ou senha inválidos.');
                 }
             });
         }
