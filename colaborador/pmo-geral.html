@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMO Geral - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .pmo-filters {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      cursor: pointer;
+      font-weight: var(--fw-semibold);
+      transition: all var(--transition-fast);
+    }
+
+    .filter-btn.active {
+      background: var(--gradient-gold);
+      color: white;
+      border-color: var(--color-primary-gold);
+    }
+
+    .pmo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .projeto-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-base);
+      border-left: 4px solid transparent;
+    }
+
+    .projeto-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .projeto-card.planejamento {
+      border-left-color: #3B82F6;
+    }
+
+    .projeto-card.andamento {
+      border-left-color: #F59E0B;
+    }
+
+    .projeto-card.encerrado {
+      border-left-color: #10B981;
+    }
+
+    .projeto-header {
+      padding: var(--spacing-lg);
+      background: linear-gradient(135deg, #FFFBF7 0%, #FEFDF8 100%);
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .projeto-titulo {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .projeto-cliente {
+      font-size: var(--fs-sm);
+      color: #6B7280;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .projeto-status {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(201, 166, 107, 0.1);
+      color: var(--color-primary-gold-dark);
+      border-radius: var(--border-radius-full);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      text-transform: uppercase;
+    }
+
+    .projeto-body {
+      padding: var(--spacing-lg);
+    }
+
+    .projeto-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .projeto-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-size: var(--fs-xs);
+      color: #9CA3AF;
+      text-transform: uppercase;
+      font-weight: var(--fw-bold);
+    }
+
+    .info-value {
+      font-size: var(--fs-base);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: var(--spacing-sm);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-gold);
+      transition: width 0.3s ease;
+    }
+
+    .projeto-footer {
+      padding: var(--spacing-lg);
+      border-top: 1px solid #E5E7EB;
+      display: flex;
+      gap: var(--spacing-md);
+    }
+
+    .btn-view {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--color-gray-light);
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      cursor: pointer;
+      font-weight: var(--fw-bold);
+      font-size: var(--fs-sm);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-view:hover {
+      background: var(--color-primary-gold);
+      color: white;
+      border-color: var(--color-primary-gold);
+    }
+
+    .atividades-tabela {
+      width: 100%;
+      margin-top: var(--spacing-lg);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: var(--border-radius-md);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+    }
+
+    .status-badge.nao-iniciada {
+      background: rgba(156, 163, 175, 0.1);
+      color: #6B7280;
+    }
+
+    .status-badge.em-andamento {
+      background: rgba(245, 158, 11, 0.1);
+      color: #92400E;
+    }
+
+    .status-badge.finalizada {
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: var(--spacing-3xl);
+      color: #9CA3AF;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: var(--spacing-lg);
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link active" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Referências</div>
+          <a class="nav-link" href="./produtos-servicos.html">
+            <span class="nav-icon">📦</span>
+            Produtos/Serviços
+          </a>
+          <a class="nav-link" href="./escopo-detalhado.html">
+            <span class="nav-icon">📋</span>
+            Escopo
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">PMO</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>PMO Geral - Visão Completa</h1>
+        <div class="header-breadcrumb">Início / PMO / Todos os Projetos</div>
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="portal-content">
+      <!-- FILTROS -->
+      <div class="pmo-filters">
+        <button class="filter-btn active" onclick="filterProjects('todos')">Todos</button>
+        <button class="filter-btn" onclick="filterProjects('planejamento')">📋 Planejamento</button>
+        <button class="filter-btn" onclick="filterProjects('andamento')">⚙️ Em Andamento</button>
+        <button class="filter-btn" onclick="filterProjects('encerrado')">✅ Encerrado</button>
+      </div>
+
+      <!-- GRID DE PROJETOS -->
+      <div class="pmo-grid" id="projetosGrid">
+        <!-- Projetos serão inseridos aqui via JavaScript -->
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Dados de exemplo dos projetos
+    const projetosData = [
+      {
+        id: 'proj-001',
+        titulo: 'Implementação ERP - Módulo Financeiro',
+        cliente: 'Empresa XYZ Inc',
+        status: 'andamento',
+        progresso: 65,
+        dataInicio: '15/10/2026',
+        dataFim: '30/11/2026',
+        gestor: 'André Gusmão',
+        atividades: [
+          { titulo: 'Diagnóstico', status: 'finalizada' },
+          { titulo: 'Configuração', status: 'em-andamento' },
+          { titulo: 'Testes', status: 'nao-iniciada' }
+        ]
+      },
+      {
+        id: 'proj-002',
+        titulo: 'Consultoria de Otimização',
+        cliente: 'Empresa ABC Ltd',
+        status: 'planejamento',
+        progresso: 10,
+        dataInicio: '20/10/2026',
+        dataFim: '15/11/2026',
+        gestor: 'Maria Silva',
+        atividades: [
+          { titulo: 'Análise Inicial', status: 'em-andamento' }
+        ]
+      },
+      {
+        id: 'proj-003',
+        titulo: 'Treinamento de Usuários',
+        cliente: 'Holding Internacional',
+        status: 'andamento',
+        progresso: 85,
+        dataInicio: '01/10/2026',
+        dataFim: '15/10/2026',
+        gestor: 'João Santos',
+        atividades: [
+          { titulo: 'Módulo 1', status: 'finalizada' },
+          { titulo: 'Módulo 2', status: 'finalizada' },
+          { titulo: 'Módulo 3', status: 'em-andamento' }
+        ]
+      },
+      {
+        id: 'proj-004',
+        titulo: 'Implementação ERP - Módulo Fiscal',
+        cliente: 'Tech Solutions',
+        status: 'encerrado',
+        progresso: 100,
+        dataInicio: '15/08/2026',
+        dataFim: '30/09/2026',
+        gestor: 'André Gusmão',
+        atividades: [
+          { titulo: 'Análise', status: 'finalizada' },
+          { titulo: 'Implementação', status: 'finalizada' },
+          { titulo: 'Treinamento', status: 'finalizada' }
+        ]
+      }
+    ];
+
+    let filtroAtual = 'todos';
+
+    function renderProjetos(projetos) {
+      const grid = document.getElementById('projetosGrid');
+      
+      if (projetos.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>Nenhum projeto encontrado</h3>
+            <p>Tente outro filtro ou crie um novo projeto</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = projetos.map(p => `
+        <div class="projeto-card ${p.status}">
+          <div class="projeto-header">
+            <h3 class="projeto-titulo">${p.titulo}</h3>
+            <p class="projeto-cliente">👤 ${p.cliente}</p>
+            <span class="projeto-status">${p.status.toUpperCase()}</span>
+          </div>
+          
+          <div class="projeto-body">
+            <div class="projeto-info-row">
+              <span class="info-label">Gestor</span>
+              <span class="info-value">${p.gestor}</span>
+            </div>
+            <div class="projeto-info-row">
+              <span class="info-label">Início</span>
+              <span class="info-value">${p.dataInicio}</span>
+            </div>
+            <div class="projeto-info-row">
+              <span class="info-label">Término</span>
+              <span class="info-value">${p.dataFim}</span>
+            </div>
+            <div class="projeto-info-row">
+              <span class="info-label">Progresso</span>
+              <span class="info-value">${p.progresso}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${p.progresso}%"></div>
+            </div>
+            
+            <h4 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md); font-weight: var(--fw-bold);">Atividades:</h4>
+            ${p.atividades.map(a => `
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                <span style="font-size: var(--fs-sm);">${a.titulo}</span>
+                <span class="status-badge ${a.status}">${a.status.replace('-', ' ').toUpperCase()}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="projeto-footer">
+            <button class="btn-view" onclick="viewProjeto('${p.id}')">
+              👁️ Visualizar
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterProjects(status) {
+      filtroAtual = status;
+      
+      // Atualizar botões
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Filtrar e renderizar
+      const filtered = status === 'todos' 
+        ? projetosData 
+        : projetosData.filter(p => p.status === status);
+      
+      renderProjetos(filtered);
+    }
+
+    function viewProjeto(id) {
+      alert(`Visualizar detalhes do projeto: ${id}`);
+      // Implementar navegação para página de detalhes
+    }
+
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+      } else {
+        const user = JSON.parse(session);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.avatar;
+        document.getElementById('userRole').textContent = user.role;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      window.location.href = './login.html';
+    }
+
+    window.addEventListener('load', () => {
+      checkSession();
+      renderProjetos(projetosData);
+    });
+  </script>
+</body>
+</html>

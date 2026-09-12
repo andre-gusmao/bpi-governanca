@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comercial - Elaborar Proposta - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .form-container {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .form-header {
+      background: linear-gradient(135deg, #FFFBF7 0%, #FEFDF8 100%);
+      padding: var(--spacing-2xl);
+      border-bottom: 2px solid #E5E7EB;
+    }
+
+    .form-body {
+      padding: var(--spacing-2xl);
+    }
+
+    .form-section {
+      margin-bottom: var(--spacing-2xl);
+      padding-bottom: var(--spacing-2xl);
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .form-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .form-section-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      font-size: var(--fs-xl);
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-lg);
+      color: var(--color-dark-primary);
+    }
+
+    .form-section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: var(--gradient-gold);
+      border-radius: 2px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+    }
+
+    .form-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .form-label {
+      font-weight: var(--fw-semibold);
+      color: var(--color-dark-primary);
+      font-size: var(--fs-sm);
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      padding: var(--spacing-md);
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      font-family: var(--font-primary);
+      font-size: var(--fs-base);
+      transition: all var(--transition-fast);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary-gold);
+      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.1);
+      background: #FFFBF7;
+    }
+
+    .form-textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .produtos-lista {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+
+    .produto-selecionado {
+      background: var(--color-gray-lighter);
+      padding: var(--spacing-lg);
+      border-radius: var(--border-radius-lg);
+      border-left: 4px solid var(--color-primary-gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .produto-info {
+      flex: 1;
+    }
+
+    .produto-nome {
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+    }
+
+    .produto-valor {
+      font-size: var(--fs-sm);
+      color: #6B7280;
+      margin-top: var(--spacing-xs);
+    }
+
+    .remove-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-error);
+      border: none;
+      padding: 6px 12px;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      font-weight: var(--fw-bold);
+      transition: all var(--transition-fast);
+    }
+
+    .remove-btn:hover {
+      background: var(--color-error);
+      color: white;
+    }
+
+    .resumo-card {
+      background: linear-gradient(135deg, var(--color-primary-gold) 0%, var(--color-primary-gold-dark) 100%);
+      color: white;
+      padding: var(--spacing-lg);
+      border-radius: var(--border-radius-lg);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-lg);
+      text-align: center;
+    }
+
+    .resumo-item-label {
+      font-size: var(--fs-xs);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.9;
+    }
+
+    .resumo-item-value {
+      font-size: var(--fs-2xl);
+      font-weight: var(--fw-bold);
+      font-family: var(--font-mono);
+      margin-top: var(--spacing-xs);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: flex-end;
+      margin-top: var(--spacing-2xl);
+    }
+
+    .btn {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border: none;
+      border-radius: var(--border-radius-lg);
+      font-weight: var(--fw-bold);
+      cursor: pointer;
+      font-size: var(--fs-base);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: var(--gradient-gold);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--color-gray-light);
+      color: var(--color-dark-secondary);
+      border: 1px solid #D1D5DB;
+    }
+
+    .btn-secondary:hover {
+      background: #E5E7EB;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .resumo-card {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link active" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Referências</div>
+          <a class="nav-link" href="./produtos-servicos.html">
+            <span class="nav-icon">📦</span>
+            Produtos/Serviços
+          </a>
+          <a class="nav-link" href="./escopo-detalhado.html">
+            <span class="nav-icon">📋</span>
+            Escopo
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">Comercial</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>Elaborar Proposta</h1>
+        <div class="header-breadcrumb">Início / Comercial / Nova Proposta</div>
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO -->
+    <main class="portal-content">
+      <div class="form-container">
+        <div class="form-header">
+          <h2>📝 Nova Proposta Comercial</h2>
+          <p style="color: #9CA3AF; margin-top: var(--spacing-sm);">Preencha os dados abaixo para gerar uma proposta profissional em PDF</p>
+        </div>
+
+        <form class="form-body" id="propostaForm" onsubmit="handleSubmit(event)">
+          <!-- DADOS DO CLIENTE -->
+          <div class="form-section">
+            <h3 class="form-section-title">👤 Dados do Cliente</h3>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nome da Empresa *</label>
+                <input type="text" class="form-input" id="nomeEmpresa" placeholder="Ex: Empresa XYZ Inc" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email do Cliente *</label>
+                <input type="email" class="form-input" id="emailCliente" placeholder="cliente@empresa.com.br" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nome do Projeto *</label>
+                <input type="text" class="form-input" id="nomeProjeto" placeholder="Ex: Implementação ERP" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Modalidade *</label>
+                <select class="form-select" id="modalidade" required>
+                  <option value="">Selecione uma modalidade</option>
+                  <option value="Implementações">Implementações</option>
+                  <option value="Treinamento">Treinamento</option>
+                  <option value="Consultoria">Consultoria</option>
+                  <option value="Sustentação">Sustentação</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ESCOPO DO PROJETO -->
+          <div class="form-section">
+            <h3 class="form-section-title">📋 Escopo do Projeto</h3>
+            
+            <div class="form-group full">
+              <label class="form-label">Descrição Detalhada do Escopo *</label>
+              <textarea class="form-textarea" id="escopoDescricao" placeholder="Descreva detalhadamente o que será feito, objetivos, abrangência..." required></textarea>
+            </div>
+          </div>
+
+          <!-- PRODUTOS/SERVIÇOS -->
+          <div class="form-section">
+            <h3 class="form-section-title">📦 Serviços Contratados</h3>
+            
+            <div class="form-group full">
+              <label class="form-label">Adicionar Produtos/Serviços</label>
+              <select class="form-select" id="produtoSelect" onchange="adicionarProduto()">
+                <option value="">Selecione um produto...</option>
+                <option value="srv-impl-erp">Implementação ERP - Módulo Financeiro (R$ 30.000)</option>
+                <option value="srv-train-users">Treinamento de Usuários (R$ 8.000)</option>
+                <option value="srv-consult-opt">Consultoria de Otimização (R$ 18.000)</option>
+                <option value="lic-suporte-premium">Suporte Premium 24/7 (R$ 2.000/mês)</option>
+                <option value="lic-manutencao">Manutenção Preventiva (R$ 1.500/mês)</option>
+              </select>
+            </div>
+
+            <div class="produtos-lista" id="produtosLista">
+              <!-- Produtos selecionados aparecerão aqui -->
+            </div>
+          </div>
+
+          <!-- PRAZOS E VALORES -->
+          <div class="form-section">
+            <h3 class="form-section-title">⏰ Prazos e Valores</h3>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Prazo do Projeto (dias) *</label>
+                <input type="number" class="form-input" id="prazo" placeholder="Ex: 45" min="1" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Validade da Proposta (dias) *</label>
+                <input type="number" class="form-input" id="validade" placeholder="Ex: 30" min="1" value="30" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Desconto (%) - Opcional</label>
+                <input type="number" class="form-input" id="desconto" placeholder="Ex: 10" min="0" max="100">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Forma de Faturamento</label>
+                <select class="form-select" id="faturamento">
+                  <option value="Parcelado">Parcelado</option>
+                  <option value="À vista">À vista</option>
+                  <option value="Outros">Outros</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBSERVAÇÕES -->
+          <div class="form-section">
+            <h3 class="form-section-title">📝 Observações</h3>
+            
+            <div class="form-group full">
+              <label class="form-label">Observações Adicionais</label>
+              <textarea class="form-textarea" id="observacoes" placeholder="Termos especiais, condições acordadas, etc..."></textarea>
+            </div>
+          </div>
+
+          <!-- RESUMO -->
+          <div class="form-section">
+            <h3 class="form-section-title">💰 Resumo Financeiro</h3>
+            
+            <div class="resumo-card">
+              <div>
+                <div class="resumo-item-label">Setup</div>
+                <div class="resumo-item-value" id="resumoSetup">R$ 0</div>
+              </div>
+              <div>
+                <div class="resumo-item-label">Recorrência/Mês</div>
+                <div class="resumo-item-value" id="resumoRecorrente">R$ 0</div>
+              </div>
+              <div>
+                <div class="resumo-item-label">Total (1º ano)</div>
+                <div class="resumo-item-value" id="resumoTotal">R$ 0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTÕES -->
+          <div class="form-actions">
+            <button type="reset" class="btn btn-secondary">Limpar Formulário</button>
+            <button type="submit" class="btn btn-primary">📄 Gerar PDF e Enviar</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let produtosSelecionados = [];
+
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+      } else {
+        const user = JSON.parse(session);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userAvatar').textContent = user.avatar;
+        document.getElementById('userRole').textContent = user.role;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      window.location.href = './login.html';
+    }
+
+    function adicionarProduto() {
+      const select = document.getElementById('produtoSelect');
+      const produtoId = select.value;
+      
+      if (!produtoId) return;
+
+      // Dados dos produtos
+      const produtos = {
+        'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
+        'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
+        'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000 },
+        'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 },
+        'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500 }
+      };
+
+      if (produtos[produtoId]) {
+        produtosSelecionados.push({ id: produtoId, ...produtos[produtoId] });
+        renderizarProdutos();
+        calcularResumo();
+        select.value = '';
+      }
+    }
+
+    function removerProduto(index) {
+      produtosSelecionados.splice(index, 1);
+      renderizarProdutos();
+      calcularResumo();
+    }
+
+    function renderizarProdutos() {
+      const lista = document.getElementById('produtosLista');
+      
+      if (produtosSelecionados.length === 0) {
+        lista.innerHTML = '<p style="color: #9CA3AF; text-align: center;">Nenhum produto selecionado</p>';
+        return;
+      }
+
+      lista.innerHTML = produtosSelecionados.map((p, i) => `
+        <div class="produto-selecionado">
+          <div class="produto-info">
+            <div class="produto-nome">${p.nome}</div>
+            <div class="produto-valor">${p.tipo === 'setup' ? `R$ ${p.valor.toLocaleString('pt-BR')}` : `R$ ${p.valor.toLocaleString('pt-BR')}/mês`}</div>
+          </div>
+          <button type="button" class="remove-btn" onclick="removerProduto(${i})">✕ Remover</button>
+        </div>
+      `).join('');
+    }
+
+    function calcularResumo() {
+      let setup = 0;
+      let recorrente = 0;
+
+      produtosSelecionados.forEach(p => {
+        if (p.tipo === 'setup') {
+          setup += p.valor;
+        } else {
+          recorrente += p.valor;
+        }
+      });
+
+      const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+      const descontoValor = setup * (desconto / 100);
+      const setupComDesconto = setup - descontoValor;
+      const total = setupComDesconto + (recorrente * 12);
+
+      document.getElementById('resumoSetup').textContent = `R$ ${setupComDesconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('resumoRecorrente').textContent = `R$ ${recorrente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('resumoTotal').textContent = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      alert('✅ Proposta gerada com sucesso!\n\nEm breve: PDF será gerado e enviado por email');
+      // Aqui entra a integração com jsPDF e SendGrid
+    }
+
+    // Adicionar listener para recalcular ao mudar desconto
+    document.getElementById('desconto')?.addEventListener('input', calcularResumo);
+
+    window.addEventListener('load', checkSession);
+  </script>
+</body>
+</html>
