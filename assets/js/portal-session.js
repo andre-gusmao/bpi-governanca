@@ -9,9 +9,9 @@
 
   const TRUSTED_ACCOUNTS = {
     cliente: [
-      { id: 'cli-001', cnpj: '12.345.678/0001-90', email: 'contato@xyz.com.br' },
-      { id: 'cli-002', cnpj: '98.765.432/0001-10', email: 'admin@techsolutions.com.br' },
-      { id: 'cli-003', cnpj: '55.555.555/0001-55', email: 'financeiro@holding.com.br' }
+      { id: 'cli-001', cnpj: '12.345.678/0001-90', email: 'contato@xyz.com.br', empresa: 'Empresa XYZ Inc' },
+      { id: 'cli-002', cnpj: '98.765.432/0001-10', email: 'admin@techsolutions.com.br', empresa: 'Tech Solutions' },
+      { id: 'cli-003', cnpj: '55.555.555/0001-55', email: 'financeiro@holding.com.br', empresa: 'Holding Internacional' }
     ],
     colaborador: [
       { id: 'col-001', email: 'andre@bpi.com.br', role: 'PMO_Comercial' },
@@ -39,7 +39,11 @@
     if (!trusted || trusted.length === 0) return true;
 
     if (role === 'cliente') {
-      return trusted.some((item) => item.id === session.id && item.email === session.email && item.cnpj === session.cnpj);
+      return trusted.some((item) => {
+        const emailValido = session.email && item.email === session.email;
+        const cnpjValido = session.cnpj ? item.cnpj === session.cnpj : true;
+        return item.id === session.id && emailValido && cnpjValido;
+      });
     }
 
     if (role === 'colaborador') {
@@ -72,9 +76,42 @@
     localStorage.setItem(KEYS.timestamp, new Date().toISOString());
   }
 
+  function migrateLegacyClientSession() {
+    const legacy = parseSession(localStorage.getItem(KEYS.portalLegado));
+    if (!legacy) return null;
+    const normalizedId = (legacy.clientId || legacy.id || '').toString().toLowerCase();
+    if (!normalizedId) return null;
+
+    const trustedCliente = TRUSTED_ACCOUNTS.cliente.find((item) => {
+      return item.email === legacy.email || item.id === normalizedId;
+    });
+
+    if (!trustedCliente) return null;
+
+    const migratedSession = {
+      id: trustedCliente.id,
+      empresa: trustedCliente.empresa,
+      cnpj: trustedCliente.cnpj,
+      email: trustedCliente.email,
+      avatar: legacy.avatar || 'CL',
+      name: legacy.name || trustedCliente.empresa,
+      clientId: trustedCliente.id.toUpperCase(),
+      clientName: trustedCliente.empresa,
+      role: 'client'
+    };
+
+    setSession('cliente', migratedSession);
+    return migratedSession;
+  }
+
   function requireSession(role, redirectTo) {
     const key = getKey(role);
-    const session = parseSession(localStorage.getItem(key));
+    let session = parseSession(localStorage.getItem(key));
+
+    if ((!session || !isTrustedSession(role, session)) && role === 'cliente') {
+      session = migrateLegacyClientSession();
+    }
+
     if (!session || !isTrustedSession(role, session)) {
       clearAllSessions();
       window.location.href = redirectTo;
@@ -84,9 +121,7 @@
   }
 
   function logout(role, redirectTo) {
-    const key = getKey(role);
-    if (key) localStorage.removeItem(key);
-    localStorage.removeItem(KEYS.timestamp);
+    clearAllSessions();
     window.location.href = redirectTo;
   }
 

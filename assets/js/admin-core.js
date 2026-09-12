@@ -33,8 +33,15 @@
   }
 
   function getArray(key, seedName) {
-    const data = parseJson(localStorage.getItem(key), []);
-    if (Array.isArray(data) && data.length > 0) return data;
+    const raw = localStorage.getItem(key);
+    if (raw === null && seedName && seeds[seedName]) {
+      const seeded = JSON.parse(JSON.stringify(seeds[seedName]));
+      localStorage.setItem(key, JSON.stringify(seeded));
+      return seeded;
+    }
+
+    const data = parseJson(raw, []);
+    if (Array.isArray(data)) return data;
 
     if (seedName && seeds[seedName]) {
       const seeded = JSON.parse(JSON.stringify(seeds[seedName]));
@@ -102,6 +109,10 @@
     logout() {
       if (window.confirm('Deseja realmente sair?')) {
         localStorage.removeItem(KEYS.session);
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('cliente_session');
+        localStorage.removeItem('colaborador_session');
+        localStorage.removeItem('session_timestamp');
         window.location.href = 'login-admin.html';
       }
     }

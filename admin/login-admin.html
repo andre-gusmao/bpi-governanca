@@ -254,6 +254,10 @@
             if (session) {
                 if (!BPIAdminCore.auth.isTrustedSession(session)) {
                     localStorage.removeItem(BPIAdminCore.KEYS.session);
+                    localStorage.removeItem('userSession');
+                    localStorage.removeItem('cliente_session');
+                    localStorage.removeItem('colaborador_session');
+                    localStorage.removeItem('session_timestamp');
                     return;
                 }
                 if (session.type === 'admin') {
