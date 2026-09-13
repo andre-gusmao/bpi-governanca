@@ -573,7 +573,12 @@
           return;
         }
 
-        const naoImportados = pendentes.filter(produtoId => adicionarProduto(produtoId) === 'invalid');
+        const selecionadosAntesDaImportacao = new Set(produtosSelecionados.map(produto => produto.id));
+        const naoImportados = pendentes.filter(produtoId => {
+          const resultado = adicionarProduto(produtoId);
+          return resultado === 'invalid' || (resultado === 'already-selected' && selecionadosAntesDaImportacao.has(produtoId));
+        });
+
         if (naoImportados.length > 0) {
           localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(naoImportados));
         } else {
