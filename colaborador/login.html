@@ -258,11 +258,24 @@
         BPIPortalSession.setSession('colaborador', user);
         
         // Redirecionar
-        window.location.href = './dashboard.html';
+        window.location.href = obterRetornoSeguro() || './dashboard.html';
       } else {
         errorDiv.textContent = 'Email ou senha inválidos';
         errorDiv.classList.add('show');
         setTimeout(() => errorDiv.classList.remove('show'), 5000);
+      }
+
+      function obterRetornoSeguro() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const retorno = urlParams.get('return');
+        if (!retorno) return null;
+        const retornosPermitidos = {
+          '../colaborador/dashboard.html': './dashboard.html',
+          '../colaborador/comercial.html': './comercial.html',
+          '../colaborador/pmo-geral.html': './pmo-geral.html',
+          '../colaborador/proposta-detalhes.html': './proposta-detalhes.html'
+        };
+        return retornosPermitidos[retorno] || null;
       }
     }
 

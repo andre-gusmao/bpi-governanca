@@ -212,10 +212,6 @@
     <script src="../assets/js/admin-core.js"></script>
     <script>
         let tipoLoginAtual = 'admin';
-        const SENHAS_DEMO = {
-            'admin@bpi.com.br': 'admin@2026',
-            'atendente@bpi.com.br': 'atendente@2026'
-        };
 
         function setLoginType(event, tipo) {
             tipoLoginAtual = tipo;
@@ -231,7 +227,7 @@
             const senha = document.getElementById('senha').value;
             const usuarios = BPIAdminCore.data.usuarios();
             const usuarioValido = usuarios.find((usuario) => (usuario.email || '').trim().toLowerCase() === email && usuario.tipo === tipoLoginAtual && usuario.ativo);
-            const senhaValida = usuarioValido && ((usuarioValido.senha || '') === senha || SENHAS_DEMO[email] === senha);
+            const senhaValida = usuarioValido && (usuarioValido.senha || '') === senha;
 
             if (usuarioValido && senhaValida) {
                 const userData = {

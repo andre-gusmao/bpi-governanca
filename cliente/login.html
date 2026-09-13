@@ -355,12 +355,12 @@
       const urlParams = new URLSearchParams(window.location.search);
       const retorno = urlParams.get('return');
       if (!retorno) return null;
-      const retornosPermitidos = new Set([
-        './meus-projetos.html',
-        './chamados.html',
-        '../portal/chat.html'
-      ]);
-      return retornosPermitidos.has(retorno) ? retorno : null;
+      const retornosPermitidos = {
+        '../cliente/meus-projetos.html': './meus-projetos.html',
+        '../cliente/chamados.html': './chamados.html',
+        '../portal/chat.html': '../portal/chat.html'
+      };
+      return retornosPermitidos[retorno] || null;
     }
 
     window.addEventListener('load', () => {

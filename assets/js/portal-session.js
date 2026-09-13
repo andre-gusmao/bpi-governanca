@@ -127,6 +127,8 @@
       let retornoBase = `./${arquivoAtual}`;
       if (pathname.includes('/portal/')) {
         retornoBase = `../portal/${arquivoAtual}`;
+      } else if (pathname.includes('/cliente/')) {
+        retornoBase = `../cliente/${arquivoAtual}`;
       } else if (pathname.includes('/colaborador/')) {
         retornoBase = `../colaborador/${arquivoAtual}`;
       }
