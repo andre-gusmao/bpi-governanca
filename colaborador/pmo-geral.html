@@ -418,6 +418,14 @@
       });
     }
 
+    function getProjetoStatusClass(status) {
+      return ['planejamento', 'andamento', 'encerrado'].includes(status) ? status : 'planejamento';
+    }
+
+    function getAtividadeStatusClass(status) {
+      return ['nao-iniciada', 'em-andamento', 'finalizada'].includes(status) ? status : 'nao-iniciada';
+    }
+
     function renderProjetos(projetos) {
       const grid = document.getElementById('projetosGrid');
       
@@ -435,7 +443,7 @@
       const projetoDestaque = new URLSearchParams(window.location.search).get('projetoId');
 
       grid.innerHTML = projetos.map(p => `
-        <div class="projeto-card ${p.status}">
+        <div class="projeto-card ${getProjetoStatusClass(p.status)}">
           <div class="projeto-header">
             <h3 class="projeto-titulo">${escapeHtml(p.titulo)}</h3>
             <p class="projeto-cliente">👤 ${escapeHtml(p.cliente)}</p>
@@ -467,7 +475,7 @@
             ${p.atividades.map(a => `
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
                 <span style="font-size: var(--fs-sm);">${escapeHtml(a.titulo)}</span>
-                <span class="status-badge ${a.status}">${escapeHtml(a.status.replace('-', ' ').toUpperCase())}</span>
+                <span class="status-badge ${getAtividadeStatusClass(a.status)}">${escapeHtml(a.status.replace('-', ' ').toUpperCase())}</span>
               </div>
             `).join('')}
           </div>

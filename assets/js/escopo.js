@@ -364,6 +364,39 @@
     };
   }
 
+  function buildActivitiesForProject(projectId, proposta, escopo, timestamp, previousActivities) {
+    const generateActivityId = createIdGenerator('ativ', STORAGE_KEYS.atividades);
+    const previousByTitle = new Map(
+      (previousActivities || []).map((atividade) => [normalizeText(atividade.titulo), atividade])
+    );
+
+    return EscopoProcessor.extrairAtividades(
+      Object.assign({}, escopo, { proposta })
+    ).map((atividade) => {
+      const anterior = previousByTitle.get(normalizeText(atividade.titulo));
+      return {
+        id: anterior && anterior.id ? anterior.id : generateActivityId(),
+        clientId: proposta.clientId || `cli-${slugify(proposta.nomeCliente || proposta.nomeEmpresa || 'cliente', '001')}`,
+        projetoId: projectId,
+        servicoVinculado: atividade.servicoVinculado,
+        titulo: atividade.titulo,
+        descricao: atividade.descricao,
+        ator: atividade.ator,
+        atorEmail: activityFallbackEmail(atividade.atorEmail),
+        atorCargo: atividade.atorCargo,
+        dataPrevista: atividade.dataPrevista,
+        dataRealizada: anterior ? anterior.dataRealizada : null,
+        status: anterior && anterior.status ? anterior.status : 'nao_iniciada',
+        prioridade: atividade.prioridade,
+        dependencias: anterior && Array.isArray(anterior.dependencias) ? anterior.dependencias : [],
+        statusAtraso: anterior && anterior.statusAtraso ? anterior.statusAtraso : 'no_prazo',
+        diasAtraso: anterior && typeof anterior.diasAtraso === 'number' ? anterior.diasAtraso : 0,
+        dataCriacao: anterior && anterior.dataCriacao ? anterior.dataCriacao : timestamp,
+        dataAtualizacao: timestamp
+      };
+    });
+  }
+
   const EscopoDB = {
     salvar(escopo) {
       const existing = readCollection(STORAGE_KEYS.escopo);
@@ -458,12 +491,52 @@
       const projetoExistente = projetos.find((item) => item.propostaId === proposta.id);
 
       if (projetoExistente) {
-        const atividadesExistentes = readCollection(STORAGE_KEYS.atividades)
+        const escopoAtualizado = EscopoDB.salvar(
+          Object.assign(
+            {},
+            buildDefaultScope(proposta),
+            escopo || {},
+            {
+              id: (escopo && escopo.id) || projetoExistente.escopoId || undefined,
+              propostaId: proposta.id,
+              projetoId: projetoExistente.id
+            }
+          )
+        );
+        const atividadesAtuais = readCollection(STORAGE_KEYS.atividades);
+        const atividadesProjetoExistente = atividadesAtuais
           .filter((atividade) => atividade.projetoId === projetoExistente.id);
+        const atividadesSincronizadas = buildActivitiesForProject(
+          projetoExistente.id,
+          proposta,
+          escopoAtualizado,
+          getNowIso(),
+          atividadesProjetoExistente
+        );
+        const outrasAtividades = atividadesAtuais
+          .filter((atividade) => atividade.projetoId !== projetoExistente.id);
+        writeCollection(STORAGE_KEYS.atividades, outrasAtividades.concat(atividadesSincronizadas));
+
+        const projetosAtualizados = projetos.map((item) => {
+          if (item.id !== projetoExistente.id) {
+            return item;
+          }
+
+          return Object.assign({}, item, {
+            escopoId: escopoAtualizado.id,
+            escopo: escopoAtualizado.descricaoDetalhada,
+            servicosContratados: escopoAtualizado.servicosContratados || item.servicosContratados,
+            entregas: escopoAtualizado.entregas || item.entregas,
+            cronograma: escopoAtualizado.cronograma || item.cronograma,
+            atividades: atividadesSincronizadas.map((atividade) => atividade.id),
+            dataAtualizacao: getNowIso()
+          });
+        });
+        writeCollection(STORAGE_KEYS.projetos, projetosAtualizados);
 
         return {
-          projeto: projetoExistente,
-          atividades: atividadesExistentes
+          projeto: projetosAtualizados.find((item) => item.id === projetoExistente.id) || projetoExistente,
+          atividades: atividadesSincronizadas
         };
       }
 
@@ -490,31 +563,9 @@
         ? cronograma[cronograma.length - 1].dataFim
         : addDays(startDate, getProjectDurationDays(servicosContratados, proposta) - 1);
       const generateProjectId = createIdGenerator('proj', STORAGE_KEYS.projetos);
-      const generateActivityId = createIdGenerator('ativ', STORAGE_KEYS.atividades);
       const projectId = generateProjectId();
       const atividades = readCollection(STORAGE_KEYS.atividades);
-      const atividadesCriadas = EscopoProcessor.extrairAtividades(
-        Object.assign({}, escopoSalvo, { proposta })
-      ).map((atividade) => ({
-        id: generateActivityId(),
-        clientId: proposta.clientId || `cli-${slugify(proposta.nomeCliente || proposta.nomeEmpresa || 'cliente', '001')}`,
-        projetoId: projectId,
-        servicoVinculado: atividade.servicoVinculado,
-        titulo: atividade.titulo,
-        descricao: atividade.descricao,
-        ator: atividade.ator,
-        atorEmail: activityFallbackEmail(atividade.atorEmail),
-        atorCargo: atividade.atorCargo,
-        dataPrevista: atividade.dataPrevista,
-        dataRealizada: null,
-        status: 'nao_iniciada',
-        prioridade: atividade.prioridade,
-        dependencias: [],
-        statusAtraso: 'no_prazo',
-        diasAtraso: 0,
-        dataCriacao: now,
-        dataAtualizacao: now
-      }));
+      const atividadesCriadas = buildActivitiesForProject(projectId, proposta, escopoSalvo, now, []);
       const projeto = {
         id: projectId,
         propostaId: proposta.id || null,
