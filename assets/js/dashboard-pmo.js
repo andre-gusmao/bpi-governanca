@@ -181,7 +181,16 @@
     return formatDateISO(date);
   }
 
+  function shouldSeedDemoData() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('demo') === 'true' || localStorage.getItem('dashboard_pmo_demo_seed') === 'true';
+  }
+
   function ensureSeedData() {
+    if (!shouldSeedDemoData()) {
+      return false;
+    }
+
     const projetosExistentes = localStorage.getItem(STORAGE_KEYS.projetos);
     const atividadesExistentes = localStorage.getItem(STORAGE_KEYS.atividades);
 
@@ -431,6 +440,8 @@
     if (atividadesExistentes === null) {
       saveStorage(STORAGE_KEYS.atividades, atividades);
     }
+
+    return true;
   }
 
   function getProjetos() {
@@ -511,7 +522,7 @@
       const primeiraAtividade = atividadesProjeto
         .slice()
         .sort(function(a, b) {
-          return parseDate(a.dataCriacao || a.dataPrevista) - parseDate(b.dataCriacao || b.dataPrevista);
+          return toTimestamp(a.dataCriacao || a.dataPrevista, Number.MAX_SAFE_INTEGER) - toTimestamp(b.dataCriacao || b.dataPrevista, Number.MAX_SAFE_INTEGER);
         })[0] || null;
       const semAtividadeIniciada7dias = !possuiAtividadeIniciada
         && primeiraAtividade
@@ -1064,10 +1075,28 @@
   }
 
   function renderCharts() {
-    drawPieChart(document.getElementById('statusChart'), obterProjetoPorStatus());
-    drawBarChart(document.getElementById('clientesChart'), obterTopClientesPorValor(5));
-    drawLineChart(document.getElementById('progressoChart'), calcularProgresso7Dias());
-    drawHorizontalBarChart(document.getElementById('modalidadesChart'), obterModalidadesMaisContratadas());
+    const status = obterProjetoPorStatus();
+    const clientes = obterTopClientesPorValor(5);
+    const progresso = calcularProgresso7Dias();
+    const modalidades = obterModalidadesMaisContratadas();
+
+    drawPieChart(document.getElementById('statusChart'), status);
+    drawBarChart(document.getElementById('clientesChart'), clientes);
+    drawLineChart(document.getElementById('progressoChart'), progresso);
+    drawHorizontalBarChart(document.getElementById('modalidadesChart'), modalidades);
+
+    setText('statusChartSummary', status.map(function(item) {
+      return item.label + ': ' + item.total;
+    }).join(' · ') || 'Sem dados para distribuição por status.');
+    setText('clientesChartSummary', clientes.map(function(item) {
+      return item.cliente + ': ' + formatCurrency(item.valor);
+    }).join(' · ') || 'Sem dados para clientes por valor.');
+    setText('progressoChartSummary', progresso.map(function(item) {
+      return item.label + ': ' + item.percentual + '%';
+    }).join(' · ') || 'Sem dados de progresso nos últimos 7 dias.');
+    setText('modalidadesChartSummary', modalidades.map(function(item) {
+      return item.modalidade + ': ' + item.total;
+    }).join(' · ') || 'Sem dados para modalidades contratadas.');
   }
 
   function renderLastUpdated() {

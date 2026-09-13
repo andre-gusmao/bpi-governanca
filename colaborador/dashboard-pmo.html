@@ -84,6 +84,12 @@
       border: 1px solid #F3F4F6;
     }
 
+    .chart-summary {
+      margin-top: var(--spacing-md);
+      font-size: var(--fs-sm);
+      color: #6B7280;
+    }
+
     .two-column-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -427,19 +433,23 @@
         <div class="charts-grid">
           <article class="chart-card">
             <h2 class="chart-title">Status dos Projetos</h2>
-            <canvas class="chart-canvas" id="statusChart" width="560" height="280"></canvas>
+            <canvas class="chart-canvas" id="statusChart" width="560" height="280" aria-label="Distribuição dos projetos por status" aria-describedby="statusChartSummary"></canvas>
+            <p class="chart-summary" id="statusChartSummary">Sem dados para distribuição por status.</p>
           </article>
           <article class="chart-card">
             <h2 class="chart-title">Top 5 Clientes por Valor</h2>
-            <canvas class="chart-canvas" id="clientesChart" width="560" height="280"></canvas>
+            <canvas class="chart-canvas" id="clientesChart" width="560" height="280" aria-label="Top 5 clientes por valor de contrato" aria-describedby="clientesChartSummary"></canvas>
+            <p class="chart-summary" id="clientesChartSummary">Sem dados para clientes por valor.</p>
           </article>
           <article class="chart-card">
             <h2 class="chart-title">Conclusão nos Últimos 7 Dias</h2>
-            <canvas class="chart-canvas" id="progressoChart" width="560" height="280"></canvas>
+            <canvas class="chart-canvas" id="progressoChart" width="560" height="280" aria-label="Progresso de conclusão nos últimos sete dias" aria-describedby="progressoChartSummary"></canvas>
+            <p class="chart-summary" id="progressoChartSummary">Sem dados de progresso nos últimos 7 dias.</p>
           </article>
           <article class="chart-card">
             <h2 class="chart-title">Modalidades Mais Contratadas</h2>
-            <canvas class="chart-canvas" id="modalidadesChart" width="560" height="280"></canvas>
+            <canvas class="chart-canvas" id="modalidadesChart" width="560" height="280" aria-label="Ranking de modalidades mais contratadas" aria-describedby="modalidadesChartSummary"></canvas>
+            <p class="chart-summary" id="modalidadesChartSummary">Sem dados para modalidades contratadas.</p>
           </article>
         </div>
       </section>
