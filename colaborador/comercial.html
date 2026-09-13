@@ -446,6 +446,10 @@
         .replace(/'/g, '&#39;');
     }
 
+    function formatarMoeda(valor) {
+      return `R$ ${Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
       if (!session) {
@@ -465,10 +469,10 @@
 
     function formatarValorProduto(produto) {
       if (produto.tipo === 'setup') {
-        return `R$ ${produto.valorTotal.toLocaleString('pt-BR')} • ${produto.horasEstimadas}h`;
+        return `${formatarMoeda(produto.valorTotal)} • ${produto.horasEstimadas}h`;
       }
 
-      return `R$ ${produto.valorMensal.toLocaleString('pt-BR')}/${produto.periodicidade}`;
+      return `${formatarMoeda(produto.valorMensal)}/${produto.periodicidade}`;
     }
 
     function popularProdutosDisponiveis() {
@@ -487,23 +491,24 @@
       const select = document.getElementById('produtoSelect');
       const produtoId = produtoIdInicial || select.value;
       
-      if (!produtoId) return;
+      if (!produtoId) return false;
 
       if (produtosSelecionados.some(produto => produto.id === produtoId)) {
         select.value = '';
-        return;
+        return false;
       }
 
       const produto = CatalogoDB.obter(produtoId);
       if (!produto) {
         select.value = '';
-        return;
+        return false;
       }
 
       produtosSelecionados.push(produto);
       renderizarProdutos();
       calcularResumo();
       select.value = '';
+      return true;
     }
 
     function removerProduto(index) {
@@ -525,8 +530,8 @@
           <div class="produto-info">
             <div class="produto-nome">${escaparHtml(p.nome)}</div>
             <div class="produto-valor">${p.tipo === 'setup'
-              ? `Setup • R$ ${p.valorTotal.toLocaleString('pt-BR')} • ${p.prazoEstimado} dias`
-              : `Recorrente • R$ ${p.valorMensal.toLocaleString('pt-BR')}/${p.periodicidade} • mínimo ${p.prazoPagamento} meses`}</div>
+              ? `Setup • ${formatarMoeda(p.valorTotal)} • ${p.prazoEstimado} dias`
+              : `Recorrente • ${formatarMoeda(p.valorMensal)}/${p.periodicidade} • mínimo ${p.prazoPagamento} meses`}</div>
           </div>
           <button type="button" class="remove-btn" onclick="removerProduto(${i})">✕ Remover</button>
         </div>
@@ -568,8 +573,12 @@
           return;
         }
 
-        pendentes.forEach(produtoId => adicionarProduto(produtoId));
-        localStorage.removeItem('helpdesk_catalogo_selecao');
+        const naoImportados = pendentes.filter(produtoId => !adicionarProduto(produtoId));
+        if (naoImportados.length > 0) {
+          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(naoImportados));
+        } else {
+          localStorage.removeItem('helpdesk_catalogo_selecao');
+        }
       } catch (error) {
         localStorage.removeItem('helpdesk_catalogo_selecao');
       }
