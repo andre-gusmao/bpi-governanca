@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório Executivo - Treinamentos</title>
+  <link rel="stylesheet" href="../assets/css/treinamentos.css" />
+</head>
+<body data-page="treinamentos-relatorios">
+  <header class="topbar">
+    <strong>BPI Governança • Treinamentos</strong>
+    <nav><a href="./catalogo.html">Catálogo</a><a href="./meu-historico.html">Meu histórico</a></nav>
+  </header>
+  <main class="page-wrap">
+      <section class="card">
+        <h1 style="margin-top:0;">Relatório Executivo de Treinamentos</h1>
+        <p class="notice">Escopo: <strong id="viewerTag">-</strong></p>
+        <div id="kpiGrid" class="kpi-grid"></div>
+      </section>
+      <section class="grid cols-3" style="margin-top:1rem;">
+        <article class="card"><h3 style="margin-top:0;">Treinamentos populares (Top 5)</h3><div id="chartPopular"></div></article>
+        <article class="card"><h3 style="margin-top:0;">Progresso por mês (6 meses)</h3><div id="chartMes"></div></article>
+        <article class="card"><h3 style="margin-top:0;">Distribuição de notas</h3><div id="chartNotas"></div></article>
+      </section>
+      <section class="card" style="margin-top:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;">
+          <h3 style="margin:.2rem 0;">Tabela de Performance</h3>
+          <button id="exportPdf" class="btn secondary" type="button">Export PDF</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Colaborador</th><th>Treinamentos</th><th>Concluídos</th><th>Taxa Conclusão</th><th>Nota Média</th><th>Certificados</th></tr></thead>
+            <tbody id="perfTbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  <script src="../assets/js/treinamentos-avancado.js"></script>
+</body>
+</html>
