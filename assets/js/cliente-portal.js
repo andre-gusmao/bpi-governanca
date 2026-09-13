@@ -102,6 +102,8 @@
     ];
   });
 
+  const QUIZ_QUESTION_COUNT = 20;
+
   const CLIENT_PROFILES = Object.freeze([
     {
       clientId: 'cli-001',
@@ -1381,7 +1383,7 @@
       </section>`;
 
     document.getElementById('startTrainingBtn').addEventListener('click', () => startTraining(clientId, trainingId));
-    quiz.innerHTML = '<div class="empty-state"><strong>Inicie o treinamento para gerar a prova automática.</strong><p>São 20 questões aleatórias de um pool com mais de 40 perguntas.</p></div>';
+    quiz.innerHTML = `<div class="empty-state"><strong>Inicie o treinamento para gerar a prova automática.</strong><p>São ${QUIZ_QUESTION_COUNT} questões aleatórias de um pool com ${QUESTION_POOL.length} perguntas.</p></div>`;
     const trainingMessage = state.certificationMessages[trainingId];
     if (message && trainingMessage) {
       message.textContent = trainingMessage.text;
@@ -1393,7 +1395,7 @@
 
   function startTraining(clientId, trainingId) {
     state.selectedQuizTrainingId = trainingId;
-    state.quizQuestions = shuffle(QUESTION_POOL).slice(0, 20);
+    state.quizQuestions = shuffle(QUESTION_POOL).slice(0, QUIZ_QUESTION_COUNT);
     upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'em_andamento', atualizadoEm: new Date().toISOString() });
     renderTrainings(clientId, document.getElementById('trainingStatusFilter').value);
     renderTrainingDetail(clientId, trainingId);
@@ -1408,9 +1410,9 @@
         <div class="section-header">
           <div>
             <h3>Prova Automática</h3>
-            <p>Responda 20 questões. Aprovação com 70% de acerto.</p>
+            <p>Responda ${QUIZ_QUESTION_COUNT} questões. Aprovação com 70% de acerto.</p>
           </div>
-          <span class="quiz-pill">20 questões</span>
+          <span class="quiz-pill">${QUIZ_QUESTION_COUNT} questões</span>
         </div>
         <form id="quizForm" class="quiz-question-list">
           ${state.quizQuestions.map((question, index) => `
@@ -1551,7 +1553,8 @@
     const profile = getClientProfile(clientId);
     if (!record || !profile) return;
     const certificateDate = new Date(record.dataConclusao);
-    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
+    const safeDate = Number.isNaN(certificateDate.getTime()) ? new Date() : certificateDate;
+    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${safeDate.getFullYear()}&issueMonth=${safeDate.getMonth() + 1}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
     record.linkedinUrl = url;
     writeJson(STORAGE_KEYS.completedTrainings, records);
     const shareBox = document.getElementById('linkedinShareBox');
