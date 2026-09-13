@@ -5,359 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Portal do Cliente - BPI Governança</title>
   <link rel="stylesheet" href="../assets/css/design-system.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #FFFBF7 0%, #1A1A1A 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: var(--spacing-lg);
-    }
-
-    .login-wrapper {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      max-width: 1000px;
-      width: 100%;
-      border-radius: var(--border-radius-xl);
-      overflow: hidden;
-      box-shadow: var(--shadow-premium);
-      animation: slideUp 0.5s ease-out;
-    }
-
-    .login-info {
-      background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
-      color: white;
-      padding: var(--spacing-3xl);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: var(--spacing-lg);
-    }
-
-    .login-info h2 {
-      font-family: var(--font-secondary);
-      font-size: var(--fs-3xl);
-      margin-bottom: var(--spacing-md);
-    }
-
-    .login-info p {
-      font-size: var(--fs-base);
-      line-height: 1.8;
-      opacity: 0.9;
-    }
-
-    .benefits {
-      list-style: none;
-      margin-top: var(--spacing-lg);
-    }
-
-    .benefits li {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-      margin-bottom: var(--spacing-md);
-      font-size: var(--fs-sm);
-    }
-
-    .benefits li::before {
-      content: "✓";
-      color: var(--color-primary-gold);
-      font-weight: var(--fw-bold);
-      font-size: var(--fs-lg);
-    }
-
-    .login-form-container {
-      background: white;
-      padding: var(--spacing-3xl);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .login-form-header {
-      margin-bottom: var(--spacing-2xl);
-      text-align: center;
-    }
-
-    .login-form-logo {
-      width: 50px;
-      height: 50px;
-      background: var(--gradient-gold);
-      border-radius: var(--border-radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: var(--fw-bold);
-      color: white;
-      margin: 0 auto var(--spacing-md);
-    }
-
-    .login-form-header h1 {
-      font-size: var(--fs-2xl);
-      margin-bottom: var(--spacing-sm);
-    }
-
-    .login-form-header p {
-      color: #9CA3AF;
-      font-size: var(--fs-sm);
-    }
-
-    .form-group {
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: var(--spacing-sm);
-      font-weight: var(--fw-semibold);
-      color: var(--color-dark-primary);
-    }
-
-    .form-input {
-      width: 100%;
-      padding: var(--spacing-md);
-      border: 1px solid #D1D5DB;
-      border-radius: var(--border-radius-lg);
-      font-size: var(--fs-base);
-      transition: all var(--transition-fast);
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--color-primary-gold);
-      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.1);
-      background: #FFFBF7;
-    }
-
-    .login-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-xl);
-      font-size: var(--fs-sm);
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      cursor: pointer;
-    }
-
-    .remember-me input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-
-    .forgot-password a {
-      color: var(--color-primary-gold);
-      text-decoration: none;
-      font-weight: var(--fw-semibold);
-    }
-
-    .forgot-password a:hover {
-      text-decoration: underline;
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: var(--spacing-md);
-      background: var(--gradient-gold);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius-lg);
-      font-size: var(--fs-base);
-      font-weight: var(--fw-bold);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      box-shadow: var(--shadow-md);
-    }
-
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .login-footer {
-      text-align: center;
-      margin-top: var(--spacing-lg);
-      padding-top: var(--spacing-lg);
-      border-top: 1px solid #E5E7EB;
-      color: #9CA3AF;
-      font-size: var(--fs-sm);
-    }
-
-    .error-message {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--color-error);
-      padding: var(--spacing-md);
-      border-radius: var(--border-radius-lg);
-      margin-bottom: var(--spacing-lg);
-      display: none;
-      font-size: var(--fs-sm);
-    }
-
-    .error-message.show {
-      display: block;
-      animation: slideUp 0.3s ease-out;
-    }
-
-    @media (max-width: 768px) {
-      .login-wrapper {
-        grid-template-columns: 1fr;
-      }
-
-      .login-info {
-        display: none;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="../assets/css/cliente-portal.css">
+  <script src="../assets/js/cliente-portal.js" defer></script>
 </head>
-<body>
-  <div class="login-wrapper">
-    <!-- INFO PANEL -->
-    <div class="login-info">
+<body class="cliente-auth" data-page="login">
+  <main class="login-wrapper">
+    <section class="login-info">
       <div>
         <h2>Portal do Cliente</h2>
-        <p>Acompanhe seus projetos, propostas e chamados em tempo real.</p>
-        
-        <ul class="benefits">
-          <li>Visão completa de projetos</li>
-          <li>Propostas e contratos</li>
-          <li>Help desk integrado</li>
-          <li>Relatórios e documentação</li>
-          <li>Acesso 24/7</li>
-          <li>Suporte prioritário</li>
-        </ul>
+        <p>Acompanhe seus projetos, chamados, treinamentos e certificados em um ambiente exclusivo da BPI Governança.</p>
       </div>
-    </div>
-
-    <!-- LOGIN FORM -->
-    <div class="login-form-container">
-      <div class="login-form-header">
-        <div class="login-form-logo">⬤</div>
-        <h1>BPI Governança</h1>
-        <p>Portal do Cliente</p>
+      <ul class="info-list">
+        <li>Dashboard com KPIs e próximos passos</li>
+        <li>Projetos e atividades filtrados por cliente</li>
+        <li>Help Desk com 13 modalidades de atendimento</li>
+        <li>Treinamentos com prova automática e certificados</li>
+      </ul>
+      <div>
+        <h3 style="font-family: var(--font-primary); font-size: var(--fs-lg); margin-bottom: var(--spacing-md);">Acessos de validação</h3>
+        <div id="demoAccountList" class="project-grid"></div>
       </div>
-
-      <div class="error-message" id="errorMessage"></div>
-
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">CNPJ ou Email da Empresa *</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            id="credencial" 
-            placeholder="Ex: 12.345.678/0001-90 ou empresa@email.com" 
-            required
-          >
+    </section>
+    <section class="login-panel">
+      <div>
+        <div class="login-logo">⬤</div>
+        <h1 style="font-size: var(--fs-3xl); margin-top: var(--spacing-md);">BPI Governança</h1>
+        <p class="login-help">Entre com email ou CNPJ da empresa e sua senha para acessar o portal exclusivo.</p>
+      </div>
+      <div id="loginError" class="error-banner" aria-live="polite"></div>
+      <form id="loginForm" class="form-grid single">
+        <div class="form-group full-span">
+          <label for="credencial">Email ou CNPJ *</label>
+          <input id="credencial" class="form-input" type="text" required placeholder="Ex: contato@clientea.com.br ou 12.345.678/0001-90">
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Senha *</label>
-          <input 
-            type="password" 
-            class="form-input" 
-            id="password" 
-            placeholder="••••••••" 
-            required
-          >
+        <div class="form-group full-span">
+          <label for="password">Senha *</label>
+          <input id="password" class="form-input" type="password" required placeholder="••••••••">
         </div>
-
-        <div class="login-actions">
-          <label class="remember-me">
-            <input type="checkbox" name="remember">
-            Lembrar-me
-          </label>
-          <div class="forgot-password">
-            <a href="#">Esqueci a senha</a>
-          </div>
+        <div class="inline-actions">
+          <button type="submit" class="btn btn-primary">Entrar</button>
         </div>
-
-        <button type="submit" class="login-btn">🔐 Entrar no Portal</button>
       </form>
-
-      <div class="login-footer">
-        Não tem acesso? <a href="#" style="color: var(--color-primary-gold); text-decoration: none;">Solicite aqui</a>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Clientes de teste
-    const clientesTeste = [
-      {
-        id: 'cli-001',
-        empresa: 'Empresa XYZ Inc',
-        cnpj: '12.345.678/0001-90',
-        email: 'contato@xyz.com.br',
-        password: '123456',
-        telefone: '(11) 3000-0000',
-        avatar: 'XYZ'
-      },
-      {
-        id: 'cli-002',
-        empresa: 'Tech Solutions',
-        cnpj: '98.765.432/0001-10',
-        email: 'admin@techsolutions.com.br',
-        password: '123456',
-        telefone: '(11) 3100-0000',
-        avatar: 'TS'
-      },
-      {
-        id: 'cli-003',
-        empresa: 'Holding Internacional',
-        cnpj: '55.555.555/0001-55',
-        email: 'financeiro@holding.com.br',
-        password: '123456',
-        telefone: '(11) 3200-0000',
-        avatar: 'HI'
-      }
-    ];
-
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const credencial = document.getElementById('credencial').value.toLowerCase();
-      const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('errorMessage');
-
-      // Buscar cliente por CNPJ ou email
-      const cliente = clientesTeste.find(c => 
-        (c.cnpj.toLowerCase() === credencial || c.email.toLowerCase() === credencial) && 
-        c.password === password
-      );
-
-      if (cliente) {
-        // Salvar sessão
-        localStorage.setItem('cliente_session', JSON.stringify(cliente));
-        localStorage.setItem('session_timestamp', new Date().toISOString());
-        
-        // Redirecionar
-        window.location.href = './meus-projetos.html';
-      } else {
-        errorDiv.textContent = 'CNPJ/Email ou senha inválidos';
-        errorDiv.classList.add('show');
-        setTimeout(() => errorDiv.classList.remove('show'), 5000);
-      }
-    }
-
-    // Auto-login para teste
-    window.addEventListener('load', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('demo') === 'true') {
-        document.getElementById('credencial').value = '12.345.678/0001-90';
-        document.getElementById('password').value = '123456';
-      }
-    });
-  </script>
+      <p class="login-help">Ao sair, o portal redireciona novamente para esta página de login.</p>
+    </section>
+  </main>
 </body>
 </html>
