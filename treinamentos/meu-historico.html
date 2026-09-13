@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meu Histórico de Treinamentos</title>
+  <link rel="stylesheet" href="../assets/css/treinamentos.css" />
+</head>
+<body data-page="treinamentos-historico">
+  <header class="topbar">
+    <strong>BPI Governança • Treinamentos</strong>
+    <nav><a href="./catalogo.html">Catálogo</a><a href="./relatorios.html">Relatórios</a></nav>
+  </header>
+  <main class="page-wrap">
+      <section class="card">
+        <h1 style="margin-top:0;">Histórico e Progresso</h1>
+        <div class="filters">
+          <select id="histFilterStatus">
+            <option value="todos">Todos</option>
+            <option value="concluido">Completados</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="certificado">Certificados</option>
+          </select>
+          <select id="histSort">
+            <option value="data_desc">Data de conclusão (desc)</option>
+            <option value="nota_desc">Nota (desc)</option>
+            <option value="nome_asc">Nome (asc)</option>
+          </select>
+        </div>
+      </section>
+      <section id="historicoList" class="grid" style="margin-top:1rem;"></section>
+    </main>
+  <script src="../assets/js/treinamentos-avancado.js"></script>
+</body>
+</html>

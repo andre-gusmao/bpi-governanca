@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo de Treinamentos</title>
+  <link rel="stylesheet" href="../assets/css/treinamentos.css" />
+</head>
+<body data-page="treinamentos-catalogo">
+  <header class="topbar">
+    <strong>BPI Governança • Treinamentos</strong>
+    <nav><a href="./catalogo.html">Catálogo</a><a href="./meu-historico.html">Meu histórico</a><a href="./relatorios.html">Relatórios</a></nav>
+  </header>
+  <main class="page-wrap">
+      <section class="card">
+        <h1 style="margin-top:0;">Catálogo de Treinamentos Avançado</h1>
+        <p class="notice">Usuário: <strong id="userTag">-</strong></p>
+        <div class="filters">
+          <select id="filterStatus">
+            <option value="">Status (todos)</option>
+            <option value="disponivel">Disponível</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="concluido">Concluído</option>
+          </select>
+          <select id="filterDificuldade">
+            <option value="">Dificuldade (todas)</option>
+            <option value="iniciante">Iniciante</option>
+            <option value="intermediario">Intermediário</option>
+            <option value="avancado">Avançado</option>
+          </select>
+          <input id="filterBusca" class="input" placeholder="Buscar por título ou descrição" />
+        </div>
+      </section>
+      <section id="catalogoGrid" class="grid cols-3" style="margin-top:1rem;"></section>
+    </main>
+  <script src="../assets/js/treinamentos-avancado.js"></script>
+</body>
+</html>

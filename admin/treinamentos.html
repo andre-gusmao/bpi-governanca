@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin • Gestão de Treinamentos</title>
+  <link rel="stylesheet" href="../assets/css/treinamentos.css" />
+</head>
+<body data-page="admin-treinamentos">
+  <header class="topbar">
+    <strong>Admin BPI • Gestão de Treinamentos</strong>
+    <nav>
+      <a href="./dashboard-admin.html">Dashboard</a>
+      <a href="./usuarios.html">Usuários</a>
+      <a href="./treinamentos.html">Treinamentos</a>
+      <span id="adminTag"></span>
+    </nav>
+  </header>
+  <main class="page-wrap">
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;">
+        <h1 style="margin:.2rem 0;">CRUD de Treinamentos</h1>
+        <button id="openCreateModal" class="btn primary" type="button">Criar Novo Treinamento</button>
+      </div>
+      <div class="table-wrap" style="margin-top:.8rem;">
+        <table>
+          <thead><tr><th>ID</th><th>Título</th><th>Modalidade</th><th>Dificuldade</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="adminTreinamentosBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2 style="margin-top:0;">Estatísticas</h2>
+      <div id="adminStats"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="treinamentoModal" aria-hidden="true">
+    <div class="modal-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;">
+        <h2 id="modalTitle" style="margin:.2rem 0;">Novo Treinamento</h2>
+        <button class="btn light" id="closeModal" type="button">Fechar</button>
+      </div>
+      <form id="treinamentoForm">
+        <input type="hidden" name="formId" />
+        <div class="grid cols-2" style="margin-top:.6rem;">
+          <label>Título<input class="input" name="formTitulo" required /></label>
+          <label>Modalidade<input class="input" name="formModalidade" required /></label>
+          <label>Descrição<textarea name="formDescricao" rows="3" required></textarea></label>
+          <label>Instrutora<input class="input" name="formInstrutora" required /></label>
+          <label>Dificuldade
+            <select name="formDificuldade"><option value="iniciante">Iniciante</option><option value="intermediario">Intermediário</option><option value="avancado">Avançado</option></select>
+          </label>
+          <label>Rating<input class="input" name="formRating" type="number" min="0" max="5" step="0.1" value="4.5" /></label>
+          <label>Thumbnail (URL / upload stub)<input class="input" name="formThumbnail" /></label>
+          <label>Status
+            <select name="formStatus"><option value="disponivel">Disponível</option><option value="bloqueado">Bloqueado</option><option value="encerrado">Encerrado</option></select>
+          </label>
+          <label>Duração total (horas)<input class="input" name="formDuracao" id="formDuracao" type="number" step="0.1" /></label>
+          <label>SLA para conclusão (dias)<input class="input" name="formSla" type="number" value="30" min="1" /></label>
+        </div>
+
+        <h3>Gestão de Vídeos</h3>
+        <button id="addVideo" class="btn light" type="button">Adicionar Vídeo</button>
+        <div class="table-wrap" style="margin-top:.5rem;">
+          <table>
+            <thead><tr><th>#</th><th>Título</th><th>Duração</th><th>Ações</th></tr></thead>
+            <tbody id="videosTableBody"></tbody>
+          </table>
+        </div>
+
+        <h3>Banco de Questões</h3>
+        <div class="filters">
+          <label>Selecionar banco
+            <select id="formBanco"></select>
+          </label>
+          <label>Upload JSON
+            <input id="uploadJson" type="file" accept="application/json" />
+          </label>
+          <label>Upload CSV
+            <input id="uploadCsv" type="file" accept=".csv,text/csv" />
+          </label>
+        </div>
+        <div class="notice" id="bancoPreview">Selecione um banco para pré-visualizar.</div>
+
+        <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;">
+          <button class="btn primary" type="submit">Salvar Treinamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/treinamentos-avancado.js"></script>
+</body>
+</html>
