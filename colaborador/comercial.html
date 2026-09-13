@@ -491,24 +491,24 @@
       const select = document.getElementById('produtoSelect');
       const produtoId = produtoIdInicial || select.value;
       
-      if (!produtoId) return false;
+      if (!produtoId) return 'invalid';
 
       if (produtosSelecionados.some(produto => produto.id === produtoId)) {
         select.value = '';
-        return false;
+        return 'already-selected';
       }
 
       const produto = CatalogoDB.obter(produtoId);
-      if (!produto) {
+      if (!produto || produto.ativo === false) {
         select.value = '';
-        return false;
+        return 'invalid';
       }
 
       produtosSelecionados.push(produto);
       renderizarProdutos();
       calcularResumo();
       select.value = '';
-      return true;
+      return 'added';
     }
 
     function removerProduto(index) {
@@ -573,7 +573,7 @@
           return;
         }
 
-        const naoImportados = pendentes.filter(produtoId => !adicionarProduto(produtoId));
+        const naoImportados = pendentes.filter(produtoId => adicionarProduto(produtoId) === 'invalid');
         if (naoImportados.length > 0) {
           localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(naoImportados));
         } else {
