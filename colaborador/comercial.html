@@ -573,9 +573,10 @@
           return;
         }
 
+        const pendentesUnicos = [...new Set(pendentes)];
         const selecionadosAntesDaImportacao = new Set(produtosSelecionados.map(produto => produto.id));
         const importadosNestaExecucao = new Set();
-        const naoImportados = pendentes.filter(produtoId => {
+        const naoImportados = pendentesUnicos.filter(produtoId => {
           const resultado = adicionarProduto(produtoId);
           if (resultado === 'added') {
             importadosNestaExecucao.add(produtoId);
