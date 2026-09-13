@@ -643,13 +643,13 @@
       };
     }
 
-    function salvarProposta(statusDesejado) {
+    function salvarProposta(statusDesejado, options = {}) {
       const form = document.getElementById('propostaForm');
-      if (!form.reportValidity()) {
+      if (!options.allowPartial && !form.reportValidity()) {
         throw new Error('Preencha os campos obrigatórios antes de continuar.');
       }
 
-      if (!produtosSelecionados.length) {
+      if (!options.allowPartial && !produtosSelecionados.length) {
         throw new Error('Selecione ao menos um serviço para a proposta.');
       }
 
@@ -697,7 +697,7 @@
 
     function visualizarEscopo() {
       try {
-        const proposta = salvarProposta(getStatusAtualDaProposta());
+        const proposta = salvarProposta(getStatusAtualDaProposta(), { allowPartial: true });
         window.location.href = `./escopo-detalhado.html?propostaId=${encodeURIComponent(proposta.id)}`;
       } catch (error) {
         alert(`⚠️ ${error.message}`);

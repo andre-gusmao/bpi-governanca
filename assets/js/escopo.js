@@ -304,7 +304,7 @@
 
   function parseActivityTitles(description) {
     const text = String(description || '');
-    const matches = [...text.matchAll(/\(\s*\d+\s*\)\s*([^\n\r]+)/g)]
+    const matches = [...text.matchAll(/\(\s*\d+\s*\)\s*([\s\S]*?)(?=(?:\s*\(\s*\d+\s*\)\s*)|$)/g)]
       .map((match) => match[1].trim())
       .filter(Boolean);
 
@@ -515,16 +515,24 @@
         const escopoPersistido = projetoExistente.escopoId
           ? EscopoDB.obter(projetoExistente.escopoId)
           : EscopoDB.obterPorPropostaId(proposta.id);
+        const escopoBase = Object.assign({}, escopoPersistido || {}, escopo || {});
+        const escopoDerivado = buildDefaultScope(Object.assign({}, proposta, {
+          escopo: escopoBase.descricaoDetalhada || proposta.escopo,
+          observacoes: escopoBase.observacoes || proposta.observacoes
+        }));
         const escopoAtualizado = EscopoDB.salvar(
           Object.assign(
             {},
-            buildDefaultScope(proposta),
-            escopoPersistido || {},
-            escopo || {},
+            escopoBase,
+            escopoDerivado,
             {
               id: (escopo && escopo.id) || projetoExistente.escopoId || undefined,
               propostaId: proposta.id,
-              projetoId: projetoExistente.id
+              projetoId: projetoExistente.id,
+              descricaoDetalhada: escopoBase.descricaoDetalhada || escopoDerivado.descricaoDetalhada,
+              entregas: escopoBase.entregas && escopoBase.entregas.length ? escopoBase.entregas : escopoDerivado.entregas,
+              dependenciasCliente: escopoBase.dependenciasCliente && escopoBase.dependenciasCliente.length ? escopoBase.dependenciasCliente : escopoDerivado.dependenciasCliente,
+              observacoes: escopoBase.observacoes || escopoDerivado.observacoes
             }
           )
         );

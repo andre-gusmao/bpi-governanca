@@ -458,7 +458,7 @@
       const projetoDestaque = new URLSearchParams(window.location.search).get('projetoId');
 
       grid.innerHTML = projetos.map(p => `
-        <div class="projeto-card ${getProjetoStatusClass(p.status)}">
+        <div class="projeto-card ${getProjetoStatusClass(p.status)}" data-projeto-id="${escapeHtml(p.id)}">
           <div class="projeto-header">
             <h3 class="projeto-titulo">${escapeHtml(p.titulo)}</h3>
             <p class="projeto-cliente">👤 ${escapeHtml(p.cliente)}</p>
@@ -504,12 +504,12 @@
       `).join('');
 
       if (projetoDestaque) {
-        const cards = grid.querySelectorAll('.projeto-card');
-        const matchIndex = projetos.findIndex((projeto) => projeto.id === projetoDestaque);
-        if (matchIndex >= 0 && cards[matchIndex]) {
-          cards[matchIndex].style.outline = '3px solid var(--color-primary-gold)';
-          if (typeof cards[matchIndex].scrollIntoView === 'function') {
-            cards[matchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const highlightedCard = Array.from(grid.querySelectorAll('.projeto-card'))
+          .find((card) => card.getAttribute('data-projeto-id') === projetoDestaque);
+        if (highlightedCard) {
+          highlightedCard.style.outline = '3px solid var(--color-primary-gold)';
+          if (typeof highlightedCard.scrollIntoView === 'function') {
+            highlightedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
       }
