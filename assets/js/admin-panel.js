@@ -24,6 +24,19 @@
         admin: [{ email: "admin@bpi.com.br", senhaHash: "240be518fabd2724ddb6f04eeb652e4dd04f28bc072dd4d06fbbe2eb5b78372f", adminId: "admin-001" }]
     };
     const ADMIN_PROFILES = { "admin@bpi.com.br": { adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" } };
+    const BACKUP_ALLOWED_KEYS = [
+        STORAGE_KEYS.clientes,
+        STORAGE_KEYS.colaboradores,
+        STORAGE_KEYS.projetos,
+        STORAGE_KEYS.catalogo,
+        STORAGE_KEYS.auditoria,
+        STORAGE_KEYS.modalidades,
+        STORAGE_KEYS.empresa,
+        "helpdesk_atividades",
+        "helpdesk_propostas",
+        "helpdesk_escopo",
+        "helpdesk_emails"
+    ];
 
     function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -33,15 +46,6 @@
             "\"": "&quot;",
             "'": "&#39;"
         }[char]));
-    }
-
-    function simpleHash(value) {
-        let hash = 0;
-        const input = String(value || "");
-        for (let i = 0; i < input.length; i += 1) {
-            hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
-        }
-        return String(hash);
     }
 
     function getJson(key, fallback) {
@@ -160,7 +164,7 @@
             nome: profile.nome,
             role: profile.role,
             loginEm: new Date().toISOString(),
-            tokenHash: simpleHash(token)
+            sessionToken: token
         });
     }
 
@@ -173,7 +177,7 @@
             token &&
             profile &&
             session.adminId === profile.adminId &&
-            session.tokenHash === simpleHash(token)
+            session.sessionToken === token
         );
     }
 
@@ -347,18 +351,18 @@
             const email = document.getElementById("email").value.trim().toLowerCase();
             const senha = document.getElementById("senha").value;
             const senhaHash = await digestSha256(senha);
-            const account = (TRUSTED_ACCOUNTS.admin || []).find((item) => {
+            const valid = (TRUSTED_ACCOUNTS.admin || []).some((item) => {
                 if (String(item.email).toLowerCase() !== email) return false;
                 if (item.senhaHash) return item.senhaHash === senhaHash;
                 return item.senha === senha;
             });
             const feedback = document.getElementById("login-feedback");
-            if (!account) {
+            if (!valid) {
                 feedback.textContent = "Credenciais inválidas.";
                 feedback.className = "muted";
                 return;
             }
-            const profile = ADMIN_PROFILES[email] || { adminId: account.adminId || "admin-001", nome: "Admin BPI", role: "Super Admin" };
+            const profile = ADMIN_PROFILES[email] || { adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" };
             saveSession(profile, email);
             recordAudit({
                 acao: "login_admin",
@@ -705,6 +709,10 @@
                     render();
                 });
                 tr.querySelector("[data-action='reset']").addEventListener("click", async () => {
+                    if (!window.crypto || !window.crypto.subtle) {
+                        alert("Ambiente sem suporte criptográfico para reset seguro de senha.");
+                        return;
+                    }
                     const senha = Math.random().toString(36).slice(2, 10);
                     const arr = getJson(STORAGE_KEYS.colaboradores, []);
                     const idx = arr.findIndex((c) => c.colaboradorId === item.colaboradorId);
@@ -1196,7 +1204,7 @@
         document.getElementById("btn-teste-linkedin").addEventListener("click", () => alert("Autenticação LinkedIn simulada com sucesso."));
         document.getElementById("btn-backup").addEventListener("click", () => {
             const payload = {};
-            getBackupAllowedKeys().forEach((key) => {
+            BACKUP_ALLOWED_KEYS.forEach((key) => {
                 if (localStorage.getItem(key) !== null) payload[key] = localStorage.getItem(key);
             });
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -1218,7 +1226,7 @@
                 alert("Arquivo de backup inválido.");
                 return;
             }
-            getBackupAllowedKeys().forEach((key) => {
+            BACKUP_ALLOWED_KEYS.forEach((key) => {
                 if (Object.prototype.hasOwnProperty.call(data, key)) {
                     const value = data[key];
                     localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
@@ -1318,18 +1326,3 @@
     };
     document.addEventListener("DOMContentLoaded", pageInit);
 })();
-        function getBackupAllowedKeys() {
-            return [
-                STORAGE_KEYS.clientes,
-                STORAGE_KEYS.colaboradores,
-                STORAGE_KEYS.projetos,
-                STORAGE_KEYS.catalogo,
-                STORAGE_KEYS.auditoria,
-                STORAGE_KEYS.modalidades,
-                STORAGE_KEYS.empresa,
-                "helpdesk_atividades",
-                "helpdesk_propostas",
-                "helpdesk_escopo",
-                "helpdesk_emails"
-            ];
-        }

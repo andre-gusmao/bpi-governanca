@@ -26,13 +26,13 @@
                     <button id="btn-novo-produto" class="btn btn-primary">Novo Produto</button>
                     <button id="btn-exportar-csv" class="btn btn-ghost">Exportar CSV</button>
                     <label class="btn btn-ghost">Importar CSV<input id="input-import-csv" type="file" accept=".csv" class="visually-hidden-input"></label>
+                    <small data-admin-user class="muted"></small>
                 </div>
             </header>
             <section class="card">
                 <div class="filters">
                     <select id="filtro-tipo"><option value="todos">Todos os tipos</option><option value="setup">Setup</option><option value="recorrente">Recorrente</option></select>
                     <select id="filtro-status"><option value="todos">Todos os status</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
-                    <small data-admin-user class="muted"></small>
                 </div>
                 <table>
                     <thead><tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Valor</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead>
