@@ -332,7 +332,7 @@
     return {
       inicio: inicioISO,
       duracao: duracaoNumerica,
-      fim: inicioISO && duracaoNumerica > 0 ? addDays(inicioISO, duracaoNumerica) : '',
+      fim: inicioISO && duracaoNumerica > 0 ? addDays(inicioISO, duracaoNumerica - 1) : '',
       validadeEmDias: validadeNumerica,
       dataValidade: emissaoBase && validadeNumerica > 0 ? addDays(emissaoBase, validadeNumerica) : ''
     };
@@ -341,7 +341,16 @@
   function gerarProximoNumero() {
     const propostas = parseStorage(STORAGE_KEYS.propostas, []);
     const ano = new Date().getFullYear();
-    const sequencial = propostas.filter((proposta) => String(proposta.numero || '').endsWith('/' + ano)).length + 1;
+    const ultimoSequencial = propostas.reduce((maior, proposta) => {
+      const numero = String(proposta.numero || '');
+      if (!numero.endsWith('/' + ano)) {
+        return maior;
+      }
+
+      const sequencialAtual = Number(numero.split('/')[0]);
+      return Number.isFinite(sequencialAtual) ? Math.max(maior, sequencialAtual) : maior;
+    }, 0);
+    const sequencial = ultimoSequencial + 1;
     const numeroFormatado = String(sequencial).padStart(3, '0');
 
     return {

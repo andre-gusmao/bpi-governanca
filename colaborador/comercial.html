@@ -979,12 +979,23 @@
         return;
       }
 
+      const clienteAtual = obterClienteSelecionado();
+      const destinatario = clienteAtual && clienteAtual.email ? clienteAtual.email : proposta.emailCliente;
+      if (!destinatario) {
+        showStatus('O cliente selecionado precisa ter um email válido para envio.', 'error');
+        return;
+      }
+
       if (!ultimoPdfGerado) {
         ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
       }
 
-      const propostaComPdf = window.PropostaDB.atualizar(proposta.id, { pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl });
-      const envio = window.EmailSimulator.enviar(propostaComPdf, propostaComPdf.emailCliente);
+      const propostaComPdf = window.PropostaDB.atualizar(proposta.id, {
+        pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl,
+        emailCliente: destinatario,
+        emailEnviadoPara: destinatario
+      });
+      const envio = window.EmailSimulator.enviar(propostaComPdf, destinatario);
       propostaAtualId = envio.proposta.id;
       atualizarPreview();
       showStatus('Email simulado enviado para ' + envio.registro.para + '.', 'success');
