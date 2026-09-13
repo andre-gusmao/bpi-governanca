@@ -738,12 +738,14 @@
     function carregarPropostaInicial() {
       const params = new URLSearchParams(window.location.search);
       const propostaId = params.get('propostaId');
-      const propostas = getStoredPropostas();
-      const proposta = propostaId
-        ? propostas.find((item) => item.id === propostaId)
-        : propostas.slice().sort((a, b) => new Date(b.dataAtualizacao || b.dataCriacao) - new Date(a.dataAtualizacao || a.dataCriacao))[0];
+      if (!propostaId) {
+        preencherFormulario(null);
+        return;
+      }
 
-      preencherFormulario(proposta || null);
+      const propostas = getStoredPropostas();
+      const proposta = propostas.find((item) => item.id === propostaId) || null;
+      preencherFormulario(proposta);
     }
 
     document.getElementById('desconto')?.addEventListener('input', calcularResumo);

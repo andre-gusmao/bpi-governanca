@@ -674,7 +674,7 @@
       if (checklist) {
         checklist.innerHTML = entregas.map((entrega, index) => `
           <label class="checklist-item">
-            <input type="checkbox" ${index === 0 ? 'checked' : ''}>
+            <input type="checkbox">
             <span>${escapeHtml(entrega)}</span>
           </label>
         `).join('');

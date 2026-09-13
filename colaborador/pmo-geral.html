@@ -400,12 +400,13 @@
         const atividades = atividadesSalvas.filter((atividade) => atividade.projetoId === projeto.id);
         const finalizadas = atividades.filter((atividade) => atividade.status === 'finalizada').length;
         const progresso = atividades.length ? Math.round((finalizadas / atividades.length) * 100) : Number(projeto.percentualConclusao || 0);
+        const status = normalizeProjectStatus(projeto.status);
 
         return {
           id: projeto.id,
           titulo: projeto.titulo,
           cliente: projeto.nomeCliente,
-          status: projeto.status === 'em_andamento' ? 'andamento' : projeto.status,
+          status,
           progresso,
           dataInicio: formatDate(projeto.dataInicio),
           dataFim: formatDate(projeto.dataFimPrevisto),
@@ -418,8 +419,22 @@
       });
     }
 
+    function normalizeProjectStatus(status) {
+      const normalized = String(status || '').toLowerCase();
+
+      if (normalized === 'encerrado') {
+        return 'encerrado';
+      }
+
+      if (normalized === 'em_andamento' || normalized === 'andamento' || normalized === 'ativo') {
+        return 'andamento';
+      }
+
+      return 'planejamento';
+    }
+
     function getProjetoStatusClass(status) {
-      return ['planejamento', 'andamento', 'encerrado'].includes(status) ? status : 'planejamento';
+      return normalizeProjectStatus(status);
     }
 
     function getAtividadeStatusClass(status) {
