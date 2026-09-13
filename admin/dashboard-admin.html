@@ -71,6 +71,26 @@
                 </div>
             </div>
 
+            <div class="dashboard-grid" style="margin-top: 1rem;">
+                <div class="dashboard-card">
+                    <h3>Clientes Ativos</h3>
+                    <div class="number" id="totalClientes">0</div>
+                    <p style="color: #555555; margin: 0;">Base cadastrada</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Colaboradores Ativos</h3>
+                    <div class="number" id="totalColaboradores">0</div>
+                    <p style="color: #555555; margin: 0;">Equipe habilitada</p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Serviços no Catálogo</h3>
+                    <div class="number" id="totalServicos">0</div>
+                    <p style="color: #555555; margin: 0;">Itens ativos para proposta</p>
+                </div>
+            </div>
+
             <!-- Estatísticas por Modalidade -->
             <div class="table-wrapper" style="margin-top: 2rem;">
                 <h3>📊 Chamados por Modalidade</h3>
@@ -119,22 +139,15 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            } else {
-                const user = JSON.parse(session);
-                document.getElementById('nomeUsuario').textContent = user.name;
-            }
+            const user = BPIAdminCore.auth.requireSession({ allowTypes: ['admin'] });
+            if (user) document.getElementById('nomeUsuario').textContent = user.name;
         }
 
         function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.logout();
         }
 
         function carregarDashboard() {
@@ -151,6 +164,9 @@
             document.getElementById('totalAndamento').textContent = andamento;
             document.getElementById('totalCriticos').textContent = criticos;
             document.getElementById('taxaResolucao').textContent = taxaResolucao + '%';
+            document.getElementById('totalClientes').textContent = BPIAdminCore.data.clientes().filter(c => c.ativo).length;
+            document.getElementById('totalColaboradores').textContent = BPIAdminCore.data.usuarios().filter(u => u.ativo).length;
+            document.getElementById('totalServicos').textContent = BPIAdminCore.data.catalogo().filter(s => s.ativo).length;
 
             // Tabela por modalidade
             carregarTabelaModalidades(chamados);
@@ -213,6 +229,7 @@
 
         window.addEventListener('load', () => {
             verificarAutenticacao();
+            BPIAdminCore.renderAdminMenu('dashboard');
             carregarDashboard();
         });
     </script>

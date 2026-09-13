@@ -441,22 +441,18 @@
   </div>
 
   <script src="../assets/js/pdf-generator.js"></script>
+  <script src="../assets/js/portal-session.js"></script>
   <script>
     function checkSession() {
-      const session = localStorage.getItem('colaborador_session');
-      if (!session) {
-        window.location.href = './login.html';
-      } else {
-        const user = JSON.parse(session);
-        document.getElementById('userName').textContent = user.name;
-        document.getElementById('userAvatar').textContent = user.avatar;
-        document.getElementById('userRole').textContent = user.role;
-      }
+      const user = BPIPortalSession.requireSession('colaborador', './login.html');
+      if (!user) return;
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userAvatar').textContent = user.avatar;
+      document.getElementById('userRole').textContent = user.role;
     }
 
     function logout() {
-      localStorage.removeItem('colaborador_session');
-      window.location.href = './login.html';
+      BPIPortalSession.logout('colaborador', './login.html');
     }
 
     function gerarPDF() {

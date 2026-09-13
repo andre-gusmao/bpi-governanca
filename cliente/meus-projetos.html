@@ -426,21 +426,17 @@
     </main>
   </div>
 
+  <script src="../assets/js/portal-session.js"></script>
   <script>
     function checkSession() {
-      const session = localStorage.getItem('cliente_session');
-      if (!session) {
-        window.location.href = './login.html';
-      } else {
-        const cliente = JSON.parse(session);
-        document.getElementById('clienteNome').textContent = cliente.empresa;
-        document.getElementById('clienteAvatar').textContent = cliente.avatar;
-      }
+      const cliente = BPIPortalSession.requireSession('cliente', './login.html');
+      if (!cliente) return;
+      document.getElementById('clienteNome').textContent = cliente.empresa;
+      document.getElementById('clienteAvatar').textContent = cliente.avatar;
     }
 
     function logout() {
-      localStorage.removeItem('cliente_session');
-      window.location.href = './login.html';
+      BPIPortalSession.logout('cliente', './login.html');
     }
 
     function switchTab(tab) {

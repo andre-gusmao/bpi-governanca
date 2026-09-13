@@ -213,6 +213,7 @@
     </div>
   </div>
 
+  <script src="../assets/js/portal-session.js"></script>
   <script>
     // Usuários de teste
     const testUsers = [
@@ -254,8 +255,7 @@
 
       if (user) {
         // Salvar sessão
-        localStorage.setItem('colaborador_session', JSON.stringify(user));
-        localStorage.setItem('session_timestamp', new Date().toISOString());
+        BPIPortalSession.setSession('colaborador', user);
         
         // Redirecionar
         window.location.href = './dashboard.html';

@@ -329,22 +329,17 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         let chamadoAtualId = null;
         let chamadosFiltrados = [];
 
         function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            }
+            return BPIAdminCore.auth.requireSession({ allowTypes: ['admin', 'atendente'] });
         }
 
         function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.logout();
         }
 
         function carregarChamados() {
@@ -514,7 +509,9 @@
         }
 
         window.addEventListener('load', () => {
-            verificarAutenticacao();
+            const user = verificarAutenticacao();
+            if (!user) return;
+            BPIAdminCore.renderAdminMenu('chamados', user ? user.type : 'admin');
             carregarFiltros();
             carregarChamados();
         });

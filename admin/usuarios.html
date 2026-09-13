@@ -63,7 +63,7 @@
     </div>
 
     <!-- Modal Novo Usuário -->
-    <div id="modalNovoUsuario" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+    <div id="modalNovoUsuario" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
         <div class="dashboard-card" style="max-width: 500px; width: 90%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 style="margin: 0;">Novo Usuário</h2>
@@ -73,7 +73,7 @@
             <form id="formNovoUsuario" onsubmit="salvarUsuario(event)">
                 <div class="form-group">
                     <label>Nome Completo</label>
-                    <input type="text" id="nomeUsuario" required>
+                    <input type="text" id="nomeNovoUsuario" required>
                 </div>
 
                 <div class="form-group">
@@ -91,11 +91,6 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" id="senhaUsuario" required>
-                </div>
-
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" onclick="fecharFormNovoUsuario()" class="btn btn-secondary">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Criar Usuário</button>
@@ -105,42 +100,29 @@
     </div>
 
     <script src="../assets/js/helpdesk.js"></script>
+    <script src="../assets/js/admin-core.js"></script>
     <script>
         // Sistema de gerenciamento de usuários
         const UsuariosDB = {
             obterTodos: function() {
-                const usuarios = localStorage.getItem('helpdesk_usuarios');
-                return usuarios ? JSON.parse(usuarios) : [
-                    { id: 'USR-001', nome: 'João Silva', email: 'joao@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 8 },
-                    { id: 'USR-002', nome: 'Maria Santos', email: 'maria@bpi.com.br', tipo: 'atendente', ativo: true, chamadosAtribuidos: 12 },
-                    { id: 'USR-003', nome: 'Admin BPI', email: 'admin@bpi.com.br', tipo: 'admin', ativo: true, chamadosAtribuidos: 0 }
-                ];
+                return BPIAdminCore.data.usuarios();
             },
             
             salvar: function(usuario) {
-                const usuarios = this.obterTodos();
-                usuario.id = 'USR-' + Date.now();
-                usuario.dataCriacao = new Date().toISOString();
-                usuario.ativo = true;
-                usuario.chamadosAtribuidos = 0;
-                usuarios.push(usuario);
-                localStorage.setItem('helpdesk_usuarios', JSON.stringify(usuarios));
-                return usuario;
+                BPIAdminCore.data.salvarUsuario(usuario);
+            },
+
+            alternarStatus: function(id) {
+                BPIAdminCore.data.atualizarStatusUsuario(id);
             }
         };
 
         function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.requireSession({ allowTypes: ['admin'] });
         }
 
         function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
+            BPIAdminCore.auth.logout();
         }
 
         function carregarUsuarios() {
@@ -150,17 +132,17 @@
 
             usuarios.forEach(usuario => {
                 const tr = document.createElement('tr');
-                const performance = usuario.chamadosAtribuidos > 0 ? (Math.random() * 30 + 70).toFixed(0) + '%' : '-';
+                const performance = usuario.chamadosAtribuidos > 0 ? Math.max(70, 100 - (usuario.chamadosAtribuidos * 2)) + '%' : '-';
                 tr.innerHTML = `
                     <td><strong>${usuario.nome}</strong></td>
                     <td>${usuario.email}</td>
                     <td><span style="background: #f0f0f0; padding: 0.4rem 0.8rem; border-radius: 5px; font-size: 0.85rem;">${usuario.tipo}</span></td>
                     <td>${usuario.chamadosAtribuidos}</td>
                     <td><span style="color: ${performance !== '-' && parseInt(performance) >= 80 ? '#28A745' : '#FFA500'};">${performance}</span></td>
-                    <td><span style="color: #28A745; font-weight: 600;">${usuario.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
+                    <td><span style="color: ${usuario.ativo ? '#28A745' : '#DC143C'}; font-weight: 600;">${usuario.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
                     <td>
-                        <a href="#" onclick="editarUsuario('${usuario.id}')" style="color: #C9A66B; margin-right: 1rem;">Editar</a>
-                        <a href="#" onclick="excluirUsuario('${usuario.id}')" style="color: #DC143C;">Excluir</a>
+                        <button type="button" onclick="editarUsuario('${usuario.id}')" style="color: #8A6A35; margin-right: 0.5rem; background: #fff9ef; border: 1px solid #C9A66B; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">✏️ Editar</button>
+                        <button type="button" onclick="alternarStatusUsuario('${usuario.id}')" style="color: #7f1d1d; background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">${usuario.ativo ? '⏸ Inativar' : '▶ Reativar'}</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -180,10 +162,9 @@
             e.preventDefault();
             
             const usuario = {
-                nome: document.getElementById('nomeUsuario').value,
+                nome: document.getElementById('nomeNovoUsuario').value,
                 email: document.getElementById('emailUsuario').value,
-                tipo: document.getElementById('tipoUsuario').value,
-                senha: document.getElementById('senhaUsuario').value
+                tipo: document.getElementById('tipoUsuario').value
             };
 
             UsuariosDB.salvar(usuario);
@@ -193,18 +174,19 @@
         }
 
         function editarUsuario(id) {
-            alert('Função de editar em desenvolvimento');
+            alert('Edição detalhada será disponibilizada na próxima etapa.');
         }
 
-        function excluirUsuario(id) {
-            if (confirm('Deseja realmente excluir este usuário?')) {
-                alert('Usuário excluído com sucesso');
+        function alternarStatusUsuario(id) {
+            if (confirm('Deseja alterar o status deste usuário?')) {
+                UsuariosDB.alternarStatus(id);
                 carregarUsuarios();
             }
         }
 
         window.addEventListener('load', () => {
             verificarAutenticacao();
+            BPIAdminCore.renderAdminMenu('usuarios');
             carregarUsuarios();
         });
     </script>
