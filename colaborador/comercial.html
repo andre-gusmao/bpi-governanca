@@ -574,7 +574,14 @@
         }
 
         const pendentesUnicos = [...new Set(pendentes)];
-        const naoImportados = pendentesUnicos.filter(produtoId => adicionarProduto(produtoId) === 'invalid');
+        const naoImportados = pendentesUnicos.filter(produtoId => {
+          const resultado = adicionarProduto(produtoId);
+          if (resultado === 'already-selected') {
+            return false;
+          }
+
+          return resultado === 'invalid';
+        });
 
         const filaRestante = [...new Set(naoImportados)];
         if (filaRestante.length > 0) {

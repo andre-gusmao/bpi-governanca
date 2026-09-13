@@ -375,7 +375,11 @@
     const meta = lerMetaCatalogo();
 
     if (atual.length === 0) {
-      salvarCatalogo(seedCatalogo.map(produto => normalizarProduto(produto)));
+      salvarCatalogo(
+        seedCatalogo
+          .map(produto => normalizarProduto(produto))
+          .filter(produto => validarProduto(produto))
+      );
       salvarMetaCatalogo();
       return;
     }
