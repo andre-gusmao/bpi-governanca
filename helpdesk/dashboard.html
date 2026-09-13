@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk - Dashboard</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/helpdesk.css">
+</head>
+<body data-page="dashboard">
+  <div class="portal-container">
+    <aside class="sidebar">
+      <h2>BPI Help Desk</h2><small data-session-name></small>
+      <nav class="nav">
+        <a class="active" href="./dashboard.html">Dashboard</a>
+        <a href="./fila.html">Fila</a>
+        <a href="./base-conhecimento.html">Base de Conhecimento</a>
+        <a href="./relatorios.html">Relatórios</a>
+        <a href="./config.html">Configurações</a>
+      </nav>
+    </aside>
+    <section class="main">
+      <header class="header"><h1>Dashboard Help Desk</h1><button class="btn secondary" data-logout>Sair</button></header>
+      <main class="content">
+        <section class="dashboard-grid">
+          <article class="kpi-card"><div class="kpi-label">Chamados Abertos</div><div class="kpi-value" id="kpiAbertos">0</div></article>
+          <article class="kpi-card"><div class="kpi-label">Atribuídos a Mim</div><div class="kpi-value" id="kpiMeus">0</div></article>
+          <article class="kpi-card"><div class="kpi-label">Resolvidos Hoje</div><div class="kpi-value" id="kpiResolvidos">0</div></article>
+          <article class="kpi-card"><div class="kpi-label">SLA Cumprido</div><div class="kpi-value" id="kpiSla">0%</div></article>
+        </section>
+
+        <section class="grid-2">
+          <article class="card"><h3>Pizza • Distribuição por modalidade (30 dias)</h3><div id="chartPizza"></div></article>
+          <article class="card"><h3>Barra • Ticket age</h3><div id="chartAge"></div></article>
+        </section>
+
+        <section class="card"><h3>Linha • Tempo médio de resolução (7 dias)</h3><div id="chartTempo"></div></section>
+
+        <section class="grid-2">
+          <article class="card table-wrap">
+            <h3>Meus Chamados (últimos 10)</h3>
+            <table><thead><tr><th>ID</th><th>Cliente</th><th>Status</th><th>Prioridade</th><th>SLA</th></tr></thead><tbody id="meusChamadosBody"></tbody></table>
+          </article>
+          <article class="card table-wrap">
+            <h3>Chamados Críticos</h3>
+            <table><thead><tr><th>Chamado</th><th>Cliente</th><th>Prioridade</th><th>Tempo</th></tr></thead><tbody id="criticosBody"></tbody></table>
+          </article>
+        </section>
+      </main>
+    </section>
+  </div>
+  <script src="../assets/js/helpdesk-interno.js"></script>
+</body>
+</html>

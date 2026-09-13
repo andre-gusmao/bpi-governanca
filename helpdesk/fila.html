@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk - Fila</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/helpdesk.css">
+</head>
+<body data-page="fila">
+  <div class="portal-container">
+    <aside class="sidebar">
+      <h2>BPI Help Desk</h2><small data-session-name></small>
+      <nav class="nav">
+        <a href="./dashboard.html">Dashboard</a>
+        <a class="active" href="./fila.html">Fila</a>
+        <a href="./base-conhecimento.html">Base de Conhecimento</a>
+        <a href="./relatorios.html">Relatórios</a>
+        <a href="./config.html">Configurações</a>
+      </nav>
+    </aside>
+    <section class="main">
+      <header class="header"><h1>Fila de Chamados</h1><button class="btn secondary" data-logout>Sair</button></header>
+      <main class="content">
+        <section class="card filters">
+          <select id="filtroStatus"><option value="todos">Todos status</option><option value="aberto">Abertos</option><option value="em_atendimento">Em Atendimento</option><option value="fechado">Fechados</option><option value="pendente_cliente">Pendente Cliente</option></select>
+          <select id="filtroModalidade"></select>
+          <select id="filtroPrioridade"><option value="todos">Todas prioridades</option><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option><option value="crítica">Crítica</option></select>
+          <select id="filtroPeriodo"><option value="todos">Todo período</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select>
+          <select id="ordenacao"><option value="prioridade">Prioridade (desc)</option><option value="data">Data (desc)</option><option value="fila">Tempo em fila (desc)</option><option value="cliente">Cliente</option><option value="prioridade_tempo">Prioridade + Tempo</option></select>
+        </section>
+
+        <section class="card table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Cliente</th><th>Título</th><th>Modalidade</th><th>Prioridade</th><th>Status</th><th>Tempo Fila</th><th>SLA</th><th>Ações</th></tr></thead>
+            <tbody id="filaBody"></tbody>
+          </table>
+        </section>
+      </main>
+    </section>
+  </div>
+  <script src="../assets/js/helpdesk-interno.js"></script>
+</body>
+</html>

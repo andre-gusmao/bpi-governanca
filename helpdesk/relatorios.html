@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk - Relatórios</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/helpdesk.css">
+</head>
+<body data-page="relatorios">
+  <div class="portal-container">
+    <aside class="sidebar">
+      <h2>BPI Help Desk</h2><small data-session-name></small>
+      <nav class="nav">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./fila.html">Fila</a>
+        <a href="./base-conhecimento.html">Base de Conhecimento</a>
+        <a class="active" href="./relatorios.html">Relatórios</a>
+        <a href="./config.html">Configurações</a>
+      </nav>
+    </aside>
+    <section class="main">
+      <header class="header"><h1>Relatórios Help Desk</h1><button class="btn secondary" data-logout>Sair</button></header>
+      <main class="content">
+        <section class="card filters" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+          <input id="filtroRelInicio" type="date" aria-label="Data início">
+          <input id="filtroRelFim" type="date" aria-label="Data fim">
+          <select id="filtroRelModalidade"></select>
+          <select id="filtroRelAtendente"></select>
+        </section>
+
+        <section class="card">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab-btn="geral">Visão Geral</button>
+            <button class="tab-btn" data-tab-btn="modalidade">Por Modalidade</button>
+            <button class="tab-btn" data-tab-btn="atendente">Por Atendente</button>
+            <button class="tab-btn" data-tab-btn="tendencias">Tendências</button>
+            <button class="btn tab-download" id="btnDownloadPdf" type="button">Download PDF</button>
+          </div>
+        </section>
+
+        <section class="tab-pane active" data-tab="geral"><div class="card" id="visaoGeral"></div></section>
+        <section class="tab-pane" data-tab="modalidade"><div class="card" id="porModalidade"></div></section>
+        <section class="tab-pane" data-tab="atendente"><div class="card" id="porAtendente"></div></section>
+        <section class="tab-pane" data-tab="tendencias"><div class="card" id="tendencias"></div></section>
+      </main>
+    </section>
+  </div>
+  <script src="../assets/js/helpdesk-interno.js"></script>
+</body>
+</html>

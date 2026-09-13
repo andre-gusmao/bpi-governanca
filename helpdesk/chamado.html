@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk - Chamado</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/helpdesk.css">
+</head>
+<body data-page="chamado">
+  <div class="portal-container">
+    <aside class="sidebar">
+      <h2>BPI Help Desk</h2><small data-session-name></small>
+      <nav class="nav">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./fila.html">Fila</a>
+        <a class="active" aria-current="page" href="./chamado.html">Detalhes do Chamado</a>
+        <a href="./base-conhecimento.html">Base de Conhecimento</a>
+        <a href="./relatorios.html">Relatórios</a>
+        <a href="./config.html">Configurações</a>
+      </nav>
+    </aside>
+    <section class="main">
+      <header class="header"><h1>Detalhes do Chamado</h1><button class="btn secondary" data-logout>Sair</button></header>
+      <main class="content" id="chamadoContainer"></main>
+    </section>
+  </div>
+  <script src="../assets/js/helpdesk-interno.js"></script>
+</body>
+</html>
