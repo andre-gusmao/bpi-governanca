@@ -54,12 +54,18 @@
       border-left-color: #3B82F6;
     }
 
-    .projeto-card.andamento {
+    .projeto-card.andamento,
+    .projeto-card.em-andamento {
       border-left-color: #F59E0B;
     }
 
     .projeto-card.encerrado {
       border-left-color: #10B981;
+    }
+
+    .projeto-card.selected {
+      box-shadow: var(--shadow-xl);
+      transform: translateY(-4px);
     }
 
     .projeto-header {
@@ -277,10 +283,10 @@
     <main class="portal-content">
       <!-- FILTROS -->
       <div class="pmo-filters">
-        <button class="filter-btn active" onclick="filterProjects('todos')">Todos</button>
-        <button class="filter-btn" onclick="filterProjects('planejamento')">📋 Planejamento</button>
-        <button class="filter-btn" onclick="filterProjects('andamento')">⚙️ Em Andamento</button>
-        <button class="filter-btn" onclick="filterProjects('encerrado')">✅ Encerrado</button>
+        <button class="filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn" data-filter="planejamento">📋 Planejamento</button>
+        <button class="filter-btn" data-filter="em_andamento">⚙️ Em Andamento</button>
+        <button class="filter-btn" data-filter="encerrado">✅ Encerrado</button>
       </div>
 
       <!-- GRID DE PROJETOS -->
@@ -290,152 +296,8 @@
     </main>
   </div>
 
+  <script src="../assets/js/dashboard-pmo.js"></script>
   <script>
-    // Dados de exemplo dos projetos
-    const projetosData = [
-      {
-        id: 'proj-001',
-        titulo: 'Implementação ERP - Módulo Financeiro',
-        cliente: 'Empresa XYZ Inc',
-        status: 'andamento',
-        progresso: 65,
-        dataInicio: '15/10/2026',
-        dataFim: '30/11/2026',
-        gestor: 'André Gusmão',
-        atividades: [
-          { titulo: 'Diagnóstico', status: 'finalizada' },
-          { titulo: 'Configuração', status: 'em-andamento' },
-          { titulo: 'Testes', status: 'nao-iniciada' }
-        ]
-      },
-      {
-        id: 'proj-002',
-        titulo: 'Consultoria de Otimização',
-        cliente: 'Empresa ABC Ltd',
-        status: 'planejamento',
-        progresso: 10,
-        dataInicio: '20/10/2026',
-        dataFim: '15/11/2026',
-        gestor: 'Maria Silva',
-        atividades: [
-          { titulo: 'Análise Inicial', status: 'em-andamento' }
-        ]
-      },
-      {
-        id: 'proj-003',
-        titulo: 'Treinamento de Usuários',
-        cliente: 'Holding Internacional',
-        status: 'andamento',
-        progresso: 85,
-        dataInicio: '01/10/2026',
-        dataFim: '15/10/2026',
-        gestor: 'João Santos',
-        atividades: [
-          { titulo: 'Módulo 1', status: 'finalizada' },
-          { titulo: 'Módulo 2', status: 'finalizada' },
-          { titulo: 'Módulo 3', status: 'em-andamento' }
-        ]
-      },
-      {
-        id: 'proj-004',
-        titulo: 'Implementação ERP - Módulo Fiscal',
-        cliente: 'Tech Solutions',
-        status: 'encerrado',
-        progresso: 100,
-        dataInicio: '15/08/2026',
-        dataFim: '30/09/2026',
-        gestor: 'André Gusmão',
-        atividades: [
-          { titulo: 'Análise', status: 'finalizada' },
-          { titulo: 'Implementação', status: 'finalizada' },
-          { titulo: 'Treinamento', status: 'finalizada' }
-        ]
-      }
-    ];
-
-    let filtroAtual = 'todos';
-
-    function renderProjetos(projetos) {
-      const grid = document.getElementById('projetosGrid');
-      
-      if (projetos.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <h3>Nenhum projeto encontrado</h3>
-            <p>Tente outro filtro ou crie um novo projeto</p>
-          </div>
-        `;
-        return;
-      }
-
-      grid.innerHTML = projetos.map(p => `
-        <div class="projeto-card ${p.status}">
-          <div class="projeto-header">
-            <h3 class="projeto-titulo">${p.titulo}</h3>
-            <p class="projeto-cliente">👤 ${p.cliente}</p>
-            <span class="projeto-status">${p.status.toUpperCase()}</span>
-          </div>
-          
-          <div class="projeto-body">
-            <div class="projeto-info-row">
-              <span class="info-label">Gestor</span>
-              <span class="info-value">${p.gestor}</span>
-            </div>
-            <div class="projeto-info-row">
-              <span class="info-label">Início</span>
-              <span class="info-value">${p.dataInicio}</span>
-            </div>
-            <div class="projeto-info-row">
-              <span class="info-label">Término</span>
-              <span class="info-value">${p.dataFim}</span>
-            </div>
-            <div class="projeto-info-row">
-              <span class="info-label">Progresso</span>
-              <span class="info-value">${p.progresso}%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${p.progresso}%"></div>
-            </div>
-            
-            <h4 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md); font-weight: var(--fw-bold);">Atividades:</h4>
-            ${p.atividades.map(a => `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                <span style="font-size: var(--fs-sm);">${a.titulo}</span>
-                <span class="status-badge ${a.status}">${a.status.replace('-', ' ').toUpperCase()}</span>
-              </div>
-            `).join('')}
-          </div>
-          
-          <div class="projeto-footer">
-            <button class="btn-view" onclick="viewProjeto('${p.id}')">
-              👁️ Visualizar
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function filterProjects(status) {
-      filtroAtual = status;
-      
-      // Atualizar botões
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      // Filtrar e renderizar
-      const filtered = status === 'todos' 
-        ? projetosData 
-        : projetosData.filter(p => p.status === status);
-      
-      renderProjetos(filtered);
-    }
-
-    function viewProjeto(id) {
-      alert(`Visualizar detalhes do projeto: ${id}`);
-      // Implementar navegação para página de detalhes
-    }
-
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
       if (!session) {
@@ -455,7 +317,10 @@
 
     window.addEventListener('load', () => {
       checkSession();
-      renderProjetos(projetosData);
+      DashboardPMO.bindPmoFilters();
+      DashboardPMO.initRealtimeRefresh();
+      DashboardPMO.syncPmoButtons();
+      DashboardPMO.renderPmoProjetosGrid();
     });
   </script>
 </body>

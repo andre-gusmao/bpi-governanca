@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard PMO - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .section-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-lg);
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: var(--fs-xl);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--gradient-gold);
+    }
+
+    .section-subtitle {
+      color: #6B7280;
+      font-size: var(--fs-sm);
+      margin-top: var(--spacing-xs);
+    }
+
+    .dashboard-kpis {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .kpi-card .kpi-link {
+      display: inline-flex;
+      margin-top: var(--spacing-sm);
+      font-size: var(--fs-sm);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-lg);
+    }
+
+    .chart-title {
+      font-size: var(--fs-lg);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .chart-canvas {
+      width: 100%;
+      height: 280px;
+      display: block;
+      background: linear-gradient(180deg, #FFFBF7 0%, #FFFFFF 100%);
+      border-radius: var(--border-radius-lg);
+      border: 1px solid #F3F4F6;
+    }
+
+    .two-column-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--spacing-lg);
+      align-items: start;
+    }
+
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      border: 1px solid #E5E7EB;
+      border-radius: var(--border-radius-lg);
+      background: var(--color-gray-lighter);
+    }
+
+    .timeline-priority {
+      font-size: 20px;
+      line-height: 1;
+      padding-top: 2px;
+    }
+
+    .timeline-content {
+      flex: 1;
+    }
+
+    .timeline-content p {
+      margin-bottom: var(--spacing-xs);
+      font-size: var(--fs-sm);
+    }
+
+    .timeline-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+      flex-wrap: wrap;
+    }
+
+    .timeline-title-row h3 {
+      font-size: var(--fs-base);
+      margin: 0;
+      font-family: var(--font-primary);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: var(--border-radius-full);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-pill.planejamento,
+    .status-pill.nao-iniciada {
+      background: rgba(59, 130, 246, 0.1);
+      color: #1D4ED8;
+    }
+
+    .status-pill.em-andamento {
+      background: rgba(245, 158, 11, 0.14);
+      color: #92400E;
+    }
+
+    .status-pill.encerrado,
+    .status-pill.finalizada {
+      background: rgba(16, 185, 129, 0.12);
+      color: #047857;
+    }
+
+    .table-tools {
+      display: flex;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+
+    .table-tools select {
+      min-width: 190px;
+      padding: 10px 14px;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      background: white;
+      font-size: var(--fs-sm);
+    }
+
+    .progress-cell {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      min-width: 140px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #E5E7EB;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-gold);
+      border-radius: inherit;
+    }
+
+    .table-link {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-bold);
+    }
+
+    .empty-message,
+    .empty-table {
+      color: #9CA3AF;
+      text-align: center;
+      padding: var(--spacing-xl);
+    }
+
+    .alert-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .alert-block {
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid #E5E7EB;
+    }
+
+    .alert-block h3 {
+      font-size: var(--fs-base);
+      font-family: var(--font-primary);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .alert-block.critical {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .alert-block.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.24);
+    }
+
+    .alert-block.neutral {
+      background: rgba(59, 130, 246, 0.08);
+      border-color: rgba(59, 130, 246, 0.18);
+    }
+
+    .alert-row {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+      font-size: var(--fs-sm);
+    }
+
+    .alert-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .alert-row strong {
+      color: var(--color-dark-primary);
+    }
+
+    .mini-link {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-bold);
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-kpis,
+      .charts-grid,
+      .two-column-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .charts-grid,
+      .two-column-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-kpis {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        align-items: stretch;
+      }
+
+      .table-tools {
+        width: 100%;
+      }
+
+      .table-tools select {
+        width: 100%;
+      }
+
+      .timeline-title-row,
+      .alert-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link active" href="./dashboard-pmo.html">
+            <span class="nav-icon">📊</span>
+            Dashboard PMO
+          </a>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">🏠</span>
+            Dashboard Geral
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">PMO</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>Dashboard PMO</h1>
+        <div class="header-breadcrumb">Início / PMO / Dashboard</div>
+      </div>
+      <div class="header-actions">
+        <a class="btn btn-primary" href="./pmo-geral.html?filtro=em_andamento">Ver PMO em Andamento</a>
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <main class="portal-content">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Indicadores Principais</div>
+          <p class="section-subtitle">Visão consolidada do portfólio, atividades e riscos operacionais.</p>
+        </div>
+        <span class="mini-link" id="dashboardAtualizadoEm">Atualizado em —</span>
+      </div>
+
+      <section class="dashboard-grid dashboard-kpis">
+        <article class="kpi-card">
+          <div class="kpi-icon">📁</div>
+          <div class="kpi-label">Total de Projetos</div>
+          <div class="kpi-value" id="kpiTotalProjetos">0</div>
+          <a class="kpi-link" href="./pmo-geral.html">Ver todos</a>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-icon">⚙️</div>
+          <div class="kpi-label">Projetos em Andamento</div>
+          <div class="kpi-value" id="kpiProjetosAndamento">0</div>
+          <a class="kpi-link" href="./pmo-geral.html?filtro=em_andamento">Filtrar no PMO</a>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-icon">⏰</div>
+          <div class="kpi-label">Atividades em Atraso</div>
+          <div class="kpi-value" id="kpiAtividadesAtraso">0</div>
+          <span class="kpi-change negative">Demandam acompanhamento</span>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-label">Taxa de Sucesso</div>
+          <div class="kpi-value" id="kpiTaxaSucesso">0%</div>
+          <span class="kpi-change positive">Atividades finalizadas</span>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-label">Valor Total em Projetos</div>
+          <div class="kpi-value" id="kpiValorTotal">R$ 0,00</div>
+          <span class="kpi-change positive">Setup + recorrência anual</span>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-icon">🚨</div>
+          <div class="kpi-label">Valor em Risco</div>
+          <div class="kpi-value" id="kpiValorRisco">R$ 0,00</div>
+          <span class="kpi-change negative">Projetos com atraso</span>
+        </article>
+      </section>
+
+      <section class="section-card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Gráficos</div>
+            <p class="section-subtitle">Distribuição, receita e evolução do portfólio nos últimos dias.</p>
+          </div>
+        </div>
+        <div class="charts-grid">
+          <article class="chart-card">
+            <h2 class="chart-title">Status dos Projetos</h2>
+            <canvas class="chart-canvas" id="statusChart" width="560" height="280"></canvas>
+          </article>
+          <article class="chart-card">
+            <h2 class="chart-title">Top 5 Clientes por Valor</h2>
+            <canvas class="chart-canvas" id="clientesChart" width="560" height="280"></canvas>
+          </article>
+          <article class="chart-card">
+            <h2 class="chart-title">Conclusão nos Últimos 7 Dias</h2>
+            <canvas class="chart-canvas" id="progressoChart" width="560" height="280"></canvas>
+          </article>
+          <article class="chart-card">
+            <h2 class="chart-title">Modalidades Mais Contratadas</h2>
+            <canvas class="chart-canvas" id="modalidadesChart" width="560" height="280"></canvas>
+          </article>
+        </div>
+      </section>
+
+      <section class="two-column-grid">
+        <article class="section-card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Próximas Atividades</div>
+              <p class="section-subtitle">Timeline visual dos próximos 7 dias com prioridade e prazo.</p>
+            </div>
+          </div>
+          <div class="timeline-list" id="timelineList"></div>
+        </article>
+
+        <article class="section-card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Alertas e Avisos</div>
+              <p class="section-subtitle">Acompanhamento de atrasos críticos, alertas e projetos sem início efetivo.</p>
+            </div>
+          </div>
+          <div class="alert-stack" id="alertasList"></div>
+        </article>
+      </section>
+
+      <section class="table-container" id="destaques">
+        <div class="table-header">
+          <div>
+            <div class="table-title">Projetos em Destaque</div>
+            <p class="section-subtitle">Ordene e filtre a carteira para acompanhar próximos passos.</p>
+          </div>
+          <div class="table-tools">
+            <select id="projetosStatusFiltro" aria-label="Filtrar projetos por status">
+              <option value="todos">Todos os status</option>
+              <option value="planejamento">Planejamento</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="encerrado">Encerrado</option>
+            </select>
+            <select id="projetosOrdenacao" aria-label="Ordenar projetos">
+              <option value="conclusao_desc">% conclusão (maior)</option>
+              <option value="conclusao_asc">% conclusão (menor)</option>
+              <option value="data_asc">Data prevista (mais próxima)</option>
+              <option value="data_desc">Data prevista (mais distante)</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Projeto</th>
+              <th>Status</th>
+              <th>% Conclusão</th>
+              <th>Próxima Atividade</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="projetosDestaqueBody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="../assets/js/dashboard-pmo.js"></script>
+  <script>
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+        return;
+      }
+
+      const user = JSON.parse(session);
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userAvatar').textContent = user.avatar;
+      document.getElementById('userRole').textContent = user.role;
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      window.location.href = './login.html';
+    }
+
+    window.addEventListener('load', function() {
+      checkSession();
+      DashboardPMO.bindDashboardFilters();
+      DashboardPMO.initRealtimeRefresh();
+      DashboardPMO.renderDashboardPage();
+    });
+  </script>
+</body>
+</html>
