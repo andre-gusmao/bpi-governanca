@@ -574,13 +574,23 @@
         }
 
         const selecionadosAntesDaImportacao = new Set(produtosSelecionados.map(produto => produto.id));
+        const importadosNestaExecucao = new Set();
         const naoImportados = pendentes.filter(produtoId => {
           const resultado = adicionarProduto(produtoId);
-          return resultado === 'invalid' || (resultado === 'already-selected' && selecionadosAntesDaImportacao.has(produtoId));
+          if (resultado === 'added') {
+            importadosNestaExecucao.add(produtoId);
+            return false;
+          }
+
+          return resultado === 'invalid'
+            || (resultado === 'already-selected'
+              && selecionadosAntesDaImportacao.has(produtoId)
+              && !importadosNestaExecucao.has(produtoId));
         });
 
-        if (naoImportados.length > 0) {
-          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(naoImportados));
+        const filaRestante = [...new Set(naoImportados)];
+        if (filaRestante.length > 0) {
+          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(filaRestante));
         } else {
           localStorage.removeItem('helpdesk_catalogo_selecao');
         }
