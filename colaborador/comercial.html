@@ -574,20 +574,7 @@
         }
 
         const pendentesUnicos = [...new Set(pendentes)];
-        const selecionadosAntesDaImportacao = new Set(produtosSelecionados.map(produto => produto.id));
-        const importadosNestaExecucao = new Set();
-        const naoImportados = pendentesUnicos.filter(produtoId => {
-          const resultado = adicionarProduto(produtoId);
-          if (resultado === 'added') {
-            importadosNestaExecucao.add(produtoId);
-            return false;
-          }
-
-          return resultado === 'invalid'
-            || (resultado === 'already-selected'
-              && selecionadosAntesDaImportacao.has(produtoId)
-              && !importadosNestaExecucao.has(produtoId));
-        });
+        const naoImportados = pendentesUnicos.filter(produtoId => adicionarProduto(produtoId) !== 'added');
 
         const filaRestante = [...new Set(naoImportados)];
         if (filaRestante.length > 0) {
