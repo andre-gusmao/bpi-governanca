@@ -330,10 +330,10 @@
     const descricaoDetalhada = proposta && (proposta.escopo || proposta.descricao)
       ? (proposta.escopo || proposta.descricao)
       : `Projeto ${proposta && proposta.titulo ? proposta.titulo : 'sem título'}.\n(1) Diagnóstico do ambiente atual\n(2) Configuração do ambiente e serviços\n(3) Testes integrados\n(4) Treinamento de usuários\n(5) Suporte de pós-implementação`;
-    const setupTotal = servicosContratados
+    const setupCalculado = servicosContratados
       .filter((servico) => servico.tipo === 'setup')
       .reduce((sum, servico) => sum + Number(servico.valor || 0), 0);
-    const recorrenteMensal = servicosContratados
+    const recorrenteCalculado = servicosContratados
       .filter((servico) => servico.tipo === 'recorrente')
       .reduce((sum, servico) => sum + Number(servico.valor || 0), 0);
     const desconto = Number(
@@ -344,7 +344,27 @@
         : 0
     );
     const cronograma = buildCronograma(dataInicio, duracaoProjeto);
-    const total = setupTotal - desconto + (recorrenteMensal * 12);
+    const setupTotal = Number(
+      proposta &&
+      proposta.valores &&
+      typeof proposta.valores.setup === 'number'
+        ? proposta.valores.setup
+        : setupCalculado
+    );
+    const recorrenteMensal = Number(
+      proposta &&
+      proposta.valores &&
+      typeof proposta.valores.recorrente === 'number'
+        ? proposta.valores.recorrente
+        : recorrenteCalculado
+    );
+    const total = Number(
+      proposta &&
+      proposta.valores &&
+      typeof proposta.valores.total === 'number'
+        ? proposta.valores.total
+        : setupTotal + (recorrenteMensal * 12)
+    );
 
     return {
       propostaId: proposta && proposta.id ? proposta.id : null,
@@ -557,10 +577,10 @@
       const session = getColaboradorSession();
       const now = getNowIso();
       const servicosContratados = Array.isArray(escopoSalvo.servicosContratados) ? escopoSalvo.servicosContratados : [];
-      const startDate = proposta.prazos && proposta.prazos.inicio
-        ? proposta.prazos.inicio
-        : escopoSalvo.cronograma && escopoSalvo.cronograma[0]
-          ? escopoSalvo.cronograma[0].dataInicio
+      const startDate = escopoSalvo.cronograma && escopoSalvo.cronograma[0]
+        ? escopoSalvo.cronograma[0].dataInicio
+        : proposta.prazos && proposta.prazos.inicio
+          ? proposta.prazos.inicio
           : toISODate();
       const cronograma = Array.isArray(escopoSalvo.cronograma) && escopoSalvo.cronograma.length
         ? escopoSalvo.cronograma

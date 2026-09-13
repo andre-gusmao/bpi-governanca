@@ -464,6 +464,20 @@
       return BPIEscopoUtils.formatDateBR(value);
     }
 
+    function getProjectStatusClass(status) {
+      const normalized = String(status || '').toLowerCase();
+
+      if (normalized === 'encerrado') {
+        return 'encerrado';
+      }
+
+      if (normalized === 'ativo' || normalized === 'em_andamento') {
+        return 'em_andamento';
+      }
+
+      return 'planejamento';
+    }
+
     function ensureEscopo() {
       getContextoAtual();
       if (projetoAtual && projetoAtual.escopoId) {
@@ -536,7 +550,7 @@
             <div class="overview-item"><div class="overview-label">Data Início</div><div class="overview-value">${escapeHtml(formatDate(dataInicio))}</div></div>
             <div class="overview-item"><div class="overview-label">Data Fim Prevista</div><div class="overview-value">${escapeHtml(formatDate(dataFim))}</div></div>
             <div class="overview-item"><div class="overview-label">Modalidade</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.modalidade) || propostaAtual.modalidade || 'Implementações')}</div></div>
-            <div class="overview-item"><div class="overview-label">Status</div><div class="overview-value"><span class="status-chip ${(projetoAtual && projetoAtual.status) || 'planejamento'}">${escapeHtml(statusProjeto)}</span></div></div>
+            <div class="overview-item"><div class="overview-label">Status</div><div class="overview-value"><span class="status-chip ${getProjectStatusClass((projetoAtual && projetoAtual.status) || 'planejamento')}">${escapeHtml(statusProjeto)}</span></div></div>
           </div>
         </div>
 
