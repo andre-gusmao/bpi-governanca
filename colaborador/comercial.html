@@ -740,6 +740,8 @@
       const banner = document.getElementById('statusBanner');
       banner.textContent = message;
       banner.className = 'status-banner show ' + (type || 'info');
+      banner.setAttribute('role', type === 'error' ? 'alert' : 'status');
+      banner.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
 
       if (statusTimer) {
         clearTimeout(statusTimer);
@@ -748,6 +750,19 @@
       statusTimer = window.setTimeout(() => {
         banner.className = 'status-banner';
       }, 5000);
+    }
+
+    function obterPropostaExistente() {
+      return propostaAtualId ? window.PropostaDB.obter(propostaAtualId) : null;
+    }
+
+    function revogarPdfGerado() {
+      if (!ultimoPdfGerado) {
+        return;
+      }
+
+      window.PDFGenerator.revogar(ultimoPdfGerado);
+      ultimoPdfGerado = null;
     }
 
     function preencherClientes() {
@@ -776,7 +791,8 @@
     }
 
     function obterClienteSelecionado() {
-      const clienteId = document.getElementById('clienteSelect').value;
+      const propostaExistente = obterPropostaExistente();
+      const clienteId = document.getElementById('clienteSelect').value || (propostaExistente ? propostaExistente.clientId : '');
       return window.PropostaClientes.listar().find((cliente) => cliente.id === clienteId) || null;
     }
 
@@ -837,7 +853,7 @@
     }
 
     function construirProposta(status, relaxado) {
-      const propostaExistente = propostaAtualId ? window.PropostaDB.obter(propostaAtualId) : null;
+      const propostaExistente = obterPropostaExistente();
       const cliente = obterClienteSelecionado();
       const titulo = document.getElementById('tituloProjeto').value.trim();
       const modalidade = document.getElementById('modalidade').value;
@@ -965,6 +981,7 @@
         return;
       }
 
+      revogarPdfGerado();
       ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
       const atualizada = window.PropostaDB.atualizar(proposta.id, { pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl });
       propostaAtualId = atualizada.id;
@@ -1001,11 +1018,51 @@
       showStatus('Email simulado enviado para ' + envio.registro.para + '.', 'success');
     }
 
+    function preencherFormulario(proposta) {
+      const cliente = window.PropostaClientes.listar().find((item) => item.id === proposta.clientId);
+      propostaAtualId = proposta.id;
+      document.getElementById('clienteSelect').value = cliente ? cliente.id : '';
+      document.getElementById('tituloProjeto').value = proposta.titulo || '';
+      document.getElementById('descricaoBreve').value = proposta.descricao || '';
+      document.getElementById('modalidade').value = proposta.modalidade || '';
+      document.getElementById('validade').value = proposta.prazos && proposta.prazos.validadeEmDias ? proposta.prazos.validadeEmDias : '30';
+      document.getElementById('dataInicio').value = proposta.prazos && proposta.prazos.inicio ? proposta.prazos.inicio : '';
+      document.getElementById('duracaoDias').value = proposta.prazos && proposta.prazos.duracao ? proposta.prazos.duracao : '30';
+      document.getElementById('escopoDetalhado').value = proposta.escopo || '';
+      document.getElementById('desconto').value = proposta.valores && proposta.valores.descontoPercentual ? proposta.valores.descontoPercentual : '0';
+      produtosSelecionados = Array.isArray(proposta.servicos) ? proposta.servicos.slice() : [];
+      revogarPdfGerado();
+      sincronizarDatas();
+      renderizarProdutos();
+      atualizarResumoCliente();
+      atualizarResumoFinanceiro();
+      atualizarPreview();
+    }
+
+    function carregarUltimoRascunho() {
+      const propostas = window.PropostaDB.listar();
+      if (!propostas.length) {
+        return false;
+      }
+
+      const proposta = propostas.slice().sort((a, b) => {
+        return new Date(b.dataCriacao || 0).getTime() - new Date(a.dataCriacao || 0).getTime();
+      })[0];
+
+      if (!proposta) {
+        return false;
+      }
+
+      preencherFormulario(proposta);
+      showStatus('Última proposta salva carregada automaticamente.', 'info');
+      return true;
+    }
+
     function limparProposta() {
       document.getElementById('propostaForm').reset();
       produtosSelecionados = [];
       propostaAtualId = null;
-      ultimoPdfGerado = null;
+      revogarPdfGerado();
       document.getElementById('validade').value = '30';
       document.getElementById('duracaoDias').value = '30';
       document.getElementById('dataInicio').value = window.PropostaUtils.toISODate(new Date());
@@ -1070,12 +1127,14 @@
       preencherClientes();
       preencherModalidades();
       preencherProdutos();
-      document.getElementById('dataInicio').value = window.PropostaUtils.toISODate(new Date());
-      sincronizarDatas();
-      renderizarProdutos();
-      atualizarResumoCliente();
-      atualizarResumoFinanceiro();
-      atualizarPreview();
+      if (!carregarUltimoRascunho()) {
+        document.getElementById('dataInicio').value = window.PropostaUtils.toISODate(new Date());
+        sincronizarDatas();
+        renderizarProdutos();
+        atualizarResumoCliente();
+        atualizarResumoFinanceiro();
+        atualizarPreview();
+      }
       configurarEventos();
     }
 

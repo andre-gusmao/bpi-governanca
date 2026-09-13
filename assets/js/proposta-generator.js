@@ -334,7 +334,7 @@
       duracao: duracaoNumerica,
       fim: inicioISO && duracaoNumerica > 0 ? addDays(inicioISO, duracaoNumerica - 1) : '',
       validadeEmDias: validadeNumerica,
-      dataValidade: emissaoBase && validadeNumerica > 0 ? addDays(emissaoBase, validadeNumerica) : ''
+      dataValidade: emissaoBase && validadeNumerica > 0 ? addDays(emissaoBase, validadeNumerica - 1) : ''
     };
   }
 
@@ -620,12 +620,15 @@
 
     contentLines.push('ET');
     const streamContent = contentLines.join('\n');
+    const streamLength = typeof TextEncoder !== 'undefined'
+      ? new TextEncoder().encode(streamContent).length
+      : streamContent.length;
 
     const objects = [
       '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj',
       '2 0 obj\n<< /Type /Pages /Count 1 /Kids [3 0 R] >>\nendobj',
       '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj',
-      '4 0 obj\n<< /Length ' + streamContent.length + ' >>\nstream\n' + streamContent + '\nendstream\nendobj',
+      '4 0 obj\n<< /Length ' + streamLength + ' >>\nstream\n' + streamContent + '\nendstream\nendobj',
       '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj'
     ];
 
@@ -688,6 +691,15 @@
       }
 
       return false;
+    },
+
+    revogar: function (resultado) {
+      if (!resultado || !resultado.pdfUrl || !global.URL || typeof global.URL.revokeObjectURL !== 'function') {
+        return false;
+      }
+
+      global.URL.revokeObjectURL(resultado.pdfUrl);
+      return true;
     }
   };
 
