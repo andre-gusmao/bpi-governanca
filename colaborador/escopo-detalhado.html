@@ -466,15 +466,15 @@
 
     function ensureEscopo() {
       getContextoAtual();
-      if (!propostaAtual) {
-        return null;
-      }
-
       if (projetoAtual && projetoAtual.escopoId) {
         const escopoProjeto = EscopoDB.obter(projetoAtual.escopoId);
         if (escopoProjeto) {
           return escopoProjeto;
         }
+      }
+
+      if (!propostaAtual) {
+        return null;
       }
 
       const existente = EscopoDB.obterPorPropostaId(propostaAtual.id);
@@ -501,18 +501,21 @@
 
       escopoAtual = ensureEscopo();
 
-      if (!propostaAtual || !escopoAtual) {
-        subtitle.textContent = 'Nenhuma proposta disponível para detalhar escopo.';
+      if (!escopoAtual) {
+        subtitle.textContent = projetoAtual
+          ? `Projeto ${projetoAtual.titulo || projetoAtual.id} sem proposta vinculada`
+          : 'Nenhuma proposta disponível para detalhar escopo.';
         content.innerHTML = `
           <div class="empty-state">
             <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
-            <h3>Nenhuma proposta encontrada</h3>
-            <p>Crie ou salve uma proposta em Comercial antes de abrir esta página.</p>
+            <h3>${projetoAtual ? 'Projeto sem proposta vinculada' : 'Nenhuma proposta encontrada'}</h3>
+            <p>${projetoAtual ? 'Abra o projeto a partir de uma proposta vinculada para permitir nova integração automática.' : 'Crie ou salve uma proposta em Comercial antes de abrir esta página.'}</p>
           </div>
         `;
         return;
       }
 
+      const baseDados = projetoAtual || propostaAtual;
       const statusProjeto = projetoAtual
         ? (projetoAtual.status === 'em_andamento' ? 'Em Andamento' : projetoAtual.status === 'encerrado' ? 'Encerrado' : 'Planejamento')
         : 'Planejamento';
@@ -520,13 +523,15 @@
       const dataInicio = projetoAtual?.dataInicio || propostaAtual.prazos?.inicio || cronograma[0]?.dataInicio || BPIEscopoUtils.toISODate();
       const dataFim = projetoAtual?.dataFimPrevisto || propostaAtual.prazos?.fim || cronograma[cronograma.length - 1]?.dataFim || dataInicio;
 
-      subtitle.textContent = `Proposta ${propostaAtual.numero || propostaAtual.id} • Cliente ${propostaAtual.nomeCliente || 'não informado'}`;
+      subtitle.textContent = propostaAtual
+        ? `Proposta ${propostaAtual.numero || propostaAtual.id} • Cliente ${propostaAtual.nomeCliente || 'não informado'}`
+        : `Projeto ${projetoAtual.titulo || projetoAtual.id} • Cliente ${projetoAtual.nomeCliente || 'não informado'}`;
       content.innerHTML = `
         <div class="scope-section">
           <h3 class="scope-section-title">🎯 Visão Geral</h3>
           <div class="overview-grid">
             <div class="overview-item"><div class="overview-label">Projeto</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.titulo) || propostaAtual.titulo)}</div></div>
-            <div class="overview-item"><div class="overview-label">Cliente</div><div class="overview-value">${escapeHtml(propostaAtual.nomeCliente)}</div></div>
+            <div class="overview-item"><div class="overview-label">Cliente</div><div class="overview-value">${escapeHtml(baseDados.nomeCliente || '')}</div></div>
             <div class="overview-item"><div class="overview-label">Gestor</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.gestorResponsavel) || propostaAtual.elaboradoPor || document.getElementById('userName').textContent)}</div></div>
             <div class="overview-item"><div class="overview-label">Data Início</div><div class="overview-value">${escapeHtml(formatDate(dataInicio))}</div></div>
             <div class="overview-item"><div class="overview-label">Data Fim Prevista</div><div class="overview-value">${escapeHtml(formatDate(dataFim))}</div></div>
@@ -619,7 +624,7 @@
           <h3 class="scope-section-title">🚀 Ações</h3>
           <div class="actions-bar">
             <button type="button" class="btn btn-secondary" id="btnVisualizarProposta" aria-label="Visualizar proposta relacionada ao escopo">📋 Visualizar Proposta</button>
-            <button type="button" class="btn btn-primary" id="btnCriarProjeto" aria-label="Criar projeto e atividades automaticamente a partir do escopo">🚀 Criar Projeto</button>
+            <button type="button" class="btn btn-primary" id="btnCriarProjeto" aria-label="Criar projeto e atividades automaticamente a partir do escopo" ${propostaAtual ? '' : 'disabled'}>🚀 Criar Projeto</button>
             <button type="button" class="btn btn-secondary" id="btnSalvarEscopo" aria-label="Salvar alterações do escopo detalhado">💾 Salvar Escopo</button>
           </div>
         </div>
@@ -693,7 +698,7 @@
     function collectEscopo() {
       const atualizado = {
         id: escopoAtual && escopoAtual.id ? escopoAtual.id : undefined,
-        propostaId: propostaAtual.id,
+        propostaId: propostaAtual ? propostaAtual.id : ((escopoAtual && escopoAtual.propostaId) || null),
         projetoId: (projetoAtual && projetoAtual.id) || (escopoAtual && escopoAtual.projetoId) || null,
         descricaoDetalhada: document.getElementById('descricaoDetalhada').value.trim(),
         servicosContratados: escopoAtual.servicosContratados || [],
@@ -718,6 +723,11 @@
     }
 
     function criarProjeto() {
+      if (!propostaAtual) {
+        alert('Esta visualização não possui proposta vinculada para recriar o projeto automaticamente.');
+        return;
+      }
+
       try {
         escopoAtual = EscopoDB.salvar(collectEscopo());
         const resultado = ProjetoIntegrador.criar(propostaAtual, escopoAtual);

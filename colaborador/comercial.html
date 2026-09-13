@@ -697,11 +697,21 @@
 
     function visualizarEscopo() {
       try {
-        const proposta = salvarProposta('rascunho');
+        const proposta = salvarProposta(getStatusAtualDaProposta());
         window.location.href = `./escopo-detalhado.html?propostaId=${encodeURIComponent(proposta.id)}`;
       } catch (error) {
         alert(`⚠️ ${error.message}`);
       }
+    }
+
+    function getStatusAtualDaProposta() {
+      const propostaId = document.getElementById('propostaId').value;
+      if (!propostaId) {
+        return 'rascunho';
+      }
+
+      const propostaExistente = getStoredPropostas().find((item) => item.id === propostaId);
+      return propostaExistente?.status || 'rascunho';
     }
 
     function preencherFormulario(proposta) {

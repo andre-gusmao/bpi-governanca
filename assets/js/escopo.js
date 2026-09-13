@@ -314,8 +314,9 @@
 
     const lineMatches = text
       .split(/\r?\n/)
-      .map((line) => line.replace(/^[-•]\s*/, '').trim())
-      .filter((line) => line.length > 3);
+      .filter((line) => /^(\s*[-•*]\s+|\s*\d+[.)]\s+)/.test(line))
+      .map((line) => line.replace(/^(\s*[-•*]\s+|\s*\d+[.)]\s+)/, '').trim())
+      .filter((line) => line.length > 0);
 
     return lineMatches.slice(0, 6);
   }
@@ -491,10 +492,14 @@
       const projetoExistente = projetos.find((item) => item.propostaId === proposta.id);
 
       if (projetoExistente) {
+        const escopoPersistido = projetoExistente.escopoId
+          ? EscopoDB.obter(projetoExistente.escopoId)
+          : EscopoDB.obterPorPropostaId(proposta.id);
         const escopoAtualizado = EscopoDB.salvar(
           Object.assign(
             {},
             buildDefaultScope(proposta),
+            escopoPersistido || {},
             escopo || {},
             {
               id: (escopo && escopo.id) || projetoExistente.escopoId || undefined,
