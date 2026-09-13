@@ -311,7 +311,7 @@
             <span class="user-role" id="userRole">Comercial</span>
           </div>
         </div>
-        <a class="nav-link" href="./login.html" onclick="logout()">
+        <a class="nav-link" href="./login.html" onclick="return logout(event)">
           <span class="nav-icon">🚪</span>
           Sair
         </a>
@@ -403,10 +403,15 @@
       document.getElementById('userRole').textContent = user.role || 'Colaborador';
     }
 
-    function logout() {
+    function logout(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
       localStorage.removeItem('colaborador_session');
       localStorage.removeItem('helpdesk_catalogo_selecao');
       window.location.href = './login.html';
+      return false;
     }
 
     function formatarMoeda(valor) {

@@ -358,11 +358,23 @@
 
   function inicializarSeed() {
     const atual = lerCatalogo();
-    if (atual.length > 0) {
-      return;
-    }
+    const produtosAtuais = atual
+      .map(normalizarProduto)
+      .filter(produto => validarProduto(produto));
 
-    salvarCatalogo(seedCatalogo);
+    const produtosPorId = new Map(produtosAtuais.map(produto => [produto.id, produto]));
+    let houveMudanca = produtosAtuais.length !== atual.length;
+
+    seedCatalogo.forEach(produtoSeed => {
+      if (!produtosPorId.has(produtoSeed.id)) {
+        produtosPorId.set(produtoSeed.id, normalizarProduto(produtoSeed));
+        houveMudanca = true;
+      }
+    });
+
+    if (produtosPorId.size === 0 || houveMudanca) {
+      salvarCatalogo(Array.from(produtosPorId.values()));
+    }
   }
 
   const CatalogoDB = {
