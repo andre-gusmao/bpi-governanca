@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Projetos | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/portal.css">
+</head>
+<body>
+    <div class="portal-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI">
+                <p>BPI</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><span class="icon">📊</span>Dashboard</a></li>
+                <li><a href="./chamados.html"><span class="icon">📋</span>Chamados</a></li>
+                <li><a href="./pmo.html" class="active"><span class="icon">📈</span>Meus Projetos</a></li>
+                <li><a href="./treinamentos.html"><span class="icon">🎓</span>Treinamentos</a></li>
+                <li><a href="./certificados.html"><span class="icon">🏆</span>Certificados</a></li>
+                <li><a href="./meu-perfil.html"><span class="icon">👤</span>Meu Perfil</a></li>
+                <li><a href="#" onclick="logout()"><span class="icon">🚪</span>Sair</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h2>Meus Projetos</h2>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <select id="filtro-status" onchange="filtrarProjetos()" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px;">
+                        <option value="">Todos os status</option>
+                        <option value="planejamento">Planejamento</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="encerrado">Encerrado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <h3>Cronograma de Projetos:</h3>
+                <div id="timeline" style="margin-bottom: 2rem;"></div>
+
+                <h3>Atividades Pendentes:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Atividade</th>
+                            <th>Projeto</th>
+                            <th>Responsável</th>
+                            <th>Prazo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="atividades-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        AuthManager.checkAuth();
+        const user = AuthManager.getUser();
+
+        let projetos = [];
+        let atividades = [];
+
+        function loadProjects() {
+            projetos = StorageManager.get('helpdesk_projetos') || [];
+            atividades = StorageManager.get('helpdesk_atividades') || [];
+
+            // Timeline
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = projetos.map(p => {
+                const progress = p.percentualConclusao || 0;
+                return `
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 1rem; cursor: pointer;" onclick="verDetalhes(${p.id})">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; color: var(--secondary);">${p.titulo}</h4>
+                            <span class="status-badge status-${p.status}">${p.status}</span>
+                        </div>
+                        <p style="color: var(--text-light); margin: 0.5rem 0;">${p.descricao}</p>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                <span>Progresso</span>
+                                <span style="color: var(--primary); font-weight: bold;">${progress}%</span>
+                            </div>
+                            <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: var(--primary); height: 100%; width: ${progress}%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; font-size: 0.85rem; color: var(--text-light);">
+                            <span>📅 ${formatDate(p.dataInicio)} a ${formatDate(p.dataFimPrevisto)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Tabela de atividades
+            const atividadesFiltered = atividades.filter(a => a.status !== 'finalizada');
+            const tbody = document.getElementById('atividades-table');
+            tbody.innerHTML = atividadesFiltered.map(a => {
+                const projeto = projetos.find(p => p.id === a.projetoId);
+                const dias = Math.ceil((new Date(a.dataPrevista) - new Date()) / (1000 * 60 * 60 * 24));
+                const urgencia = dias < 0 ? 'atrasada' : dias <= 3 ? 'urgente' : 'normal';
+                const cores = { atrasada: '#E74C3C', urgente: '#F39C12', normal: '#27AE60' };
+
+                return `
+                    <tr>
+                        <td><strong>${a.titulo}</strong></td>
+                        <td>${projeto ? projeto.titulo : 'N/A'}</td>
+                        <td>${a.ator || 'Não atribuído'}</td>
+                        <td>${formatDate(a.dataPrevista)}</td>
+                        <td><span class="status-badge status-${a.status}" style="background: ${cores[urgencia]}20; color: ${cores[urgencia]};">${a.status}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="marcarConcluida(${a.id})">Concluir</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function verDetalhes(id) {
+            window.location.href = `./projeto-detalhes.html?id=${id}`;
+        }
+
+        function marcarConcluida(id) {
+            StorageManager.update('helpdesk_atividades', id, { status: 'finalizada', dataRealizada: new Date().toISOString() });
+            showNotification('Atividade concluída!', 'success');
+            loadProjects();
+        }
+
+        function filtrarProjetos() {
+            const status = document.getElementById('filtro-status').value;
+            if (status) {
+                projetos = StorageManager.get('helpdesk_projetos').filter(p => p.status === status);
+            } else {
+                projetos = StorageManager.get('helpdesk_projetos');
+            }
+            loadProjects();
+        }
+
+        function logout() {
+            if (confirm('Deseja sair?')) {
+                AuthManager.logout();
+                window.location.href = './login.html';
+            }
+        }
+
+        loadProjects();
+    </script>
+</body>
+</html>

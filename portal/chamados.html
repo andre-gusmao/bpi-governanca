@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamados | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/portal.css">
+</head>
+<body>
+    <div class="portal-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI">
+                <p>BPI</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><span class="icon">📊</span>Dashboard</a></li>
+                <li><a href="./chamados.html" class="active"><span class="icon">📋</span>Chamados</a></li>
+                <li><a href="./pmo.html"><span class="icon">📈</span>Meus Projetos</a></li>
+                <li><a href="./treinamentos.html"><span class="icon">🎓</span>Treinamentos</a></li>
+                <li><a href="./certificados.html"><span class="icon">🏆</span>Certificados</a></li>
+                <li><a href="./meu-perfil.html"><span class="icon">👤</span>Meu Perfil</a></li>
+                <li><a href="#" onclick="logout()"><span class="icon">🚪</span>Sair</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h2>Help Desk - 13 Modalidades de Serviço</h2>
+                </div>
+                <button class="btn btn-primary" onclick="showModal('novo-chamado-modal')">+ Novo Chamado</button>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <h3>Modalidades Disponíveis:</h3>
+                <div id="modalidades-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;"></div>
+
+                <h3>Meus Chamados:</h3>
+                <div id="chamados-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVO CHAMADO -->
+    <div id="novo-chamado-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Chamado</h2>
+                <button class="modal-close" onclick="closeModal('novo-chamado-modal')">✕</button>
+            </div>
+            <form onsubmit="criarChamado(event)">
+                <div class="form-group">
+                    <label>Modalidade de Serviço</label>
+                    <select id="modalidade" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px;">
+                        <option value="">-- Selecione --</option>
+                        <option value="Cloud">☁️ Cloud</option>
+                        <option value="Treinamento">📚 Treinamento</option>
+                        <option value="Gestão de Acessos">🔐 Gestão de Acessos</option>
+                        <option value="Implementações">🚀 Implementações</option>
+                        <option value="Hub de Notas">📝 Hub de Notas</option>
+                        <option value="BI">📊 BI</option>
+                        <option value="Dashboard">📈 Dashboard</option>
+                        <option value="BPO Financeiro">💰 BPO Financeiro</option>
+                        <option value="BPO Contábil">📋 BPO Contábil</option>
+                        <option value="BPO Fiscal">🎯 BPO Fiscal</option>
+                        <option value="BPO Folha de Pagamento">💼 BPO Folha de Pagamento</option>
+                        <option value="Integrações">🔄 Integrações</option>
+                        <option value="Dúvidas">❓ Dúvidas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Título do Chamado</label>
+                    <input type="text" id="titulo" required placeholder="Descreva brevemente o assunto">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="descricao" required placeholder="Detalhe o problema ou dúvida" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit;" rows="5"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('novo-chamado-modal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Chamado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        AuthManager.checkAuth();
+        const user = AuthManager.getUser();
+
+        const modalidades = [
+            { icon: '☁️', nome: 'Cloud', desc: 'Infraestrutura em nuvem' },
+            { icon: '📚', nome: 'Treinamento', desc: 'Capacitação de usuários' },
+            { icon: '🔐', nome: 'Gestão de Acessos', desc: 'Gerenciamento de permissões' },
+            { icon: '🚀', nome: 'Implementações', desc: 'Deploy e setup' },
+            { icon: '📝', nome: 'Hub de Notas', desc: 'Documentação e gestão' },
+            { icon: '📊', nome: 'BI', desc: 'Business Intelligence' },
+            { icon: '📈', nome: 'Dashboard', desc: 'Customização de painéis' },
+            { icon: '💰', nome: 'BPO Financeiro', desc: 'Operações financeiras' },
+            { icon: '📋', nome: 'BPO Contábil', desc: 'Serviços contábeis' },
+            { icon: '🎯', nome: 'BPO Fiscal', desc: 'Gestão fiscal' },
+            { icon: '💼', nome: 'BPO Folha de Pagamento', desc: 'Folha e benefícios' },
+            { icon: '🔄', nome: 'Integrações', desc: 'APIs e conexões' },
+            { icon: '❓', nome: 'Dúvidas', desc: 'Suporte geral' }
+        ];
+
+        // Renderizar modalidades
+        const grid = document.getElementById('modalidades-grid');
+        grid.innerHTML = modalidades.map(m => `
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow); text-align: center; cursor: pointer;" onclick="selecionarModalidade('${m.nome}')">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">${m.icon}</div>
+                <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">${m.nome}</h4>
+                <p style="color: var(--text-light); font-size: 0.9rem;">${m.desc}</p>
+            </div>
+        `).join('');
+
+        function selecionarModalidade(nome) {
+            document.getElementById('modalidade').value = nome;
+            document.getElementById('titulo').focus();
+            showModal('novo-chamado-modal');
+        }
+
+        function criarChamado(e) {
+            e.preventDefault();
+            const modalidade = document.getElementById('modalidade').value;
+            const titulo = document.getElementById('titulo').value;
+            const descricao = document.getElementById('descricao').value;
+
+            const chamado = {
+                id: generateId(),
+                numero: 'CHM-' + String(Math.floor(Math.random() * 10000)).padStart(3, '0'),
+                clienteId: 1,
+                cliente: user.email,
+                titulo,
+                modalidade,
+                descricao,
+                status: 'novo',
+                dataCriacao: new Date().toISOString()
+            };
+
+            StorageManager.add('helpdesk_chamados', chamado);
+            showNotification('Chamado criado com sucesso!', 'success');
+            closeModal('novo-chamado-modal');
+            loadChamados();
+            e.target.reset();
+        }
+
+        function loadChamados() {
+            const chamados = StorageManager.get('helpdesk_chamados') || [];
+            const html = chamados.map(c => `
+                <div class="list-card">
+                    <div class="list-card-content">
+                        <h3>${c.numero} - ${c.titulo}</h3>
+                        <p>${c.descricao}</p>
+                        <div class="list-card-meta">
+                            <span>🏷️ ${c.modalidade}</span>
+                            <span class="status-badge status-${c.status}">${c.status}</span>
+                            <span>📅 ${formatDate(c.dataCriacao)}</span>
+                        </div>
+                    </div>
+                    <div class="list-card-action">
+                        <button class="btn btn-secondary">Detalhes</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('chamados-list').innerHTML = html || '<p>Nenhum chamado criado</p>';
+        }
+
+        function logout() {
+            if (confirm('Deseja sair?')) {
+                AuthManager.logout();
+                window.location.href = './login.html';
+            }
+        }
+
+        loadChamados();
+    </script>
+</body>
+</html>

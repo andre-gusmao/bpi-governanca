@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Cliente | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/portal.css">
+</head>
+<body>
+    <div class="portal-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI">
+                <p>BPI</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html" class="active"><span class="icon">📊</span>Dashboard</a></li>
+                <li><a href="./chamados.html"><span class="icon">📋</span>Chamados</a></li>
+                <li><a href="./pmo.html"><span class="icon">📈</span>Meus Projetos</a></li>
+                <li><a href="./treinamentos.html"><span class="icon">🎓</span>Treinamentos</a></li>
+                <li><a href="./certificados.html"><span class="icon">🏆</span>Certificados</a></li>
+                <li><a href="./meu-perfil.html"><span class="icon">👤</span>Meu Perfil</a></li>
+                <li><a href="#" onclick="logout()"><span class="icon">🚪</span>Sair</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h2>Dashboard</h2>
+                </div>
+                <div class="topbar-user">
+                    <div class="user-avatar" id="user-initial">C</div>
+                    <span id="user-name">Cliente</span>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <!-- KPIs -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3>Projetos Ativos</h3>
+                        <div class="value" id="total-projetos">1</div>
+                        <div class="subtitle">Em andamento</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Atividades Pendentes</h3>
+                        <div class="value" id="atividades-pendentes">3</div>
+                        <div class="subtitle">Próximos 7 dias</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Chamados Abertos</h3>
+                        <div class="value" id="chamados-abertos">2</div>
+                        <div class="subtitle">Aguardando resposta</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Treinamentos</h3>
+                        <div class="value" id="treinamentos-total">5</div>
+                        <div class="subtitle">Disponíveis</div>
+                    </div>
+                </div>
+
+                <!-- PRÓXIMAS ATIVIDADES -->
+                <h2 style="color: var(--secondary); margin: 2rem 0 1rem;">Próximas Atividades</h2>
+                <div class="card-list" id="atividades-list"></div>
+
+                <!-- ÚLTIMOS CHAMADOS -->
+                <h2 style="color: var(--secondary); margin: 2rem 0 1rem;">Últimos Chamados</h2>
+                <div class="card-list" id="chamados-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        // Verificar autenticação
+        AuthManager.checkAuth();
+
+        // Carregar dados do usuário
+        const user = AuthManager.getUser();
+        document.getElementById('user-name').textContent = user.nome || user.email;
+        document.getElementById('user-initial').textContent = user.email.charAt(0).toUpperCase();
+
+        // Carregar dados
+        function loadDashboard() {
+            const projetos = StorageManager.get('helpdesk_projetos') || [];
+            const chamados = StorageManager.get('helpdesk_chamados') || [];
+            const treinamentos = StorageManager.get('helpdesk_treinamentos') || [];
+
+            // Atualizar KPIs
+            document.getElementById('total-projetos').textContent = projetos.length;
+            document.getElementById('chamados-abertos').textContent = chamados.filter(c => c.status !== 'encerrado').length;
+            document.getElementById('treinamentos-total').textContent = treinamentos.length;
+
+            // Atividades (simular)
+            document.getElementById('atividades-pendentes').textContent = Math.max(0, projetos.length * 3);
+
+            // Listar atividades
+            const atividadesHtml = projetos.length > 0 ? projetos.map(p => `
+                <div class="list-card">
+                    <div class="list-card-content">
+                        <h3>${p.titulo}</h3>
+                        <p>${p.descricao}</p>
+                        <div class="list-card-meta">
+                            <span>🎯 ${p.status}</span>
+                            <span>📅 ${formatDate(p.dataFimPrevisto)}</span>
+                            <span>✅ ${p.percentualConclusao}%</span>
+                        </div>
+                    </div>
+                    <div class="list-card-action">
+                        <button class="btn btn-primary" onclick="location.href='./projeto-detalhes.html?id=${p.id}'">Ver Detalhes</button>
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align: center; color: var(--text-light);">Nenhum projeto ativo</p>';
+
+            document.getElementById('atividades-list').innerHTML = atividadesHtml;
+
+            // Listar chamados
+            const chamadosHtml = chamados.slice(0, 3).map(c => `
+                <div class="list-card">
+                    <div class="list-card-content">
+                        <h3>${c.numero} - ${c.titulo}</h3>
+                        <p>${c.descricao}</p>
+                        <div class="list-card-meta">
+                            <span>🏷️ ${c.modalidade}</span>
+                            <span class="status-badge status-${c.status}">${c.status}</span>
+                            <span>📅 ${formatDate(c.dataCriacao)}</span>
+                        </div>
+                    </div>
+                    <div class="list-card-action">
+                        <button class="btn btn-secondary">Responder</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('chamados-list').innerHTML = chamadosHtml || '<p style="text-align: center; color: var(--text-light);">Nenhum chamado</p>';
+        }
+
+        function logout() {
+            if (confirm('Deseja sair?')) {
+                AuthManager.logout();
+                window.location.href = './login.html';
+            }
+        }
+
+        // Carregar ao iniciar
+        loadDashboard();
+    </script>
+</body>
+</html>

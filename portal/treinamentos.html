@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinamentos | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/portal.css">
+</head>
+<body>
+    <div class="portal-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI">
+                <p>BPI</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><span class="icon">📊</span>Dashboard</a></li>
+                <li><a href="./chamados.html"><span class="icon">📋</span>Chamados</a></li>
+                <li><a href="./pmo.html"><span class="icon">📈</span>Meus Projetos</a></li>
+                <li><a href="./treinamentos.html" class="active"><span class="icon">🎓</span>Treinamentos</a></li>
+                <li><a href="./certificados.html"><span class="icon">🏆</span>Certificados</a></li>
+                <li><a href="./meu-perfil.html"><span class="icon">👤</span>Meu Perfil</a></li>
+                <li><a href="#" onclick="logout()"><span class="icon">🚪</span>Sair</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h2>Treinamentos Disponíveis</h2>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <div id="treinamentos-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PROVA -->
+    <div id="prova-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Prova de Conhecimento</h2>
+                <button class="modal-close" onclick="closeModal('prova-modal')">✕</button>
+            </div>
+            <div id="prova-content"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        AuthManager.checkAuth();
+        const user = AuthManager.getUser();
+
+        const treinamentosData = [
+            {
+                id: 1,
+                titulo: 'Governança Corporativa',
+                descricao: 'Fundamentos de governança corporativa e melhores práticas',
+                duracao: '2h 30min',
+                modulos: 5,
+                video: 'https://example.com/video1.mp4',
+                status: 'disponivel',
+                questoes: [
+                    { pergunta: 'O que é governança corporativa?', opcoes: ['a) Sistema de regras', 'b) Departamento', 'c) Ferramenta de TI'], resposta: 0 },
+                    { pergunta: 'Qual é o objetivo principal?', opcoes: ['a) Lucro', 'b) Transparência e accountability', 'c) Marketing'], resposta: 1 }
+                ]
+            },
+            {
+                id: 2,
+                titulo: 'Compliance e Conformidade',
+                descricao: 'Normas, leis e conformidade regulatória',
+                duracao: '1h 45min',
+                modulos: 4,
+                video: 'https://example.com/video2.mp4',
+                status: 'disponivel',
+                questoes: [
+                    { pergunta: 'O que é compliance?', opcoes: ['a) Conformidade com regras', 'b) Computador', 'c) Software'], resposta: 0 }
+                ]
+            },
+            {
+                id: 3,
+                titulo: 'Gestão de Riscos',
+                descricao: 'Identificação, análise e mitigação de riscos',
+                duracao: '2h',
+                modulos: 4,
+                video: 'https://example.com/video3.mp4',
+                status: 'disponivel',
+                questoes: []
+            }
+        ];
+
+        function loadTreinamentos() {
+            const html = treinamentosData.map(t => `
+                <div style="background: white; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden;">
+                    <div style="background: var(--secondary); padding: 1.5rem; color: white;">
+                        <h3 style="margin: 0 0 0.5rem 0;">${t.titulo}</h3>
+                        <p style="margin: 0; opacity: 0.9;">${t.descricao}</p>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-light);">
+                            <span>⏱️ ${t.duracao}</span>
+                            <span>📚 ${t.modulos} módulos</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="assistirVideo(${t.id})">▶️ Assistir</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="fazerProva(${t.id})">📝 Fazer Prova</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('treinamentos-grid').innerHTML = html;
+        }
+
+        function assistirVideo(id) {
+            const t = treinamentosData.find(x => x.id === id);
+            showNotification(`Abrindo vídeo: ${t.titulo}`, 'success');
+        }
+
+        function fazerProva(id) {
+            const t = treinamentosData.find(x => x.id === id);
+            if (t.questoes.length === 0) {
+                showNotification('Prova não disponível para este treinamento', 'error');
+                return;
+            }
+
+            let html = `<h3>${t.titulo}</h3><form onsubmit="submeterProva(event, ${id})">`;
+            t.questoes.forEach((q, i) => {
+                html += `<div class="form-group">
+                    <label><strong>Questão ${i + 1}:</strong> ${q.pergunta}</label>`;
+                q.opcoes.forEach((op, j) => {
+                    html += `<div style="margin: 0.5rem 0;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="q${i}" value="${j}" required>
+                            ${op}
+                        </label>
+                    </div>`;
+                });
+                html += `</div>`;
+            });
+            html += `<div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('prova-modal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Enviar Prova</button>
+            </div></form>`;
+
+            document.getElementById('prova-content').innerHTML = html;
+            showModal('prova-modal');
+        }
+
+        function submeterProva(e, id) {
+            e.preventDefault();
+            const t = treinamentosData.find(x => x.id === id);
+            let acertos = 0;
+            t.questoes.forEach((q, i) => {
+                const resposta = document.querySelector(`input[name="q${i}"]:checked`).value;
+                if (parseInt(resposta) === q.resposta) acertos++;
+            });
+
+            const pontuacao = Math.round((acertos / t.questoes.length) * 100);
+            const passou = pontuacao >= 70;
+            
+            closeModal('prova-modal');
+            showNotification(`Prova concluída! Pontuação: ${pontuacao}% ${passou ? '✅ Aprovado' : '❌ Reprovado'}`, passou ? 'success' : 'error');
+            
+            if (passou) {
+                StorageManager.add('helpdesk_certificados', {
+                    id: generateId(),
+                    treinamentoId: id,
+                    treinamento: t.titulo,
+                    dataExpedicao: new Date().toISOString(),
+                    pontuacao
+                });
+            }
+        }
+
+        function logout() {
+            if (confirm('Deseja sair?')) {
+                AuthManager.logout();
+                window.location.href = './login.html';
+            }
+        }
+
+        loadTreinamentos();
+    </script>
+</body>
+</html>

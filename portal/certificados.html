@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificados | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/portal.css">
+</head>
+<body>
+    <div class="portal-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI">
+                <p>BPI</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="./dashboard.html"><span class="icon">📊</span>Dashboard</a></li>
+                <li><a href="./chamados.html"><span class="icon">📋</span>Chamados</a></li>
+                <li><a href="./pmo.html"><span class="icon">📈</span>Meus Projetos</a></li>
+                <li><a href="./treinamentos.html"><span class="icon">🎓</span>Treinamentos</a></li>
+                <li><a href="./certificados.html" class="active"><span class="icon">🏆</span>Certificados</a></li>
+                <li><a href="./meu-perfil.html"><span class="icon">👤</span>Meu Perfil</a></li>
+                <li><a href="#" onclick="logout()"><span class="icon">🚪</span>Sair</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h2>Meus Certificados</h2>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <div id="certificados-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/app.js"></script>
+    <script>
+        AuthManager.checkAuth();
+
+        function loadCertificados() {
+            const certificados = StorageManager.get('helpdesk_certificados') || [];
+            const html = certificados.length > 0 ? certificados.map(c => `
+                <div style="background: white; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; border-top: 4px solid var(--primary);">
+                    <div style="padding: 2rem; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+                        <h3 style="color: var(--secondary); margin-bottom: 0.5rem;">${c.treinamento}</h3>
+                        <p style="color: var(--text-light); margin-bottom: 1rem;">Certificado de Conclusão</p>
+                        <p style="color: var(--primary); font-weight: bold; margin-bottom: 1rem;">Pontuação: ${c.pontuacao}%</p>
+                        <p style="font-size: 0.85rem; color: var(--text-light);">Expedido em ${formatDate(c.dataExpedicao)}</p>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="downloadCertificado(${c.id})">📥 Download PDF</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="compartilharLinkedin(${c.id})">🔗 LinkedIn</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align: center; grid-column: 1/-1; color: var(--text-light);">Nenhum certificado conquistado ainda</p>';
+
+            document.getElementById('certificados-grid').innerHTML = html;
+        }
+
+        function downloadCertificado(id) {
+            showNotification('Certificado sendo gerado...', 'success');
+        }
+
+        function compartilharLinkedin(id) {
+            showNotification('Redirecionando para LinkedIn...', 'success');
+        }
+
+        function logout() {
+            if (confirm('Deseja sair?')) {
+                AuthManager.logout();
+                window.location.href = './login.html';
+            }
+        }
+
+        loadCertificados();
+    </script>
+</body>
+</html>
