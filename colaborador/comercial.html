@@ -309,6 +309,7 @@
         </div>
 
         <form class="form-body" id="propostaForm" onsubmit="handleSubmit(event)">
+          <input type="hidden" id="propostaId">
           <!-- DADOS DO CLIENTE -->
           <div class="form-section">
             <h3 class="form-section-title">👤 Dados do Cliente</h3>
@@ -430,6 +431,8 @@
 
           <!-- BOTÕES -->
           <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="salvarRascunho()">💾 Salvar Rascunho</button>
+            <button type="button" class="btn btn-secondary" onclick="visualizarEscopo()">📋 Visualizar Escopo</button>
             <button type="reset" class="btn btn-secondary">Limpar Formulário</button>
             <button type="submit" class="btn btn-primary">📄 Gerar PDF e Enviar</button>
           </div>
@@ -439,7 +442,17 @@
   </div>
 
   <script>
+    const STORAGE_KEYS = {
+      propostas: 'helpdesk_propostas'
+    };
     let produtosSelecionados = [];
+    const produtosDisponiveis = {
+      'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000, prazo: 45 },
+      'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000, prazo: 20 },
+      'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000, prazo: 30 },
+      'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000, prazo: 12 },
+      'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500, prazo: 12 }
+    };
 
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
@@ -464,17 +477,8 @@
       
       if (!produtoId) return;
 
-      // Dados dos produtos
-      const produtos = {
-        'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
-        'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
-        'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000 },
-        'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 },
-        'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500 }
-      };
-
-      if (produtos[produtoId]) {
-        produtosSelecionados.push({ id: produtoId, ...produtos[produtoId] });
+      if (produtosDisponiveis[produtoId] && !produtosSelecionados.some((produto) => produto.id === produtoId)) {
+        produtosSelecionados.push({ id: produtoId, ...produtosDisponiveis[produtoId] });
         renderizarProdutos();
         calcularResumo();
         select.value = '';
@@ -530,14 +534,232 @@
 
     function handleSubmit(event) {
       event.preventDefault();
-      alert('✅ Proposta gerada com sucesso!\n\nEm breve: PDF será gerado e enviado por email');
-      // Aqui entra a integração com jsPDF e SendGrid
+      const proposta = salvarProposta('enviada');
+      alert(`✅ Proposta ${proposta.numero} gerada com sucesso!\n\nVocê já pode abrir o escopo detalhado.`);
     }
 
-    // Adicionar listener para recalcular ao mudar desconto
-    document.getElementById('desconto')?.addEventListener('input', calcularResumo);
+    function getStoredPropostas() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.propostas);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn('Falha ao ler propostas:', error);
+        return [];
+      }
+    }
 
-    window.addEventListener('load', checkSession);
+    function setStoredPropostas(propostas) {
+      localStorage.setItem(STORAGE_KEYS.propostas, JSON.stringify(propostas));
+    }
+
+    function gerarNovoId(prefixo, propostas) {
+      const ano = new Date().getFullYear();
+      const maior = propostas.reduce((maximo, proposta) => {
+        const match = String(proposta.id || '').match(new RegExp(`^${prefixo}-(\\d{4})-(\\d+)$`));
+        if (!match || Number(match[1]) !== ano) {
+          return maximo;
+        }
+        return Math.max(maximo, Number(match[2]));
+      }, 0);
+
+      return `${prefixo}-${ano}-${String(maior + 1).padStart(3, '0')}`;
+    }
+
+    function gerarNumeroProposta(propostas) {
+      const ano = new Date().getFullYear();
+      const totalAno = propostas.filter((proposta) => String(proposta.id || '').includes(`-${ano}-`)).length;
+      return `PROP-${ano}-${String(totalAno + 1).padStart(4, '0')}`;
+    }
+
+    function slugify(value) {
+      return String(value || 'cliente')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '') || 'cliente';
+    }
+
+    function getResumoCalculado() {
+      let setup = 0;
+      let recorrente = 0;
+
+      produtosSelecionados.forEach((produto) => {
+        if (produto.tipo === 'setup') {
+          setup += Number(produto.valor || 0);
+        } else {
+          recorrente += Number(produto.valor || 0);
+        }
+      });
+
+      const descontoPercentual = parseFloat(document.getElementById('desconto').value) || 0;
+      const descontoValor = setup * (descontoPercentual / 100);
+      const setupComDesconto = setup - descontoValor;
+
+      return {
+        setup,
+        setupComDesconto,
+        recorrente,
+        desconto: descontoValor,
+        descontoPercentual,
+        total: setupComDesconto + (recorrente * 12)
+      };
+    }
+
+    function getFormData() {
+      const resumo = getResumoCalculado();
+      const prazoDias = parseInt(document.getElementById('prazo').value, 10) || 30;
+      const inicio = new Date();
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + Math.max(1, prazoDias) - 1);
+
+      return {
+        id: document.getElementById('propostaId').value || null,
+        clientId: `cli-${slugify(document.getElementById('nomeEmpresa').value)}`,
+        nomeCliente: document.getElementById('nomeEmpresa').value.trim(),
+        emailCliente: document.getElementById('emailCliente').value.trim(),
+        titulo: document.getElementById('nomeProjeto').value.trim(),
+        descricao: document.getElementById('observacoes').value.trim() || document.getElementById('escopoDescricao').value.trim(),
+        escopo: document.getElementById('escopoDescricao').value.trim(),
+        modalidade: document.getElementById('modalidade').value,
+        servicos: produtosSelecionados.map((produto) => ({ ...produto })),
+        valores: {
+          setup: resumo.setupComDesconto,
+          recorrente: resumo.recorrente,
+          desconto: resumo.desconto,
+          total: resumo.total
+        },
+        prazos: {
+          inicio: inicio.toISOString().slice(0, 10),
+          duracao: prazoDias,
+          fim: fim.toISOString().slice(0, 10),
+          validadeProposta: parseInt(document.getElementById('validade').value, 10) || 30
+        },
+        status: 'rascunho',
+        faturamento: document.getElementById('faturamento').value,
+        observacoes: document.getElementById('observacoes').value.trim(),
+        elaboradoPor: document.getElementById('userName').textContent.trim() || 'Equipe Comercial'
+      };
+    }
+
+    function salvarProposta(statusDesejado) {
+      const form = document.getElementById('propostaForm');
+      if (!form.reportValidity()) {
+        throw new Error('Preencha os campos obrigatórios antes de continuar.');
+      }
+
+      if (!produtosSelecionados.length) {
+        throw new Error('Selecione ao menos um serviço para a proposta.');
+      }
+
+      const propostas = getStoredPropostas();
+      const payload = getFormData();
+      const agora = new Date().toISOString();
+      const indice = payload.id ? propostas.findIndex((proposta) => proposta.id === payload.id) : -1;
+
+      if (indice >= 0) {
+        const existente = propostas[indice];
+        payload.numero = existente.numero;
+        payload.id = existente.id;
+        payload.dataCriacao = existente.dataCriacao;
+        payload.dataAtualizacao = agora;
+        payload.dataEnvio = statusDesejado === 'enviada' ? agora : existente.dataEnvio || null;
+      } else {
+        payload.id = gerarNovoId('prop', propostas);
+        payload.numero = gerarNumeroProposta(propostas);
+        payload.dataCriacao = agora;
+        payload.dataAtualizacao = agora;
+        payload.dataEnvio = statusDesejado === 'enviada' ? agora : null;
+      }
+
+      payload.status = statusDesejado || 'rascunho';
+
+      if (indice >= 0) {
+        propostas[indice] = payload;
+      } else {
+        propostas.push(payload);
+      }
+
+      setStoredPropostas(propostas);
+      document.getElementById('propostaId').value = payload.id;
+      return payload;
+    }
+
+    function salvarRascunho() {
+      try {
+        const proposta = salvarProposta('rascunho');
+        alert(`💾 Rascunho ${proposta.numero} salvo com sucesso!`);
+      } catch (error) {
+        alert(`⚠️ ${error.message}`);
+      }
+    }
+
+    function visualizarEscopo() {
+      try {
+        const proposta = salvarProposta('rascunho');
+        window.location.href = `./escopo-detalhado.html?propostaId=${encodeURIComponent(proposta.id)}`;
+      } catch (error) {
+        alert(`⚠️ ${error.message}`);
+      }
+    }
+
+    function preencherFormulario(proposta) {
+      if (!proposta) {
+        renderizarProdutos();
+        calcularResumo();
+        return;
+      }
+
+      document.getElementById('propostaId').value = proposta.id || '';
+      document.getElementById('nomeEmpresa').value = proposta.nomeCliente || '';
+      document.getElementById('emailCliente').value = proposta.emailCliente || '';
+      document.getElementById('nomeProjeto').value = proposta.titulo || '';
+      document.getElementById('modalidade').value = proposta.modalidade || '';
+      document.getElementById('escopoDescricao').value = proposta.escopo || '';
+      document.getElementById('prazo').value = proposta.prazos?.duracao || '';
+      document.getElementById('validade').value = proposta.prazos?.validadeProposta || 30;
+      document.getElementById('faturamento').value = proposta.faturamento || 'Parcelado';
+      document.getElementById('observacoes').value = proposta.observacoes || '';
+
+      const descontoPercentual = proposta.valores?.setup
+        ? (((proposta.valores?.desconto || 0) / (proposta.valores.setup + (proposta.valores?.desconto || 0))) * 100)
+        : 0;
+      document.getElementById('desconto').value = descontoPercentual ? descontoPercentual.toFixed(2).replace(/\.00$/, '') : '';
+
+      produtosSelecionados = Array.isArray(proposta.servicos)
+        ? proposta.servicos.map((produto) => ({ ...produto }))
+        : [];
+
+      renderizarProdutos();
+      calcularResumo();
+    }
+
+    function carregarPropostaInicial() {
+      const params = new URLSearchParams(window.location.search);
+      const propostaId = params.get('propostaId');
+      const propostas = getStoredPropostas();
+      const proposta = propostaId
+        ? propostas.find((item) => item.id === propostaId)
+        : propostas.slice().sort((a, b) => new Date(b.dataAtualizacao || b.dataCriacao) - new Date(a.dataAtualizacao || a.dataCriacao))[0];
+
+      preencherFormulario(proposta || null);
+    }
+
+    document.getElementById('desconto')?.addEventListener('input', calcularResumo);
+    document.getElementById('propostaForm')?.addEventListener('reset', () => {
+      setTimeout(() => {
+        document.getElementById('propostaId').value = '';
+        produtosSelecionados = [];
+        renderizarProdutos();
+        calcularResumo();
+      }, 0);
+    });
+
+    window.addEventListener('load', () => {
+      checkSession();
+      carregarPropostaInicial();
+    });
   </script>
 </body>
 </html>

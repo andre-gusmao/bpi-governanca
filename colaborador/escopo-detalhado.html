@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escopo Detalhado - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .scope-shell {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xl);
+    }
+
+    .scope-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .scope-header {
+      padding: var(--spacing-2xl);
+      background: linear-gradient(135deg, #FFFBF7 0%, #FEFDF8 100%);
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .scope-header p {
+      color: #6B7280;
+      margin-top: var(--spacing-sm);
+    }
+
+    .scope-section {
+      padding: var(--spacing-2xl);
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .scope-section:last-child {
+      border-bottom: none;
+    }
+
+    .scope-section-title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+      font-size: var(--fs-xl);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+    }
+
+    .scope-section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      border-radius: 2px;
+      background: var(--gradient-gold);
+    }
+
+    .overview-grid,
+    .investment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .overview-item,
+    .investment-item {
+      background: var(--color-gray-lighter);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      border: 1px solid #E5E7EB;
+    }
+
+    .overview-label,
+    .investment-label {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .overview-value,
+    .investment-value {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      word-break: break-word;
+    }
+
+    .scope-textarea,
+    .scope-textarea-compact {
+      width: 100%;
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-md);
+      font-family: var(--font-primary);
+      font-size: var(--fs-base);
+      resize: vertical;
+      transition: all var(--transition-fast);
+    }
+
+    .scope-textarea {
+      min-height: 180px;
+    }
+
+    .scope-textarea-compact {
+      min-height: 120px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .scope-textarea:focus,
+    .scope-textarea-compact:focus {
+      outline: none;
+      border-color: var(--color-primary-gold);
+      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.12);
+      background: #FFFBF7;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #E5E7EB;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: var(--fs-xs);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6B7280;
+      background: #FAFAFA;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: var(--border-radius-full);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      text-transform: uppercase;
+    }
+
+    .status-chip.ativo,
+    .status-chip.planejamento {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1D4ED8;
+    }
+
+    .status-chip.em_andamento {
+      background: rgba(245, 158, 11, 0.12);
+      color: #B45309;
+    }
+
+    .status-chip.encerrado {
+      background: rgba(16, 185, 129, 0.12);
+      color: #047857;
+    }
+
+    .checklist,
+    .dependency-list,
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .checklist-item,
+    .dependency-item,
+    .timeline-item {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: flex-start;
+      background: var(--color-gray-lighter);
+      border: 1px solid #E5E7EB;
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+    }
+
+    .checklist-item input {
+      margin-top: 4px;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--color-primary-gold);
+    }
+
+    .timeline {
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: var(--color-primary-gold);
+      flex-shrink: 0;
+    }
+
+    .timeline-phase {
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      margin-bottom: 4px;
+    }
+
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .btn {
+      border: none;
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-weight: var(--fw-bold);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--gradient-gold);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--color-dark-primary);
+      border: 1px solid #D1D5DB;
+    }
+
+    .empty-state {
+      padding: var(--spacing-3xl);
+      text-align: center;
+      color: #6B7280;
+    }
+
+    .helper-text {
+      font-size: var(--fs-sm);
+      color: #6B7280;
+      margin-bottom: var(--spacing-md);
+    }
+
+    @media (max-width: 900px) {
+      .overview-grid,
+      .investment-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .overview-grid,
+      .investment-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scope-header,
+      .scope-section {
+        padding: var(--spacing-lg);
+      }
+
+      .actions-bar .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Referências</div>
+          <a class="nav-link" href="./produtos-servicos.html">
+            <span class="nav-icon">📦</span>
+            Produtos/Serviços
+          </a>
+          <a class="nav-link active" href="./escopo-detalhado.html">
+            <span class="nav-icon">📋</span>
+            Escopo
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">PMO</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>Escopo Detalhado do Projeto</h1>
+        <div class="header-breadcrumb">Início / Comercial / Escopo Detalhado</div>
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <main class="portal-content">
+      <div class="scope-card" id="scopeCard">
+        <div class="scope-header">
+          <h2>📋 Escopo Detalhado</h2>
+          <p id="scopeSubtitle">Carregando dados da proposta selecionada...</p>
+        </div>
+
+        <div id="scopeContent" class="scope-shell">
+          <div class="empty-state">Preparando estrutura de escopo...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/escopo.js"></script>
+  <script>
+    const STORAGE_KEYS = {
+      propostas: 'helpdesk_propostas',
+      projetos: 'helpdesk_projetos'
+    };
+
+    let propostaAtual = null;
+    let projetoAtual = null;
+    let escopoAtual = null;
+
+    function checkSession() {
+      const session = localStorage.getItem('colaborador_session');
+      if (!session) {
+        window.location.href = './login.html';
+        return;
+      }
+
+      const user = JSON.parse(session);
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userAvatar').textContent = user.avatar;
+      document.getElementById('userRole').textContent = user.role;
+    }
+
+    function logout() {
+      localStorage.removeItem('colaborador_session');
+      window.location.href = './login.html';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getStoredPropostas() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.propostas);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn('Falha ao ler propostas:', error);
+        return [];
+      }
+    }
+
+    function getStoredProjetos() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.projetos);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn('Falha ao ler projetos:', error);
+        return [];
+      }
+    }
+
+    function getContextoAtual() {
+      const params = new URLSearchParams(window.location.search);
+      const propostaId = params.get('propostaId');
+      const projetoId = params.get('projetoId');
+      const propostas = getStoredPropostas();
+      const projetos = getStoredProjetos();
+
+      projetoAtual = projetoId
+        ? projetos.find((projeto) => projeto.id === projetoId) || null
+        : null;
+
+      if (propostaId) {
+        propostaAtual = propostas.find((proposta) => proposta.id === propostaId) || null;
+        return propostaAtual;
+      }
+
+      if (projetoAtual && projetoAtual.propostaId) {
+        propostaAtual = propostas.find((proposta) => proposta.id === projetoAtual.propostaId) || null;
+        return propostaAtual;
+      }
+
+      propostaAtual = propostas
+        .slice()
+        .sort((a, b) => new Date(b.dataAtualizacao || b.dataCriacao) - new Date(a.dataAtualizacao || a.dataCriacao))[0] || null;
+      return propostaAtual;
+    }
+
+    function formatCurrency(value) {
+      return BPIEscopoUtils.formatCurrency(Number(value || 0));
+    }
+
+    function formatDate(value) {
+      return BPIEscopoUtils.formatDateBR(value);
+    }
+
+    function ensureEscopo() {
+      getContextoAtual();
+      if (!propostaAtual) {
+        return null;
+      }
+
+      if (projetoAtual && projetoAtual.escopoId) {
+        const escopoProjeto = EscopoDB.obter(projetoAtual.escopoId);
+        if (escopoProjeto) {
+          return escopoProjeto;
+        }
+      }
+
+      const existente = EscopoDB.obterPorPropostaId(propostaAtual.id);
+      if (existente) {
+        return existente;
+      }
+
+      return EscopoDB.salvar(EscopoProcessor.criarPadrao(propostaAtual));
+    }
+
+    function getServiceDisplay(servico) {
+      if (servico.tipo === 'setup' && servico.horasEstimadas && servico.valorHora) {
+        return `${servico.horasEstimadas}h @ ${formatCurrency(servico.valorHora)} = ${formatCurrency(servico.valor)}`;
+      }
+
+      return servico.tipo === 'recorrente'
+        ? `${formatCurrency(servico.valor)}/mês`
+        : formatCurrency(servico.valor);
+    }
+
+    function renderPage() {
+      const content = document.getElementById('scopeContent');
+      const subtitle = document.getElementById('scopeSubtitle');
+
+      escopoAtual = ensureEscopo();
+
+      if (!propostaAtual || !escopoAtual) {
+        subtitle.textContent = 'Nenhuma proposta disponível para detalhar escopo.';
+        content.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+            <h3>Nenhuma proposta encontrada</h3>
+            <p>Crie ou salve uma proposta em Comercial antes de abrir esta página.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const statusProjeto = projetoAtual
+        ? (projetoAtual.status === 'em_andamento' ? 'Em Andamento' : projetoAtual.status === 'encerrado' ? 'Encerrado' : 'Planejamento')
+        : 'Planejamento';
+      const cronograma = Array.isArray(escopoAtual.cronograma) ? escopoAtual.cronograma : [];
+      const dataInicio = projetoAtual?.dataInicio || propostaAtual.prazos?.inicio || cronograma[0]?.dataInicio || BPIEscopoUtils.toISODate();
+      const dataFim = projetoAtual?.dataFimPrevisto || propostaAtual.prazos?.fim || cronograma[cronograma.length - 1]?.dataFim || dataInicio;
+
+      subtitle.textContent = `Proposta ${propostaAtual.numero || propostaAtual.id} • Cliente ${propostaAtual.nomeCliente || 'não informado'}`;
+      content.innerHTML = `
+        <div class="scope-section">
+          <h3 class="scope-section-title">🎯 Visão Geral</h3>
+          <div class="overview-grid">
+            <div class="overview-item"><div class="overview-label">Projeto</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.titulo) || propostaAtual.titulo)}</div></div>
+            <div class="overview-item"><div class="overview-label">Cliente</div><div class="overview-value">${escapeHtml(propostaAtual.nomeCliente)}</div></div>
+            <div class="overview-item"><div class="overview-label">Gestor</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.gestorResponsavel) || propostaAtual.elaboradoPor || document.getElementById('userName').textContent)}</div></div>
+            <div class="overview-item"><div class="overview-label">Data Início</div><div class="overview-value">${escapeHtml(formatDate(dataInicio))}</div></div>
+            <div class="overview-item"><div class="overview-label">Data Fim Prevista</div><div class="overview-value">${escapeHtml(formatDate(dataFim))}</div></div>
+            <div class="overview-item"><div class="overview-label">Modalidade</div><div class="overview-value">${escapeHtml((projetoAtual && projetoAtual.modalidade) || propostaAtual.modalidade || 'Implementações')}</div></div>
+            <div class="overview-item"><div class="overview-label">Status</div><div class="overview-value"><span class="status-chip ${(projetoAtual && projetoAtual.status) || 'planejamento'}">${escapeHtml(statusProjeto)}</span></div></div>
+          </div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">📝 Descrição do Escopo</h3>
+          <textarea id="descricaoDetalhada" class="scope-textarea">${escapeHtml(escopoAtual.descricaoDetalhada || '')}</textarea>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">📦 Serviços Contratados</h3>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Valor Unit.</th>
+                  <th>Prazo</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(escopoAtual.servicosContratados || []).map((servico, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(servico.nome)}</td>
+                    <td>${escapeHtml(servico.tipo)}</td>
+                    <td>${escapeHtml(getServiceDisplay(servico))}</td>
+                    <td>${escapeHtml(`${servico.prazo} ${servico.tipo === 'recorrente' ? 'meses' : 'dias'}`)}</td>
+                    <td><span class="status-chip ativo">${escapeHtml(servico.status || 'Ativo')}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">✅ Entregas Esperadas</h3>
+          <p class="helper-text">Edite uma entrega por linha. A checklist abaixo é atualizada automaticamente.</p>
+          <textarea id="entregasEditor" class="scope-textarea-compact">${escapeHtml((escopoAtual.entregas || []).join('\n'))}</textarea>
+          <div class="checklist" id="entregasChecklist"></div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">⚠️ Dependências do Cliente</h3>
+          <p class="helper-text">Informe uma dependência por linha.</p>
+          <textarea id="dependenciasEditor" class="scope-textarea-compact">${escapeHtml((escopoAtual.dependenciasCliente || []).join('\n'))}</textarea>
+          <div class="dependency-list" id="dependenciasLista"></div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">📅 Cronograma</h3>
+          <div class="timeline">
+            ${cronograma.map((fase) => `
+              <div class="timeline-item">
+                <div>
+                  <div class="timeline-phase">${escapeHtml(fase.fase)}</div>
+                  <div>${escapeHtml(`${formatDate(fase.dataInicio)} até ${formatDate(fase.dataFim)}`)}</div>
+                  <div class="helper-text" style="margin: 4px 0 0;">${escapeHtml(`${fase.duracao} dias planejados`)}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">💰 Investimento Resumido</h3>
+          <div class="investment-grid">
+            <div class="investment-item"><div class="investment-label">Setup total</div><div class="investment-value">${escapeHtml(formatCurrency(escopoAtual.investimento?.setupTotal))}</div></div>
+            <div class="investment-item"><div class="investment-label">Recorrente / mês</div><div class="investment-value">${escapeHtml(formatCurrency((escopoAtual.investimento?.recorrenteAnual || 0) / 12))}</div></div>
+            <div class="investment-item"><div class="investment-label">Contrato mínimo (12 meses)</div><div class="investment-value">${escapeHtml(formatCurrency(escopoAtual.investimento?.recorrenteAnual))}</div></div>
+            <div class="investment-item"><div class="investment-label">Desconto</div><div class="investment-value">${escapeHtml(formatCurrency(escopoAtual.investimento?.desconto))}</div></div>
+            <div class="investment-item"><div class="investment-label">Total</div><div class="investment-value">${escapeHtml(formatCurrency(escopoAtual.investimento?.total))}</div></div>
+          </div>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">📋 Observações</h3>
+          <textarea id="observacoesEscopo" class="scope-textarea-compact">${escapeHtml(escopoAtual.observacoes || '')}</textarea>
+        </div>
+
+        <div class="scope-section">
+          <h3 class="scope-section-title">🚀 Ações</h3>
+          <div class="actions-bar">
+            <button type="button" class="btn btn-secondary" onclick="visualizarProposta()">📋 Visualizar Proposta</button>
+            <button type="button" class="btn btn-primary" onclick="criarProjeto()">🚀 Criar Projeto</button>
+            <button type="button" class="btn btn-secondary" onclick="salvarEscopo()">💾 Salvar Escopo</button>
+          </div>
+        </div>
+      `;
+
+      bindLiveEditors();
+      renderEditableLists();
+    }
+
+    function bindLiveEditors() {
+      ['entregasEditor', 'dependenciasEditor'].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('input', renderEditableLists);
+        }
+      });
+    }
+
+    function getLinesFromEditor(id) {
+      const element = document.getElementById(id);
+      return String(element ? element.value : '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    }
+
+    function renderEditableLists() {
+      const entregas = getLinesFromEditor('entregasEditor');
+      const dependencias = getLinesFromEditor('dependenciasEditor');
+      const checklist = document.getElementById('entregasChecklist');
+      const dependencyList = document.getElementById('dependenciasLista');
+
+      if (checklist) {
+        checklist.innerHTML = entregas.map((entrega, index) => `
+          <label class="checklist-item">
+            <input type="checkbox" ${index === 0 ? 'checked' : ''}>
+            <span>${escapeHtml(entrega)}</span>
+          </label>
+        `).join('');
+      }
+
+      if (dependencyList) {
+        dependencyList.innerHTML = dependencias.map((dependencia) => `
+          <div class="dependency-item">
+            <span>•</span>
+            <span>${escapeHtml(dependencia)}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function collectEscopo() {
+      const atualizado = {
+        id: escopoAtual && escopoAtual.id ? escopoAtual.id : undefined,
+        propostaId: propostaAtual.id,
+        projetoId: (projetoAtual && projetoAtual.id) || (escopoAtual && escopoAtual.projetoId) || null,
+        descricaoDetalhada: document.getElementById('descricaoDetalhada').value.trim(),
+        servicosContratados: escopoAtual.servicosContratados || [],
+        entregas: getLinesFromEditor('entregasEditor'),
+        dependenciasCliente: getLinesFromEditor('dependenciasEditor'),
+        cronograma: escopoAtual.cronograma || [],
+        investimento: escopoAtual.investimento || {},
+        observacoes: document.getElementById('observacoesEscopo').value.trim()
+      };
+
+      return atualizado;
+    }
+
+    function salvarEscopo() {
+      try {
+        escopoAtual = EscopoDB.salvar(collectEscopo());
+        renderPage();
+        alert('💾 Escopo salvo com sucesso!');
+      } catch (error) {
+        alert(`❌ Erro ao salvar escopo: ${error.message}`);
+      }
+    }
+
+    function criarProjeto() {
+      try {
+        escopoAtual = EscopoDB.salvar(collectEscopo());
+        const resultado = ProjetoIntegrador.criar(propostaAtual, escopoAtual);
+        alert(`✅ Projeto ${resultado.projeto.titulo} criado com ${resultado.atividades.length} atividades.`);
+        window.location.href = `./pmo-geral.html?projetoId=${encodeURIComponent(resultado.projeto.id)}`;
+      } catch (error) {
+        alert(`❌ Erro ao criar projeto: ${error.message}`);
+      }
+    }
+
+    function visualizarProposta() {
+      if (!propostaAtual) {
+        alert('Nenhuma proposta carregada para visualização.');
+        return;
+      }
+
+      window.location.href = `./comercial.html?propostaId=${encodeURIComponent(propostaAtual.id)}`;
+    }
+
+    window.addEventListener('load', () => {
+      checkSession();
+      renderPage();
+    });
+  </script>
+</body>
+</html>
