@@ -302,9 +302,12 @@ body.cliente-auth {
 }
 
 .form-grid.single,
-.form-group.full-span,
 .quiz-form {
   grid-template-columns: 1fr;
+}
+
+.form-group.full-span {
+  grid-column: 1 / -1;
 }
 
 .form-group {

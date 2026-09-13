@@ -102,52 +102,56 @@
     ];
   });
 
+  const CLIENT_PROFILES = Object.freeze([
+    {
+      clientId: 'cli-001',
+      nomeCliente: 'Cliente A',
+      razaoSocial: 'Cliente A Tecnologia Ltda.',
+      cnpj: '12.345.678/0001-90',
+      email: 'contato@clientea.com.br',
+      avatar: 'CA',
+      telefone: '(11) 3000-0001',
+      endereco: 'Av. Paulista, 1000 - Bela Vista - São Paulo/SP',
+      contatos: [
+        { nome: 'Ana Martins', email: 'ana.martins@clientea.com.br', telefone: '(11) 98888-0101', cargo: 'Diretora Financeira' },
+        { nome: 'Carlos Lima', email: 'carlos.lima@clientea.com.br', telefone: '(11) 98888-0102', cargo: 'Coordenador de TI' }
+      ]
+    },
+    {
+      clientId: 'cli-002',
+      nomeCliente: 'Cliente B',
+      razaoSocial: 'Cliente B Operações S.A.',
+      cnpj: '98.765.432/0001-10',
+      email: 'contato@clienteb.com.br',
+      avatar: 'CB',
+      telefone: '(21) 3100-2200',
+      endereco: 'Rua das Laranjeiras, 220 - Rio de Janeiro/RJ',
+      contatos: [
+        { nome: 'Beatriz Souza', email: 'beatriz.souza@clienteb.com.br', telefone: '(21) 97777-1101', cargo: 'Gerente Administrativa' }
+      ]
+    },
+    {
+      clientId: 'cli-003',
+      nomeCliente: 'Cliente C',
+      razaoSocial: 'Cliente C Participações Ltda.',
+      cnpj: '55.555.555/0001-55',
+      email: 'contato@clientec.com.br',
+      avatar: 'CC',
+      telefone: '(31) 3200-5500',
+      endereco: 'Av. Afonso Pena, 1450 - Centro - Belo Horizonte/MG',
+      contatos: [
+        { nome: 'Fernanda Rocha', email: 'fernanda.rocha@clientec.com.br', telefone: '(31) 96666-9901', cargo: 'Head de Operações' }
+      ]
+    }
+  ]);
+
   const TRUSTED_ACCOUNTS = Object.freeze({
-    cliente: [
-      {
-        clientId: 'cli-001',
-        nomeCliente: 'Cliente A',
-        razaoSocial: 'Cliente A Tecnologia Ltda.',
-        cnpj: '12.345.678/0001-90',
-        email: 'contato@clientea.com.br',
-        password: '123456',
-        avatar: 'CA',
-        telefone: '(11) 3000-0001',
-        endereco: 'Av. Paulista, 1000 - Bela Vista - São Paulo/SP',
-        contatos: [
-          { nome: 'Ana Martins', email: 'ana.martins@clientea.com.br', telefone: '(11) 98888-0101', cargo: 'Diretora Financeira' },
-          { nome: 'Carlos Lima', email: 'carlos.lima@clientea.com.br', telefone: '(11) 98888-0102', cargo: 'Coordenador de TI' }
-        ]
-      },
-      {
-        clientId: 'cli-002',
-        nomeCliente: 'Cliente B',
-        razaoSocial: 'Cliente B Operações S.A.',
-        cnpj: '98.765.432/0001-10',
-        email: 'contato@clienteb.com.br',
-        password: '123456',
-        avatar: 'CB',
-        telefone: '(21) 3100-2200',
-        endereco: 'Rua das Laranjeiras, 220 - Rio de Janeiro/RJ',
-        contatos: [
-          { nome: 'Beatriz Souza', email: 'beatriz.souza@clienteb.com.br', telefone: '(21) 97777-1101', cargo: 'Gerente Administrativa' }
-        ]
-      },
-      {
-        clientId: 'cli-003',
-        nomeCliente: 'Cliente C',
-        razaoSocial: 'Cliente C Participações Ltda.',
-        cnpj: '55.555.555/0001-55',
-        email: 'contato@clientec.com.br',
-        password: '123456',
-        avatar: 'CC',
-        telefone: '(31) 3200-5500',
-        endereco: 'Av. Afonso Pena, 1450 - Centro - Belo Horizonte/MG',
-        contatos: [
-          { nome: 'Fernanda Rocha', email: 'fernanda.rocha@clientec.com.br', telefone: '(31) 96666-9901', cargo: 'Head de Operações' }
-        ]
-      }
-    ]
+    cliente: CLIENT_PROFILES.map((profile) => ({
+      clientId: profile.clientId,
+      email: profile.email,
+      cnpj: profile.cnpj,
+      password: '123456'
+    }))
   });
 
   const state = {
@@ -273,17 +277,17 @@
   }
 
   function buildDefaultClients() {
-    return TRUSTED_ACCOUNTS.cliente.map((account) => ({
-      id: account.clientId,
-      nome: account.nomeCliente,
-      nomeCliente: account.nomeCliente,
-      razaoSocial: account.razaoSocial,
-      cnpj: account.cnpj,
-      email: account.email,
-      telefone: account.telefone,
-      endereco: account.endereco,
-      avatar: account.avatar,
-      contatos: account.contatos,
+    return CLIENT_PROFILES.map((profile) => ({
+      id: profile.clientId,
+      nome: profile.nomeCliente,
+      nomeCliente: profile.nomeCliente,
+      razaoSocial: profile.razaoSocial,
+      cnpj: profile.cnpj,
+      email: profile.email,
+      telefone: profile.telefone,
+      endereco: profile.endereco,
+      avatar: profile.avatar,
+      contatos: profile.contatos,
       ativo: true
     }));
   }
@@ -570,13 +574,13 @@
     return readJson(STORAGE_KEYS.session, null);
   }
 
-  function setCurrentSession(account) {
+  function setCurrentSession(profile) {
     const session = {
-      clientId: account.clientId,
-      nomeCliente: account.nomeCliente,
-      cnpj: account.cnpj,
-      email: account.email,
-      avatar: account.avatar,
+      clientId: profile.clientId,
+      nomeCliente: profile.nomeCliente,
+      cnpj: profile.cnpj,
+      email: profile.email,
+      avatar: profile.avatar,
       loginEm: new Date().toISOString()
     };
     writeJson(STORAGE_KEYS.session, session);
@@ -1455,11 +1459,10 @@
     const certificates = readJson(STORAGE_KEYS.certificates, []);
     const existing = certificates.find((item) => item.clientId === clientId && item.treinamentoId === trainingId);
     if (existing) {
-      existing.percentualAcerto = score;
-      existing.dataConclusao = new Date().toISOString();
-      existing.dataConlusao = existing.dataConclusao;
-      writeJson(STORAGE_KEYS.certificates, certificates);
-      return existing;
+    existing.percentualAcerto = score;
+    existing.dataConclusao = new Date().toISOString();
+    writeJson(STORAGE_KEYS.certificates, certificates);
+    return existing;
     }
     const training = TRAININGS.find((item) => item.id === trainingId);
     const profile = getClientProfile(clientId);
@@ -1472,9 +1475,7 @@
       nomeTreinamento: training ? training.titulo : 'Treinamento',
       numeroCertificado: certificateNumber,
       dataConclusao: new Date().toISOString(),
-      dataConlusao: new Date().toISOString(),
       percentualAcerto: score,
-      pdfUrl: createCertificatePdfUrl(profile, training, certificateNumber),
       linkedinUrl: null
     };
     certificates.push(certificate);
@@ -1483,10 +1484,8 @@
     return certificate;
   }
 
-  function createCertificatePdfUrl(profile, training, certificateNumber) {
-    const content = `Certificado BPI Governança\n\nCliente: ${profile ? profile.nomeCliente || profile.nome : 'Cliente'}\nTreinamento: ${training ? training.titulo : 'Treinamento'}\nNúmero: ${certificateNumber}\nData: ${formatDate(new Date().toISOString())}\nAssinatura digital simulada: BPI Governança`;
-    const blob = new Blob([content], { type: 'application/pdf' });
-    return URL.createObjectURL(blob);
+  function buildCertificateContent(profile, trainingName, certificateNumber, completionDate) {
+    return `Certificado BPI Governança\n\nCliente: ${profile ? profile.nomeCliente || profile.nome : 'Cliente'}\nTreinamento: ${trainingName || 'Treinamento'}\nNúmero: ${certificateNumber}\nData: ${formatDate(completionDate || new Date().toISOString())}\nAssinatura digital simulada: BPI Governança`;
   }
 
   function initCertificados(session) {
@@ -1513,12 +1512,12 @@
           <p class="cert-number">${escapeHtml(certificate.numeroCertificado)}</p>
         </div>
         <div class="summary-grid">
-          <div><span class="small-muted">Conclusão</span><strong>${escapeHtml(formatDate(certificate.dataConclusao || certificate.dataConlusao))}</strong></div>
+          <div><span class="small-muted">Conclusão</span><strong>${escapeHtml(formatDate(certificate.dataConclusao))}</strong></div>
           <div><span class="small-muted">Resultado</span><strong>${escapeHtml(String(certificate.percentualAcerto))}%</strong></div>
         </div>
         <div class="inline-actions">
           <button type="button" class="btn btn-outline" data-cert-download="${escapeHtml(certificate.id)}">Download PDF</button>
-          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(certificate.id)}">Publicar no LinkedIn</button>
+          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(certificate.id)}" aria-controls="linkedinShareBox">Publicar no LinkedIn</button>
         </div>
       </article>`).join('');
 
@@ -1533,16 +1532,9 @@
   function downloadCertificate(clientId, certificateId) {
     const certificate = getCertificates(clientId).find((item) => item.id === certificateId);
     if (!certificate) return;
-    if (certificate.pdfUrl) {
-      const link = document.createElement('a');
-      link.href = certificate.pdfUrl;
-      link.download = `${slugify(certificate.nomeTreinamento)}-${certificate.numeroCertificado}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      return;
-    }
-    downloadBlob(`${slugify(certificate.nomeTreinamento)}-${certificate.numeroCertificado}.pdf`, `Certificado ${certificate.numeroCertificado}`, 'application/pdf');
+    const profile = getClientProfile(clientId);
+    const content = buildCertificateContent(profile, certificate.nomeTreinamento, certificate.numeroCertificado, certificate.dataConclusao);
+    downloadBlob(`${slugify(certificate.nomeTreinamento)}-${certificate.numeroCertificado}.pdf`, content, 'application/pdf');
   }
 
   function shareCertificateOnLinkedIn(clientId, certificateId) {
@@ -1550,13 +1542,14 @@
     const certificate = certificates.find((item) => item.id === certificateId && item.clientId === clientId);
     const profile = getClientProfile(clientId);
     if (!certificate || !profile) return;
-    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${new Date(certificate.dataConclusao || certificate.dataConlusao).getFullYear()}&issueMonth=${new Date(certificate.dataConclusao || certificate.dataConlusao).getMonth() + 1}&certUrl=${encodeURIComponent(window.location.href)}&certId=${encodeURIComponent(certificate.numeroCertificado)}`;
+    const certificateDate = new Date(certificate.dataConclusao);
+    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certUrl=${encodeURIComponent(window.location.href)}&certId=${encodeURIComponent(certificate.numeroCertificado)}`;
     certificate.linkedinUrl = url;
     writeJson(STORAGE_KEYS.certificates, certificates);
     const shareBox = document.getElementById('linkedinShareBox');
     if (shareBox) {
       shareBox.innerHTML = `
-        <section class="info-banner is-visible">
+        <section class="info-banner is-visible" aria-live="polite">
           <strong>Link pronto para publicação</strong>
           <div class="link-box">${escapeHtml(url)}</div>
           <div class="inline-actions"><a class="btn btn-primary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir LinkedIn</a></div>
@@ -1575,7 +1568,7 @@
     const log = readJson(`cliente_activity_log_${clientId}`, []);
     const projects = getProjects(clientId).map((project) => ({ descricao: `Projeto ${project.titulo} em ${statusLabel(project.status)}.`, data: project.dataInicio }));
     const chamados = getChamados(clientId).map((chamado) => ({ descricao: `Chamado ${chamado.id} - ${chamado.titulo}.`, data: chamado.dataCriacao }));
-    const certificates = getCertificates(clientId).map((certificate) => ({ descricao: `Certificado liberado: ${certificate.nomeTreinamento}.`, data: certificate.dataConclusao || certificate.dataConlusao }));
+    const certificates = getCertificates(clientId).map((certificate) => ({ descricao: `Certificado liberado: ${certificate.nomeTreinamento}.`, data: certificate.dataConclusao }));
     return [...log, ...projects, ...chamados, ...certificates]
       .filter((item) => item && item.data)
       .sort((left, right) => new Date(right.data) - new Date(left.data))
@@ -1713,7 +1706,7 @@
     }
     const demoList = document.getElementById('demoAccountList');
     if (demoList) {
-      demoList.innerHTML = TRUSTED_ACCOUNTS.cliente.map((account) => `
+      demoList.innerHTML = CLIENT_PROFILES.map((account) => `
         <div class="demo-card">
           <strong>${escapeHtml(account.nomeCliente)}</strong>
           <p class="small-muted">${escapeHtml(account.email)} • ${escapeHtml(account.cnpj)}</p>
@@ -1736,7 +1729,12 @@
         showError('loginError', 'Email/CNPJ ou senha inválidos.');
         return;
       }
-      setCurrentSession(account);
+      const profile = CLIENT_PROFILES.find((item) => item.clientId === account.clientId);
+      if (!profile) {
+        showError('loginError', 'Conta de cliente não encontrada.');
+        return;
+      }
+      setCurrentSession(profile);
       appendProfileHistoryMessage(account.clientId, 'Login realizado no portal do cliente.');
       window.location.href = getSafeReturnPath(new URLSearchParams(window.location.search).get('return'));
     });
@@ -1778,7 +1776,6 @@
     ensureSeedData();
     bindGlobalActions();
     const page = document.body.getAttribute('data-page');
-    window.TRUSTED_ACCOUNTS = TRUSTED_ACCOUNTS;
     window.BPIClientePortal = { logout, getCurrentSession };
 
     if (page === 'login') {
