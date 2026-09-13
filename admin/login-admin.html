@@ -174,9 +174,10 @@
         </div>
 
         <div class="demo-credentials">
-            <h4>🔐 Credenciais de Demonstração:</h4>
-            <p><strong>Admin:</strong> admin@bpi.com.br / admin123</p>
-            <p><strong>Atendente:</strong> atendente@bpi.com.br / 12345</p>
+            <h4>🔐 Acesso de Demonstração:</h4>
+            <p>Use email e senha cadastrados para o perfil selecionado.</p>
+            <p><strong>Admin:</strong> admin@bpi.com.br / admin@2026</p>
+            <p><strong>Atendente:</strong> atendente@bpi.com.br / atendente@2026</p>
         </div>
 
         <div class="login-type">
@@ -196,7 +197,7 @@
 
             <div class="form-group">
                 <label for="senha">Senha</label>
-                <input type="password" id="senha" placeholder="••••••••" required>
+                <input type="password" id="senha" placeholder="Sua senha" required minlength="8">
             </div>
 
             <button type="submit" class="btn-login">Entrar no Painel</button>
@@ -211,6 +212,10 @@
     <script src="../assets/js/admin-core.js"></script>
     <script>
         let tipoLoginAtual = 'admin';
+        const SENHAS_DEMO = {
+            'admin@bpi.com.br': 'admin@2026',
+            'atendente@bpi.com.br': 'atendente@2026'
+        };
 
         function setLoginType(event, tipo) {
             tipoLoginAtual = tipo;
@@ -222,12 +227,13 @@
 
         function fazerLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const senha = document.getElementById('senha').value;
             const usuarios = BPIAdminCore.data.usuarios();
-            const usuarioValido = usuarios.find((usuario) => usuario.email === email && usuario.tipo === tipoLoginAtual && usuario.ativo);
+            const usuarioValido = usuarios.find((usuario) => (usuario.email || '').trim().toLowerCase() === email && usuario.tipo === tipoLoginAtual && usuario.ativo);
+            const senhaValida = usuarioValido && ((usuarioValido.senha || '') === senha || SENHAS_DEMO[email] === senha);
 
-            if (usuarioValido && senha) {
+            if (usuarioValido && senhaValida) {
                 const userData = {
                     type: tipoLoginAtual,
                     email: email,
@@ -254,10 +260,6 @@
             if (session) {
                 if (!BPIAdminCore.auth.isTrustedSession(session)) {
                     localStorage.removeItem(BPIAdminCore.KEYS.session);
-                    localStorage.removeItem('userSession');
-                    localStorage.removeItem('cliente_session');
-                    localStorage.removeItem('colaborador_session');
-                    localStorage.removeItem('session_timestamp');
                     return;
                 }
                 if (session.type === 'admin') {

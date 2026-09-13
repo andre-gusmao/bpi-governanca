@@ -42,7 +42,7 @@
       const sessionId = (session.id || session.clientId || '').toString().toLowerCase();
       if (!sessionId) return false;
       return trusted.some((item) => {
-        const emailValido = session.email && item.email === session.email;
+        const emailValido = session.email ? item.email === session.email : true;
         const cnpjValido = session.cnpj ? item.cnpj === session.cnpj : true;
         return item.id === sessionId && emailValido && cnpjValido;
       });
@@ -56,18 +56,19 @@
   }
 
   function clearOtherSessions(currentRole) {
-    const currentKey = getKey(currentRole);
-    [KEYS.cliente, KEYS.colaborador, KEYS.admin, KEYS.portalLegado].forEach((key) => {
-      if (key !== currentKey) {
-        localStorage.removeItem(key);
-      }
-    });
+    if (currentRole === 'cliente') {
+      localStorage.removeItem(KEYS.portalLegado);
+    }
   }
 
-  function clearAllSessions() {
-    [KEYS.cliente, KEYS.colaborador, KEYS.admin, KEYS.portalLegado, KEYS.timestamp].forEach((key) => {
+  function clearSession(role) {
+    const key = getKey(role);
+    if (key) {
       localStorage.removeItem(key);
-    });
+    }
+    if (role === 'cliente') {
+      localStorage.removeItem(KEYS.portalLegado);
+    }
   }
 
   function setSession(role, data) {
@@ -119,15 +120,31 @@
     }
 
     if (!session || !isTrustedSession(role, session)) {
-      clearAllSessions();
-      window.location.href = redirectTo;
+      clearSession(role);
+      const destino = String(redirectTo || '');
+      const pathname = window.location.pathname || '';
+      const arquivoAtual = pathname.split('/').pop() || '';
+      let retornoBase = `./${arquivoAtual}`;
+      if (pathname.includes('/portal/')) {
+        retornoBase = `../portal/${arquivoAtual}`;
+      } else if (pathname.includes('/colaborador/')) {
+        retornoBase = `../colaborador/${arquivoAtual}`;
+      }
+      const retornoAtual = `${retornoBase}${window.location.search || ''}${window.location.hash || ''}`;
+      const [semHash, hash = ''] = destino.split('#');
+      const [path = '', query = ''] = semHash.split('?');
+      const params = new URLSearchParams(query);
+      params.set('return', retornoAtual);
+      const queryString = params.toString();
+      const destinoComRetorno = `${path}${queryString ? `?${queryString}` : ''}${hash ? `#${hash}` : ''}`;
+      window.location.href = destinoComRetorno;
       return null;
     }
     return session;
   }
 
   function logout(role, redirectTo) {
-    clearAllSessions();
+    clearSession(role);
     window.location.href = redirectTo;
   }
 
