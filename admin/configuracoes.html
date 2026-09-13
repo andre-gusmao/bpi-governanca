@@ -45,15 +45,15 @@
             <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:1rem;">
                 <article class="card">
                     <h3>Integração Email (stub)</h3>
-                    <label>API Key SendGrid</label><input value="**************">
-                    <label>Email padrão</label><input value="noreply@bpigovernanca.com.br">
-                    <label>Template</label><textarea>Olá {{nome}}, bem-vindo(a)!</textarea>
+                    <label for="email-api-key">API Key SendGrid</label><input id="email-api-key" value="**************">
+                    <label for="email-default">Email padrão</label><input id="email-default" value="noreply@bpigovernanca.com.br">
+                    <label for="email-template">Template</label><textarea id="email-template">Olá {{nome}}, bem-vindo(a)!</textarea>
                     <button id="btn-teste-email" class="btn btn-ghost" type="button">Enviar email de teste</button>
                 </article>
                 <article class="card">
                     <h3>Integração LinkedIn (stub)</h3>
-                    <label>App ID</label><input value="********">
-                    <label>App Secret</label><input value="********">
+                    <label for="linkedin-app-id">App ID</label><input id="linkedin-app-id" value="********">
+                    <label for="linkedin-app-secret">App Secret</label><input id="linkedin-app-secret" value="********">
                     <button id="btn-teste-linkedin" class="btn btn-ghost" type="button">Testar autenticação</button>
                 </article>
             </section>

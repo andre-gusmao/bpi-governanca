@@ -20,25 +20,10 @@
         "BPO Folha de Pagamento", "Integrações", "Dúvidas"
     ];
 
-    const externalTrusted = window.TRUSTED_ACCOUNTS && Array.isArray(window.TRUSTED_ACCOUNTS.admin)
-        ? { admin: window.TRUSTED_ACCOUNTS.admin.map((item) => ({ ...item })) }
-        : null;
-    const TRUSTED_ACCOUNTS = externalTrusted || {
+    const TRUSTED_ACCOUNTS = {
         admin: [{ email: "admin@bpi.com.br", senhaHash: "240be518fabd2724ddb6f04eeb652e4dd04f28bc072dd4d06fbbe2eb5b78372f", adminId: "admin-001" }]
     };
-    const ADMIN_PROFILES = (TRUSTED_ACCOUNTS.admin || []).reduce((acc, item) => {
-        const email = String(item.email || "").toLowerCase();
-        if (!email) return acc;
-        acc[email] = {
-            adminId: item.adminId || "admin-001",
-            nome: item.nome || "Admin BPI",
-            role: item.role || "Super Admin"
-        };
-        return acc;
-    }, {});
-    if (!ADMIN_PROFILES["admin@bpi.com.br"]) {
-        ADMIN_PROFILES["admin@bpi.com.br"] = { adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" };
-    }
+    const ADMIN_PROFILES = { "admin@bpi.com.br": { adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" } };
 
     function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -343,7 +328,6 @@
     }
 
     async function digestSha256(value) {
-        if (!window.crypto || !window.crypto.subtle) return simpleHash(value);
         const msgBuffer = new TextEncoder().encode(value);
         const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -356,6 +340,10 @@
         if (hasValidSession()) window.location.href = "/admin/dashboard.html";
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+            if (!window.crypto || !window.crypto.subtle) {
+                document.getElementById("login-feedback").textContent = "Ambiente sem suporte criptográfico para autenticação.";
+                return;
+            }
             const email = document.getElementById("email").value.trim().toLowerCase();
             const senha = document.getElementById("senha").value;
             const senhaHash = await digestSha256(senha);
@@ -716,12 +704,12 @@
                     });
                     render();
                 });
-                tr.querySelector("[data-action='reset']").addEventListener("click", () => {
+                tr.querySelector("[data-action='reset']").addEventListener("click", async () => {
                     const senha = Math.random().toString(36).slice(2, 10);
                     const arr = getJson(STORAGE_KEYS.colaboradores, []);
                     const idx = arr.findIndex((c) => c.colaboradorId === item.colaboradorId);
                     if (idx !== -1) {
-                        arr[idx].senhaHash = simpleHash(senha);
+                        arr[idx].senhaHash = await digestSha256(senha);
                         setJson(STORAGE_KEYS.colaboradores, arr);
                     }
                     const emails = getJson("helpdesk_emails", []);
@@ -966,7 +954,7 @@
                     row[header] = values[idx] ?? "";
                 });
                 list.push({
-                    produtoId: row.produtoId || nextId("prod", list, "produtoId"),
+                    produtoId: (!row.produtoId || list.some((item) => item.produtoId === row.produtoId)) ? nextId("prod", list, "produtoId") : row.produtoId,
                     nome: row.nome || "Produto importado",
                     descricao: row.descricao || "",
                     tipo: row.tipo === "recorrente" ? "recorrente" : "setup",
@@ -1208,10 +1196,9 @@
         document.getElementById("btn-teste-linkedin").addEventListener("click", () => alert("Autenticação LinkedIn simulada com sucesso."));
         document.getElementById("btn-backup").addEventListener("click", () => {
             const payload = {};
-            for (let i = 0; i < localStorage.length; i += 1) {
-                const key = localStorage.key(i);
-                payload[key] = localStorage.getItem(key);
-            }
+            getBackupAllowedKeys().forEach((key) => {
+                if (localStorage.getItem(key) !== null) payload[key] = localStorage.getItem(key);
+            });
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
@@ -1231,20 +1218,7 @@
                 alert("Arquivo de backup inválido.");
                 return;
             }
-            const allowed = [
-                STORAGE_KEYS.clientes,
-                STORAGE_KEYS.colaboradores,
-                STORAGE_KEYS.projetos,
-                STORAGE_KEYS.catalogo,
-                STORAGE_KEYS.auditoria,
-                STORAGE_KEYS.modalidades,
-                STORAGE_KEYS.empresa,
-                "helpdesk_atividades",
-                "helpdesk_propostas",
-                "helpdesk_escopo",
-                "helpdesk_emails"
-            ];
-            allowed.forEach((key) => {
+            getBackupAllowedKeys().forEach((key) => {
                 if (Object.prototype.hasOwnProperty.call(data, key)) {
                     const value = data[key];
                     localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
@@ -1344,3 +1318,18 @@
     };
     document.addEventListener("DOMContentLoaded", pageInit);
 })();
+        function getBackupAllowedKeys() {
+            return [
+                STORAGE_KEYS.clientes,
+                STORAGE_KEYS.colaboradores,
+                STORAGE_KEYS.projetos,
+                STORAGE_KEYS.catalogo,
+                STORAGE_KEYS.auditoria,
+                STORAGE_KEYS.modalidades,
+                STORAGE_KEYS.empresa,
+                "helpdesk_atividades",
+                "helpdesk_propostas",
+                "helpdesk_escopo",
+                "helpdesk_emails"
+            ];
+        }
