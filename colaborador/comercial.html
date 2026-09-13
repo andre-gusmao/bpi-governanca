@@ -984,7 +984,7 @@
       revogarPdfGerado();
       ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
       const atualizada = window.PropostaDB.atualizar(proposta.id, { pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl });
-      propostaAtualId = atualizada.id;
+      propostaAtualId = atualizada ? atualizada.id : proposta.id;
       window.PDFGenerator.baixar(ultimoPdfGerado);
       atualizarPreview();
       showStatus('PDF simulado gerado e download iniciado.', 'success');
@@ -1011,7 +1011,12 @@
         pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl,
         emailCliente: destinatario,
         emailEnviadoPara: destinatario
-      });
+      }) || {
+        ...proposta,
+        pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl,
+        emailCliente: destinatario,
+        emailEnviadoPara: destinatario
+      };
       const envio = window.EmailSimulator.enviar(propostaComPdf, destinatario);
       propostaAtualId = envio.proposta.id;
       atualizarPreview();

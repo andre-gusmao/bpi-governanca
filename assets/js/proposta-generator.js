@@ -202,7 +202,14 @@
     return String(value || '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\u00A0/g, ' ')
       .replace(/[\\()]/g, '\\$&');
+  }
+
+  function getByteLength(value) {
+    return typeof TextEncoder !== 'undefined'
+      ? new TextEncoder().encode(String(value || '')).length
+      : String(value || '').length;
   }
 
   function wrapText(text, maxLength) {
@@ -269,8 +276,11 @@
   function listarClientes() {
     const clientesExtras = parseStorage(STORAGE_KEYS.clientes, []);
     const agrupados = new Map();
+    const clientesConfiaveis = Array.isArray(TRUSTED_ACCOUNTS && TRUSTED_ACCOUNTS.cliente)
+      ? TRUSTED_ACCOUNTS.cliente
+      : FALLBACK_CLIENTES;
 
-    TRUSTED_ACCOUNTS.cliente.forEach((cliente) => {
+    clientesConfiaveis.forEach((cliente) => {
       agrupados.set(cliente.id, {
         id: cliente.id,
         nome: cliente.nome || cliente.empresa || '',
@@ -300,6 +310,34 @@
     }
 
     return Array.from(agrupados.values());
+  }
+
+  function normalizarDadosProposta(proposta) {
+    const dados = proposta || {};
+    const servicos = Array.isArray(dados.servicos) ? dados.servicos.map(sanitizeServico) : [];
+    const valores = dados.valores || calcularValores(servicos, 0);
+    const prazos = {
+      inicio: dados.prazos && dados.prazos.inicio ? dados.prazos.inicio : '',
+      fim: dados.prazos && dados.prazos.fim ? dados.prazos.fim : '',
+      duracao: dados.prazos && dados.prazos.duracao ? dados.prazos.duracao : 0,
+      validadeEmDias: dados.prazos && dados.prazos.validadeEmDias ? dados.prazos.validadeEmDias : 0,
+      dataValidade: dados.prazos && dados.prazos.dataValidade ? dados.prazos.dataValidade : ''
+    };
+
+    return {
+      ...dados,
+      servicos: servicos,
+      valores: {
+        setup: Number(valores.setup) || 0,
+        recorrente: Number(valores.recorrente) || 0,
+        recorrenteAnual: Number(valores.recorrenteAnual) || 0,
+        desconto: Number(valores.desconto) || 0,
+        descontoPercentual: Number(valores.descontoPercentual) || 0,
+        subtotal: Number(valores.subtotal) || 0,
+        total: Number(valores.total) || 0
+      },
+      prazos: prazos
+    };
   }
 
   function calcularValores(servicos, descontoPercentual) {
@@ -488,9 +526,10 @@
   };
 
   function buildPreviewHtml(proposta) {
-    const resumoEscopo = escapeHtml((proposta.escopo || '').slice(0, 280) || 'Escopo detalhado será exibido aqui.');
-    const linhasServicos = proposta.servicos.length
-      ? proposta.servicos.map((servico) => {
+    const propostaNormalizada = normalizarDadosProposta(proposta);
+    const resumoEscopo = escapeHtml((propostaNormalizada.escopo || '').slice(0, 280) || 'Escopo detalhado será exibido aqui.');
+    const linhasServicos = propostaNormalizada.servicos.length
+      ? propostaNormalizada.servicos.map((servico) => {
           const horas = servico.tipo === 'setup'
             ? (servico.horasEstimadas ? servico.horasEstimadas + 'h' : 'Setup')
             : (servico.horasMes ? servico.horasMes + 'h/mês' : 'Recorrente');
@@ -514,23 +553,23 @@
       '      <div class="pdf-preview-subtitle">PROPOSTA COMERCIAL</div>',
       '    </div>',
       '    <div class="pdf-preview-meta">',
-      '      <strong>' + escapeHtml(proposta.codigoUnico || 'PROP-0000') + '</strong>',
-      '      <span>Emissão: ' + formatDate(proposta.dataCriacao) + '</span>',
-      '      <span>Validade: ' + formatDate(proposta.prazos.dataValidade) + '</span>',
+      '      <strong>' + escapeHtml(propostaNormalizada.codigoUnico || 'PROP-0000') + '</strong>',
+      '      <span>Emissão: ' + formatDate(propostaNormalizada.dataCriacao) + '</span>',
+      '      <span>Validade: ' + formatDate(propostaNormalizada.prazos.dataValidade) + '</span>',
       '    </div>',
       '  </div>',
       '  <div class="pdf-preview-grid">',
       '    <div class="pdf-preview-card">',
       '      <div class="pdf-preview-label">Cliente</div>',
-      '      <div class="pdf-preview-value">' + escapeHtml(proposta.nomeCliente || 'Selecione um cliente') + '</div>',
-      '      <div class="pdf-preview-muted">' + escapeHtml(proposta.cnpjCliente || 'CNPJ não informado') + '</div>',
-      '      <div class="pdf-preview-muted">' + escapeHtml(proposta.emailCliente || 'Email não informado') + '</div>',
+      '      <div class="pdf-preview-value">' + escapeHtml(propostaNormalizada.nomeCliente || 'Selecione um cliente') + '</div>',
+      '      <div class="pdf-preview-muted">' + escapeHtml(propostaNormalizada.cnpjCliente || 'CNPJ não informado') + '</div>',
+      '      <div class="pdf-preview-muted">' + escapeHtml(propostaNormalizada.emailCliente || 'Email não informado') + '</div>',
       '    </div>',
       '    <div class="pdf-preview-card">',
       '      <div class="pdf-preview-label">Projeto</div>',
-      '      <div class="pdf-preview-value">' + escapeHtml(proposta.titulo || 'Título do projeto') + '</div>',
-      '      <div class="pdf-preview-muted">Modalidade: ' + escapeHtml(proposta.modalidade || '—') + '</div>',
-      '      <div class="pdf-preview-muted">Prazo: ' + (proposta.prazos.duracao ? escapeHtml(String(proposta.prazos.duracao)) + ' dias' : '—') + '</div>',
+      '      <div class="pdf-preview-value">' + escapeHtml(propostaNormalizada.titulo || 'Título do projeto') + '</div>',
+      '      <div class="pdf-preview-muted">Modalidade: ' + escapeHtml(propostaNormalizada.modalidade || '—') + '</div>',
+      '      <div class="pdf-preview-muted">Prazo: ' + (propostaNormalizada.prazos.duracao ? escapeHtml(String(propostaNormalizada.prazos.duracao)) + ' dias' : '—') + '</div>',
       '    </div>',
       '  </div>',
       '  <div class="pdf-preview-section">',
@@ -545,10 +584,10 @@
       '    </table>',
       '  </div>',
       '  <div class="pdf-preview-grid resumo">',
-      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Setup</div><div class="pdf-preview-value">' + formatCurrency(proposta.valores.setup) + '</div></div>',
-      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Recorrente / mês</div><div class="pdf-preview-value">' + formatCurrency(proposta.valores.recorrente) + '</div></div>',
-      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Subtotal (12 meses)</div><div class="pdf-preview-value">' + formatCurrency(proposta.valores.subtotal) + '</div></div>',
-      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Total investimento</div><div class="pdf-preview-value destaque">' + formatCurrency(proposta.valores.total) + '</div></div>',
+      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Setup</div><div class="pdf-preview-value">' + formatCurrency(propostaNormalizada.valores.setup) + '</div></div>',
+      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Recorrente / mês</div><div class="pdf-preview-value">' + formatCurrency(propostaNormalizada.valores.recorrente) + '</div></div>',
+      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Subtotal (12 meses)</div><div class="pdf-preview-value">' + formatCurrency(propostaNormalizada.valores.subtotal) + '</div></div>',
+      '    <div class="pdf-preview-card"><div class="pdf-preview-label">Total investimento</div><div class="pdf-preview-value destaque">' + formatCurrency(propostaNormalizada.valores.total) + '</div></div>',
       '  </div>',
       '  <div class="pdf-preview-cta">',
       '    <button type="button" disabled>Aceitar</button>',
@@ -559,34 +598,35 @@
   }
 
   function buildPdfLines(proposta) {
+    const propostaNormalizada = normalizarDadosProposta(proposta);
     const lines = [
       'BPI GOVERNANCA',
       'PROPOSTA COMERCIAL',
-      'Codigo: ' + (proposta.codigoUnico || ''),
-      'Numero: ' + (proposta.numero || ''),
-      'Emissao: ' + formatDate(proposta.dataCriacao),
-      'Validade: ' + formatDate(proposta.prazos.dataValidade),
+      'Codigo: ' + (propostaNormalizada.codigoUnico || ''),
+      'Numero: ' + (propostaNormalizada.numero || ''),
+      'Emissao: ' + formatDate(propostaNormalizada.dataCriacao),
+      'Validade: ' + formatDate(propostaNormalizada.prazos.dataValidade),
       '',
       'CLIENTE',
-      'Nome: ' + (proposta.nomeCliente || ''),
-      'CNPJ: ' + (proposta.cnpjCliente || ''),
-      'Email: ' + (proposta.emailCliente || ''),
+      'Nome: ' + (propostaNormalizada.nomeCliente || ''),
+      'CNPJ: ' + (propostaNormalizada.cnpjCliente || ''),
+      'Email: ' + (propostaNormalizada.emailCliente || ''),
       '',
       'PROJETO',
-      'Titulo: ' + (proposta.titulo || ''),
-      'Modalidade: ' + (proposta.modalidade || ''),
-      'Inicio: ' + formatDate(proposta.prazos.inicio),
-      'Fim: ' + formatDate(proposta.prazos.fim),
-      'Duracao: ' + (proposta.prazos.duracao || 0) + ' dias',
+      'Titulo: ' + (propostaNormalizada.titulo || ''),
+      'Modalidade: ' + (propostaNormalizada.modalidade || ''),
+      'Inicio: ' + formatDate(propostaNormalizada.prazos.inicio),
+      'Fim: ' + formatDate(propostaNormalizada.prazos.fim),
+      'Duracao: ' + (propostaNormalizada.prazos.duracao || 0) + ' dias',
       '',
       'ESCOPO'
     ];
 
-    wrapText(proposta.escopo, 82).forEach((line) => lines.push(line));
+    wrapText(propostaNormalizada.escopo, 82).forEach((line) => lines.push(line));
 
     lines.push('', 'SERVICOS');
 
-    proposta.servicos.forEach((servico) => {
+    propostaNormalizada.servicos.forEach((servico) => {
       const linha = servico.nome + ' | ' + (servico.tipo === 'setup' ? 'Setup' : 'Recorrente') + ' | ' + formatCurrency(servico.tipo === 'setup' ? servico.valorTotal : servico.valorMensal);
       lines.push(linha);
     });
@@ -594,12 +634,12 @@
     lines.push(
       '',
       'RESUMO FINANCEIRO',
-      'Setup: ' + formatCurrency(proposta.valores.setup),
-      'Recorrente mensal: ' + formatCurrency(proposta.valores.recorrente),
-      'Desconto: ' + formatCurrency(proposta.valores.desconto),
-      'Total investimento: ' + formatCurrency(proposta.valores.total),
+      'Setup: ' + formatCurrency(propostaNormalizada.valores.setup),
+      'Recorrente mensal: ' + formatCurrency(propostaNormalizada.valores.recorrente),
+      'Desconto: ' + formatCurrency(propostaNormalizada.valores.desconto),
+      'Total investimento: ' + formatCurrency(propostaNormalizada.valores.total),
       '',
-      'Valida por ' + (proposta.prazos.validadeEmDias || 0) + ' dias',
+      'Valida por ' + (propostaNormalizada.prazos.validadeEmDias || 0) + ' dias',
       'Assinatura digital simulada - BPI Governanca',
       'CTA Cliente: Aceitar / Recusar'
     );
@@ -620,9 +660,7 @@
 
     contentLines.push('ET');
     const streamContent = contentLines.join('\n');
-    const streamLength = typeof TextEncoder !== 'undefined'
-      ? new TextEncoder().encode(streamContent).length
-      : streamContent.length;
+    const streamLength = getByteLength(streamContent);
 
     const objects = [
       '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj',
@@ -636,11 +674,11 @@
     const offsets = [0];
 
     objects.forEach((object) => {
-      offsets.push(pdf.length);
+      offsets.push(getByteLength(pdf));
       pdf += object + '\n';
     });
 
-    const xrefStart = pdf.length;
+    const xrefStart = getByteLength(pdf);
     pdf += 'xref\n0 ' + (objects.length + 1) + '\n';
     pdf += '0000000000 65535 f \n';
 
