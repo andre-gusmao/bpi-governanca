@@ -436,6 +436,11 @@
   <script src="../assets/js/catalogo.js"></script>
   <script>
     let produtosSelecionados = [];
+    const STATUS_ADICAO = {
+      ADICIONADO: 'added',
+      JA_SELECIONADO: 'already-selected',
+      INVALIDO: 'invalid'
+    };
 
     function escaparHtml(valor) {
       return String(valor || '')
@@ -477,7 +482,7 @@
 
     function popularProdutosDisponiveis() {
       const select = document.getElementById('produtoSelect');
-      const produtos = CatalogoDB.listar();
+      const produtos = CatalogoDB.listar().filter(produto => produto.ativo !== false);
 
       select.innerHTML = '';
       select.appendChild(new Option('Selecione um produto...', ''));
@@ -491,24 +496,24 @@
       const select = document.getElementById('produtoSelect');
       const produtoId = produtoIdInicial || select.value;
       
-      if (!produtoId) return 'invalid';
+      if (!produtoId) return STATUS_ADICAO.INVALIDO;
 
       if (produtosSelecionados.some(produto => produto.id === produtoId)) {
         select.value = '';
-        return 'already-selected';
+        return STATUS_ADICAO.JA_SELECIONADO;
       }
 
       const produto = CatalogoDB.obter(produtoId);
       if (!produto || produto.ativo === false) {
         select.value = '';
-        return 'invalid';
+        return STATUS_ADICAO.INVALIDO;
       }
 
       produtosSelecionados.push(produto);
       renderizarProdutos();
       calcularResumo();
       select.value = '';
-      return 'added';
+      return STATUS_ADICAO.ADICIONADO;
     }
 
     function removerProduto(index) {
@@ -576,11 +581,11 @@
         const pendentesUnicos = [...new Set(pendentes)];
         const naoImportados = pendentesUnicos.filter(produtoId => {
           const resultado = adicionarProduto(produtoId);
-          if (resultado === 'already-selected') {
+          if (resultado === STATUS_ADICAO.JA_SELECIONADO) {
             return false;
           }
 
-          return resultado === 'invalid';
+          return resultado === STATUS_ADICAO.INVALIDO;
         });
 
         const filaRestante = [...new Set(naoImportados)];
