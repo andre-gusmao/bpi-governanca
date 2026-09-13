@@ -533,6 +533,7 @@
           });
         });
         writeCollection(STORAGE_KEYS.projetos, projetosAtualizados);
+        updateProposalStatus(proposta.id, escopoAtualizado.id, getNowIso());
 
         return {
           projeto: projetosAtualizados.find((item) => item.id === projetoExistente.id) || projetoExistente,
@@ -589,7 +590,7 @@
         cronograma,
         termoAberturaDocId: null,
         statusTermoAbertura: 'pendente',
-        termoEnceramentoDocId: null,
+        termoEncerramentoDocId: null,
         statusTermoEncerramento: 'pendente',
         atividades: atividadesCriadas.map((atividade) => atividade.id),
         documentos: [],

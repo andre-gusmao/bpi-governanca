@@ -618,14 +618,15 @@
         <div class="scope-section">
           <h3 class="scope-section-title">🚀 Ações</h3>
           <div class="actions-bar">
-            <button type="button" class="btn btn-secondary" onclick="visualizarProposta()" aria-label="Visualizar proposta relacionada ao escopo">📋 Visualizar Proposta</button>
-            <button type="button" class="btn btn-primary" onclick="criarProjeto()" aria-label="Criar projeto e atividades automaticamente a partir do escopo">🚀 Criar Projeto</button>
-            <button type="button" class="btn btn-secondary" onclick="salvarEscopo()" aria-label="Salvar alterações do escopo detalhado">💾 Salvar Escopo</button>
+            <button type="button" class="btn btn-secondary" id="btnVisualizarProposta" aria-label="Visualizar proposta relacionada ao escopo">📋 Visualizar Proposta</button>
+            <button type="button" class="btn btn-primary" id="btnCriarProjeto" aria-label="Criar projeto e atividades automaticamente a partir do escopo">🚀 Criar Projeto</button>
+            <button type="button" class="btn btn-secondary" id="btnSalvarEscopo" aria-label="Salvar alterações do escopo detalhado">💾 Salvar Escopo</button>
           </div>
         </div>
       `;
 
       bindLiveEditors();
+      bindActionButtons();
       renderEditableLists();
     }
 
@@ -636,6 +637,24 @@
           element.addEventListener('input', renderEditableLists);
         }
       });
+    }
+
+    function bindActionButtons() {
+      const btnVisualizarProposta = document.getElementById('btnVisualizarProposta');
+      const btnCriarProjeto = document.getElementById('btnCriarProjeto');
+      const btnSalvarEscopo = document.getElementById('btnSalvarEscopo');
+
+      if (btnVisualizarProposta) {
+        btnVisualizarProposta.addEventListener('click', visualizarProposta);
+      }
+
+      if (btnCriarProjeto) {
+        btnCriarProjeto.addEventListener('click', criarProjeto);
+      }
+
+      if (btnSalvarEscopo) {
+        btnSalvarEscopo.addEventListener('click', salvarEscopo);
+      }
     }
 
     function getLinesFromEditor(id) {
