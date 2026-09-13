@@ -20,10 +20,25 @@
         "BPO Folha de Pagamento", "Integrações", "Dúvidas"
     ];
 
-    const TRUSTED_ACCOUNTS = window.TRUSTED_ACCOUNTS || {
-        admin: [{ email: "admin@bpi.com.br", senhaHash: "240be518fabd2724ddb6f04eeb652e4dd04f28bc072dd4d06fbbe2eb5b78372f", adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" }]
+    const externalTrusted = window.TRUSTED_ACCOUNTS && Array.isArray(window.TRUSTED_ACCOUNTS.admin)
+        ? { admin: window.TRUSTED_ACCOUNTS.admin.map((item) => ({ ...item })) }
+        : null;
+    const TRUSTED_ACCOUNTS = externalTrusted || {
+        admin: [{ email: "admin@bpi.com.br", senhaHash: "240be518fabd2724ddb6f04eeb652e4dd04f28bc072dd4d06fbbe2eb5b78372f", adminId: "admin-001" }]
     };
-    window.TRUSTED_ACCOUNTS = TRUSTED_ACCOUNTS;
+    const ADMIN_PROFILES = (TRUSTED_ACCOUNTS.admin || []).reduce((acc, item) => {
+        const email = String(item.email || "").toLowerCase();
+        if (!email) return acc;
+        acc[email] = {
+            adminId: item.adminId || "admin-001",
+            nome: item.nome || "Admin BPI",
+            role: item.role || "Super Admin"
+        };
+        return acc;
+    }, {});
+    if (!ADMIN_PROFILES["admin@bpi.com.br"]) {
+        ADMIN_PROFILES["admin@bpi.com.br"] = { adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" };
+    }
 
     function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -151,24 +166,35 @@
         return getJson(STORAGE_KEYS.session, null);
     }
 
-    function saveSession(admin) {
+    function saveSession(profile, email) {
         const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         sessionStorage.setItem(STORAGE_KEYS.sessionToken, token);
         setJson(STORAGE_KEYS.session, {
-            adminId: admin.adminId,
-            email: admin.email,
-            nome: admin.nome,
-            role: admin.role,
+            adminId: profile.adminId,
+            email,
+            nome: profile.nome,
+            role: profile.role,
             loginEm: new Date().toISOString(),
             tokenHash: simpleHash(token)
         });
     }
 
-    function requireAuth() {
+    function hasValidSession() {
         const session = getSession();
         const token = sessionStorage.getItem(STORAGE_KEYS.sessionToken);
-        const trusted = (TRUSTED_ACCOUNTS.admin || []).find((item) => String(item.email).toLowerCase() === String(session?.email || "").toLowerCase() && item.adminId === session?.adminId);
-        if (!session || !token || session.tokenHash !== simpleHash(token) || !trusted) {
+        const profile = ADMIN_PROFILES[String(session?.email || "").toLowerCase()];
+        return Boolean(
+            session &&
+            token &&
+            profile &&
+            session.adminId === profile.adminId &&
+            session.tokenHash === simpleHash(token)
+        );
+    }
+
+    function requireAuth() {
+        const session = getSession();
+        if (!hasValidSession()) {
             window.location.href = "/admin/login.html";
             return null;
         }
@@ -327,7 +353,7 @@
     function initLogin() {
         const form = document.getElementById("admin-login-form");
         if (!form) return;
-        if (getSession()) window.location.href = "/admin/dashboard.html";
+        if (hasValidSession()) window.location.href = "/admin/dashboard.html";
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const email = document.getElementById("email").value.trim().toLowerCase();
@@ -344,12 +370,8 @@
                 feedback.className = "muted";
                 return;
             }
-            saveSession({
-                adminId: account.adminId,
-                email: account.email,
-                nome: account.nome,
-                role: account.role
-            });
+            const profile = ADMIN_PROFILES[email] || { adminId: account.adminId || "admin-001", nome: "Admin BPI", role: "Super Admin" };
+            saveSession(profile, email);
             recordAudit({
                 acao: "login_admin",
                 recurso: "sessao",
@@ -696,6 +718,12 @@
                 });
                 tr.querySelector("[data-action='reset']").addEventListener("click", () => {
                     const senha = Math.random().toString(36).slice(2, 10);
+                    const arr = getJson(STORAGE_KEYS.colaboradores, []);
+                    const idx = arr.findIndex((c) => c.colaboradorId === item.colaboradorId);
+                    if (idx !== -1) {
+                        arr[idx].senhaHash = simpleHash(senha);
+                        setJson(STORAGE_KEYS.colaboradores, arr);
+                    }
                     const emails = getJson("helpdesk_emails", []);
                     emails.push({
                         para: item.email,
@@ -1196,7 +1224,13 @@
             const file = event.target.files && event.target.files[0];
             if (!file) return;
             const content = await file.text();
-            const data = JSON.parse(content);
+            let data;
+            try {
+                data = JSON.parse(content);
+            } catch (error) {
+                alert("Arquivo de backup inválido.");
+                return;
+            }
             const allowed = [
                 STORAGE_KEYS.clientes,
                 STORAGE_KEYS.colaboradores,
@@ -1211,7 +1245,10 @@
                 "helpdesk_emails"
             ];
             allowed.forEach((key) => {
-                if (Object.prototype.hasOwnProperty.call(data, key)) localStorage.setItem(key, data[key]);
+                if (Object.prototype.hasOwnProperty.call(data, key)) {
+                    const value = data[key];
+                    localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+                }
             });
             recordAudit({ acao: "restore_dados", recurso: "configuracao", recursoId: "restore", descricao: "Restore executado", detalhes: { antes: null, depois: { keys: Object.keys(data).length } } });
             alert("Backup restaurado.");
@@ -1249,19 +1286,31 @@
             body.innerHTML = "";
             filtered.forEach((item) => {
                 const tr = document.createElement("tr");
+                const detailsId = `audit-details-${item.id}`;
                 tr.innerHTML = `
                     <td>${formatDate(item.timestamp)}</td>
                     <td>${escapeHtml(item.adminEmail || "-")}</td>
                     <td>${escapeHtml(item.acao)}</td>
                     <td>${escapeHtml(item.recurso)}</td>
                     <td>${escapeHtml(item.descricao)}</td>
-                    <td><button class="btn btn-ghost">Expandir</button></td>
+                    <td><button class="btn btn-ghost" aria-expanded="false" aria-controls="${escapeHtml(detailsId)}">Expandir</button></td>
                 `;
-                tr.querySelector("button").addEventListener("click", () => {
+                tr.querySelector("button").addEventListener("click", (event) => {
+                    const button = event.currentTarget;
+                    const expanded = button.getAttribute("aria-expanded") === "true";
+                    if (expanded) {
+                        const existing = document.getElementById(detailsId);
+                        if (existing) existing.remove();
+                        button.textContent = "Expandir";
+                        button.setAttribute("aria-expanded", "false");
+                        return;
+                    }
                     const detail = document.createElement("tr");
+                    detail.id = detailsId;
                     detail.innerHTML = `<td colspan="6"><pre>${escapeHtml(JSON.stringify(item.detalhes, null, 2))}</pre></td>`;
                     tr.insertAdjacentElement("afterend", detail);
-                    tr.querySelector("button").disabled = true;
+                    button.textContent = "Recolher";
+                    button.setAttribute("aria-expanded", "true");
                 });
                 body.appendChild(tr);
             });
