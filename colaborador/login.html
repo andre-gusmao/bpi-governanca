@@ -1,279 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BPI Governança - Login Colaborador</title>
-  <link rel="stylesheet" href="../assets/css/design-system.css">
-  <style>
-    body {
-      background: var(--gradient-dark);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: var(--spacing-lg);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Colaborador | BPI Governança</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--secondary) 0%, #003D5C 100%);
+        }
 
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-    }
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
 
-    .login-card {
-      background: white;
-      border-radius: var(--border-radius-xl);
-      padding: var(--spacing-2xl);
-      box-shadow: var(--shadow-premium);
-      animation: slideUp 0.5s ease-out;
-    }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
 
-    .login-header {
-      text-align: center;
-      margin-bottom: var(--spacing-2xl);
-    }
+        .login-logo img {
+            height: 60px;
+            margin-bottom: 1rem;
+        }
 
-    .login-logo {
-      width: 60px;
-      height: 60px;
-      background: var(--gradient-gold);
-      border-radius: var(--border-radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: var(--fw-bold);
-      color: white;
-      margin: 0 auto var(--spacing-lg);
-    }
+        .login-logo h1 {
+            color: var(--secondary);
+            font-size: 1.5rem;
+            margin: 0;
+        }
 
-    .login-header h1 {
-      font-size: var(--fs-2xl);
-      margin-bottom: var(--spacing-sm);
-    }
+        .login-subtitle {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
 
-    .login-header p {
-      color: #9CA3AF;
-      font-size: var(--fs-sm);
-    }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
 
-    .form-group {
-      margin-bottom: var(--spacing-lg);
-    }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-    .form-group label {
-      display: block;
-      margin-bottom: var(--spacing-sm);
-      font-weight: var(--fw-semibold);
-      color: var(--color-dark-primary);
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 600;
+        }
 
-    .form-group input {
-      width: 100%;
-      padding: var(--spacing-md);
-      border: 1px solid #D1D5DB;
-      border-radius: var(--border-radius-lg);
-      font-size: var(--fs-base);
-      transition: all var(--transition-fast);
-    }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
 
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--color-primary-gold);
-      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.1);
-      background: #FFFBF7;
-    }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(201, 149, 111, 0.3);
+        }
 
-    .login-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-xl);
-      font-size: var(--fs-sm);
-    }
+        .login-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
 
-    .remember-me {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      cursor: pointer;
-    }
+        .login-btn:hover {
+            background: var(--primary-dark);
+        }
 
-    .remember-me input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
+        .demo-credentials {
+            background: #E8F4F8;
+            border-left: 4px solid #00A3CC;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+        }
 
-    .forgot-password a {
-      color: var(--color-primary-gold);
-      text-decoration: none;
-    }
+        .demo-credentials h4 {
+            margin: 0 0 0.5rem 0;
+            color: #00A3CC;
+        }
 
-    .forgot-password a:hover {
-      text-decoration: underline;
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: var(--spacing-md);
-      background: var(--gradient-gold);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius-lg);
-      font-size: var(--fs-base);
-      font-weight: var(--fw-bold);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      box-shadow: var(--shadow-md);
-    }
-
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .login-footer {
-      text-align: center;
-      margin-top: var(--spacing-lg);
-      padding-top: var(--spacing-lg);
-      border-top: 1px solid #E5E7EB;
-      color: #9CA3AF;
-      font-size: var(--fs-sm);
-    }
-
-    .error-message {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--color-error);
-      padding: var(--spacing-md);
-      border-radius: var(--border-radius-lg);
-      margin-bottom: var(--spacing-lg);
-      display: none;
-      font-size: var(--fs-sm);
-    }
-
-    .error-message.show {
-      display: block;
-      animation: slideUp 0.3s ease-out;
-    }
-  </style>
+        .demo-credentials p {
+            margin: 0.25rem 0;
+            color: var(--text);
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <div class="login-logo">⬤</div>
-        <h1>BPI Governança</h1>
-        <p>Portal de Colaboradores</p>
-      </div>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <img src="../assets/images/logobpi-light.svg" alt="BPI Governança">
+                <h1>BPI Governança</h1>
+                <div class="login-subtitle">Acesso Colaborador</div>
+            </div>
 
-      <div class="error-message" id="errorMessage"></div>
+            <form class="login-form" onsubmit="loginColaborador(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="seu@bpigovernanca.com.br">
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" required placeholder="Sua senha">
+                </div>
+                <button type="submit" class="login-btn">Entrar</button>
+            </form>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label for="email">Email Corporativo</label>
-          <input 
-            type="email" 
-            id="email" 
-            name="email" 
-            placeholder="seu.email@bpi.com.br" 
-            required
-          >
+            <div class="demo-credentials">
+                <h4>📌 Credenciais de Teste</h4>
+                <p><strong>PMO (Geral):</strong></p>
+                <p style="margin-left: 1rem;">pmo@bpigovernanca.com.br<br>PMO123!</p>
+                <p style="margin-top: 0.5rem;"><strong>Comercial (Propostas):</strong></p>
+                <p style="margin-left: 1rem;">comercial@bpigovernanca.com.br<br>Comercial123!</p>
+            </div>
         </div>
-
-        <div class="form-group">
-          <label for="password">Senha</label>
-          <input 
-            type="password" 
-            id="password" 
-            name="password" 
-            placeholder="••••••••" 
-            required
-          >
-        </div>
-
-        <div class="login-actions">
-          <label class="remember-me">
-            <input type="checkbox" name="remember">
-            Lembrar-me
-          </label>
-          <div class="forgot-password">
-            <a href="#">Esqueci a senha</a>
-          </div>
-        </div>
-
-        <button type="submit" class="login-btn">Entrar</button>
-      </form>
-
-      <div class="login-footer">
-        © 2026 BPI Governança. Todos os direitos reservados.
-      </div>
     </div>
-  </div>
 
-  <script>
-    // Usuários de teste
-    const testUsers = [
-      {
-        id: 'col-001',
-        name: 'André Gusmão',
-        email: 'andre@bpi.com.br',
-        password: '123456',
-        role: 'PMO_Comercial',
-        avatar: 'AG'
-      },
-      {
-        id: 'col-002',
-        name: 'Maria Silva',
-        email: 'maria@bpi.com.br',
-        password: '123456',
-        role: 'PMO',
-        avatar: 'MS'
-      },
-      {
-        id: 'col-003',
-        name: 'João Santos',
-        email: 'joao@bpi.com.br',
-        password: '123456',
-        role: 'Comercial',
-        avatar: 'JS'
-      }
-    ];
-
-    function handleLogin(event) {
-      event.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('errorMessage');
-
-      // Buscar usuário
-      const user = testUsers.find(u => u.email === email && u.password === password);
-
-      if (user) {
-        // Salvar sessão
-        localStorage.setItem('colaborador_session', JSON.stringify(user));
-        localStorage.setItem('session_timestamp', new Date().toISOString());
-        
-        // Redirecionar
-        window.location.href = './dashboard.html';
-      } else {
-        errorDiv.textContent = 'Email ou senha inválidos';
-        errorDiv.classList.add('show');
-        setTimeout(() => errorDiv.classList.remove('show'), 5000);
-      }
-    }
-
-    // Auto-login para teste (remover em produção)
-    window.addEventListener('load', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('demo') === 'true') {
-        document.getElementById('email').value = 'andre@bpi.com.br';
-        document.getElementById('password').value = '123456';
-      }
-    });
-  </script>
+    <script src="../assets/js/app.js"></script>
+    <script>
+        function loginColaborador(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            
+            const user = AuthManager.login(email, senha, 'colaborador');
+            if (user) {
+                showNotification('Login realizado com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = './dashboard.html';
+                }, 500);
+            } else {
+                showNotification('Email ou senha inválidos', 'error');
+            }
+        }
+    </script>
 </body>
 </html>
