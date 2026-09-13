@@ -495,7 +495,7 @@
     },
 
     listar: function () {
-      return parseStorage(STORAGE_KEYS.propostas, []);
+      return parseStorage(STORAGE_KEYS.propostas, []).map((proposta) => criarProposta(proposta));
     },
 
     obter: function (id) {
@@ -596,7 +596,7 @@
       '  <div class="pdf-preview-section">',
       '    <h4>Serviços</h4>',
       '    <table class="pdf-preview-table">',
-      '      <thead><tr><th>Serviço</th><th>Horas/mês</th><th>Valor unitário</th><th>Valor total</th></tr></thead>',
+      '      <thead><tr><th>Serviço</th><th>Carga horária</th><th>Valor unitário</th><th>Valor total</th></tr></thead>',
       '      <tbody>' + linhasServicos + '</tbody>',
       '    </table>',
       '  </div>',

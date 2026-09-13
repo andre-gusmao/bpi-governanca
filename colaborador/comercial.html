@@ -765,6 +765,10 @@
       ultimoPdfGerado = null;
     }
 
+    function invalidarPdfGerado() {
+      revogarPdfGerado();
+    }
+
     function preencherClientes() {
       const clienteSelect = document.getElementById('clienteSelect');
       const clientes = window.PropostaClientes.listar();
@@ -942,6 +946,7 @@
 
       produtosSelecionados.push(produto);
       produtoSelect.value = '';
+      invalidarPdfGerado();
       renderizarProdutos();
       atualizarResumoFinanceiro();
       atualizarPreview();
@@ -949,6 +954,7 @@
 
     function removerProduto(index) {
       produtosSelecionados.splice(index, 1);
+      invalidarPdfGerado();
       renderizarProdutos();
       atualizarResumoFinanceiro();
       atualizarPreview();
@@ -1007,9 +1013,8 @@
         return;
       }
 
-      if (!ultimoPdfGerado) {
-        ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
-      }
+      revogarPdfGerado();
+      ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
 
       const propostaComPdf = window.PropostaDB.atualizar(proposta.id, {
         pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl,
@@ -1053,7 +1058,7 @@
     }
 
     function carregarUltimoRascunho() {
-      const propostas = window.PropostaDB.listar();
+      const propostas = window.PropostaDB.listar().filter((proposta) => proposta.status === 'rascunho');
       if (!propostas.length) {
         return false;
       }
@@ -1092,29 +1097,37 @@
 
     function configurarEventos() {
       document.getElementById('clienteSelect').addEventListener('change', () => {
+        invalidarPdfGerado();
         atualizarResumoCliente();
         atualizarPreview();
       });
       document.getElementById('produtoSelect').addEventListener('change', adicionarProduto);
       document.getElementById('desconto').addEventListener('input', () => {
+        invalidarPdfGerado();
         atualizarResumoFinanceiro();
         atualizarPreview();
       });
       document.getElementById('dataInicio').addEventListener('input', () => {
+        invalidarPdfGerado();
         sincronizarDatas();
         atualizarPreview();
       });
       document.getElementById('duracaoDias').addEventListener('input', () => {
+        invalidarPdfGerado();
         sincronizarDatas();
         atualizarPreview();
       });
       document.getElementById('validade').addEventListener('input', () => {
+        invalidarPdfGerado();
         sincronizarDatas();
         atualizarPreview();
       });
 
       ['tituloProjeto', 'descricaoBreve', 'modalidade', 'escopoDetalhado'].forEach((id) => {
-        document.getElementById(id).addEventListener('input', atualizarPreview);
+        document.getElementById(id).addEventListener('input', () => {
+          invalidarPdfGerado();
+          atualizarPreview();
+        });
       });
 
       document.getElementById('produtosLista').addEventListener('click', (event) => {
