@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Cliente - Portal do Cliente - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <link rel="stylesheet" href="../assets/css/cliente-portal.css">
+  <script src="../assets/js/cliente-portal.js" defer></script>
+</head>
+<body data-page="perfil">
+  <div class="portal-container">
+    <aside class="sidebar cliente-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Portal do Cliente</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu</div>
+          <a class="nav-link" href="./dashboard.html"><span class="nav-icon">📊</span>Dashboard</a>
+          <a class="nav-link" href="./meus-projetos.html"><span class="nav-icon">🗂️</span>Meus Projetos</a>
+          <a class="nav-link" href="./chamados.html"><span class="nav-icon">🎫</span>Chamados</a>
+          <a class="nav-link" href="./chat.html"><span class="nav-icon">💬</span>Chat Inteligente</a>
+          <a class="nav-link" href="./treinamentos.html"><span class="nav-icon">🎓</span>Treinamentos</a>
+          <a class="nav-link" href="./certificados.html"><span class="nav-icon">📜</span>Certificados</a>
+          <a class="nav-link active" href="./perfil.html"><span class="nav-icon">🏢</span>Perfil</a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" data-client-avatar>CL</div>
+          <div class="user-info">
+            <span class="user-name" data-client-name>Cliente</span>
+            <span class="user-role" data-client-email>cliente@empresa.com.br</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" data-action="logout"><span class="nav-icon">🚪</span>Sair</a>
+      </div>
+    </aside>
+    <div style="flex: 1; min-width: 0;">
+      <header class="portal-header cliente-header">
+        <div class="header-title">
+          <h1>Perfil do Cliente</h1>
+          <div class="header-breadcrumb">Portal do Cliente / Perfil do Cliente</div>
+        </div>
+        <div class="header-actions">
+          <button class="logout-btn" type="button" data-action="logout">🚪 Sair</button>
+        </div>
+      </header>
+      <main class="portal-content cliente-page-content">
+        <section class="content-columns">
+          <article class="profile-card">
+            <div class="section-header"><div><h2>Dados da Empresa</h2><p>Edição simulada com persistência local para validação.</p></div></div>
+            <div id="profileFeedback" class="success-banner" aria-live="polite"></div>
+            <form id="profileForm" class="form-grid">
+              <div class="form-group"><label for="companyName">Razão social</label><input id="companyName" class="form-input" type="text" required></div>
+              <div class="form-group"><label for="companyCnpj">CNPJ</label><input id="companyCnpj" class="form-input" type="text" required></div>
+              <div class="form-group"><label for="companyEmail">Email</label><input id="companyEmail" class="form-input" type="email" required></div>
+              <div class="form-group"><label for="companyPhone">Telefone</label><input id="companyPhone" class="form-input" type="text"></div>
+              <div class="form-group full-span"><label for="companyAddress">Endereço</label><textarea id="companyAddress" class="form-textarea"></textarea></div>
+              <div class="inline-actions"><button type="submit" class="btn btn-primary">Salvar (simulado)</button></div>
+            </form>
+          </article>
+          <article class="surface-card">
+            <div class="section-header"><div><h2>Contatos Principais</h2><p>Até 5 contatos do cliente.</p></div></div>
+            <div id="contactList" class="contact-grid"></div>
+          </article>
+        </section>
+        <section class="content-columns">
+          <article class="surface-card">
+            <div class="section-header"><div><h2>Histórico de Atividades</h2><p>Projetos, chamados e treinamentos concluídos.</p></div></div>
+            <div id="profileHistory"></div>
+          </article>
+          <article class="support-card">
+            <div class="section-header"><div><h2>Suporte</h2><p>Canal direto com a equipe BPI.</p></div></div>
+            <div class="doc-card"><strong>Email</strong><p>suporte@bpigovernanca.com.br</p></div>
+            <div class="doc-card"><strong>Telefone</strong><p>(11) 4000-2026</p></div>
+            <div class="doc-card"><strong>Horário</strong><p>Segunda a sexta, 08h às 18h</p></div>
+            <div class="inline-actions"><button id="supportContactBtn" type="button" class="btn btn-outline">Entrar em Contato</button></div>
+          </article>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</body>
+</html>

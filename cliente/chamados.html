@@ -3,399 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Help Desk - Portal do Cliente - BPI Governança</title>
+  <title>Chamados - Portal do Cliente - BPI Governança</title>
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <link rel="stylesheet" href="../assets/css/portal.css">
-  <style>
-    .cliente-sidebar {
-      width: 280px;
-      background: var(--gradient-dark);
-      color: white;
-      padding: var(--spacing-xl);
-      position: fixed;
-      left: 0;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      z-index: 200;
-    }
-
-    .cliente-header {
-      margin-left: 280px;
-      background: white;
-      border-bottom: 1px solid #E5E7EB;
-      padding: var(--spacing-lg) var(--spacing-2xl);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow-sm);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .cliente-content {
-      margin-left: 280px;
-      padding: var(--spacing-2xl);
-      min-height: calc(100vh - 80px);
-    }
-
-    .chamados-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .btn-novo {
-      padding: var(--spacing-md) var(--spacing-xl);
-      background: var(--gradient-gold);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius-lg);
-      font-weight: var(--fw-bold);
-      cursor: pointer;
-      font-size: var(--fs-base);
-    }
-
-    .chamados-filters {
-      display: flex;
-      gap: var(--spacing-md);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .filter-btn {
-      padding: 8px 16px;
-      background: white;
-      border: 1px solid #D1D5DB;
-      border-radius: var(--border-radius-lg);
-      cursor: pointer;
-      font-weight: var(--fw-semibold);
-      transition: all var(--transition-fast);
-    }
-
-    .filter-btn.active {
-      background: var(--gradient-gold);
-      color: white;
-      border-color: var(--color-primary-gold);
-    }
-
-    .chamados-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: var(--border-radius-xl);
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-    }
-
-    .chamados-table thead {
-      background: var(--color-gray-lighter);
-    }
-
-    .chamados-table th {
-      padding: var(--spacing-md) var(--spacing-lg);
-      text-align: left;
-      font-weight: var(--fw-bold);
-      color: var(--color-dark-primary);
-      font-size: var(--fs-sm);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #E5E7EB;
-    }
-
-    .chamados-table td {
-      padding: var(--spacing-md) var(--spacing-lg);
-      border-bottom: 1px solid #E5E7EB;
-    }
-
-    .chamados-table tbody tr:hover {
-      background: var(--color-gray-lighter);
-    }
-
-    .chamado-titulo {
-      font-weight: var(--fw-bold);
-      color: var(--color-dark-primary);
-    }
-
-    .chamado-numero {
-      font-family: var(--font-mono);
-      color: #9CA3AF;
-      font-size: var(--fs-sm);
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: var(--border-radius-full);
-      font-size: var(--fs-xs);
-      font-weight: var(--fw-bold);
-      text-transform: uppercase;
-    }
-
-    .status-aberto {
-      background: rgba(245, 158, 11, 0.1);
-      color: #92400E;
-    }
-
-    .status-em-andamento {
-      background: rgba(59, 130, 246, 0.1);
-      color: #1E40AF;
-    }
-
-    .status-resolvido {
-      background: rgba(16, 185, 129, 0.1);
-      color: #047857;
-    }
-
-    .status-fechado {
-      background: rgba(156, 163, 175, 0.1);
-      color: #6B7280;
-    }
-
-    .prioridade-badge {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      margin-right: 4px;
-    }
-
-    .prioridade-alta {
-      background: var(--color-error);
-    }
-
-    .prioridade-media {
-      background: #F59E0B;
-    }
-
-    .prioridade-baixa {
-      background: #10B981;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: var(--spacing-sm);
-    }
-
-    .btn-action {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--border-radius-md);
-      border: 1px solid #E5E7EB;
-      background: transparent;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-    }
-
-    .btn-action:hover {
-      background: var(--color-primary-gold);
-      color: white;
-      border-color: var(--color-primary-gold);
-    }
-  </style>
+  <link rel="stylesheet" href="../assets/css/cliente-portal.css">
+  <script src="../assets/js/cliente-portal.js" defer></script>
 </head>
-<body>
+<body data-page="chamados">
   <div class="portal-container">
-    <!-- SIDEBAR -->
-    <aside class="cliente-sidebar sidebar">
+    <aside class="sidebar cliente-sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">◆</div>
         <div>
           <div class="sidebar-title">BPI</div>
-          <div class="sidebar-subtitle">Cliente</div>
+          <div class="sidebar-subtitle">Portal do Cliente</div>
         </div>
       </div>
-
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">Menu</div>
-          <a class="nav-link" href="./meus-projetos.html">
-            <span class="nav-icon">📊</span>
-            Meus Projetos
-          </a>
-          <a class="nav-link active" href="./chamados.html">
-            <span class="nav-icon">🎆</span>
-            Help Desk
-          </a>
-          <a class="nav-link" href="#">
-            <span class="nav-icon">📄</span>
-            Documentos
-          </a>
+          <a class="nav-link" href="./dashboard.html"><span class="nav-icon">📊</span>Dashboard</a>
+          <a class="nav-link" href="./meus-projetos.html"><span class="nav-icon">🗂️</span>Meus Projetos</a>
+          <a class="nav-link active" href="./chamados.html"><span class="nav-icon">🎫</span>Chamados</a>
+          <a class="nav-link" href="./chat.html"><span class="nav-icon">💬</span>Chat Inteligente</a>
+          <a class="nav-link" href="./treinamentos.html"><span class="nav-icon">🎓</span>Treinamentos</a>
+          <a class="nav-link" href="./certificados.html"><span class="nav-icon">📜</span>Certificados</a>
+          <a class="nav-link" href="./perfil.html"><span class="nav-icon">🏢</span>Perfil</a>
         </div>
       </nav>
-
       <div class="sidebar-footer">
         <div class="user-profile">
-          <div class="user-avatar" id="clienteAvatar">XYZ</div>
+          <div class="user-avatar" data-client-avatar>CL</div>
           <div class="user-info">
-            <span class="user-name" id="clienteNome">Empresa XYZ</span>
-            <span class="user-role" id="clienteTipo">Cliente</span>
+            <span class="user-name" data-client-name>Cliente</span>
+            <span class="user-role" data-client-email>cliente@empresa.com.br</span>
           </div>
         </div>
-        <a class="nav-link" href="./login.html" onclick="logout()">
-          <span class="nav-icon">🚪</span>
-          Sair
-        </a>
+        <a class="nav-link" href="./login.html" data-action="logout"><span class="nav-icon">🚪</span>Sair</a>
       </div>
     </aside>
+    <div style="flex: 1; min-width: 0;">
+      <header class="portal-header cliente-header">
+        <div class="header-title">
+          <h1>Chamados</h1>
+          <div class="header-breadcrumb">Portal do Cliente / Chamados</div>
+        </div>
+        <div class="header-actions">
+          <button class="logout-btn" type="button" data-action="logout">🚪 Sair</button>
+        </div>
+      </header>
+      <main class="portal-content cliente-page-content">
+        <section class="surface-card">
+          <div class="section-header"><div><h2>Criar Novo Chamado</h2><p>Registre solicitações nas 13 modalidades disponíveis.</p></div></div>
+          <div id="chamadosFeedback" class="success-banner" aria-live="polite"></div>
+          <form id="chamadoForm" class="form-grid">
+            <div class="form-group"><label for="chamadoTitulo">Título</label><input id="chamadoTitulo" class="form-input" type="text" required></div>
+            <div class="form-group"><label for="chamadoModalidade">Modalidade</label><select id="chamadoModalidade" class="form-select"><option value="Cloud">Cloud</option><option value="Treinamento">Treinamento</option><option value="Gestão de Acessos">Gestão de Acessos</option><option value="Implementações">Implementações</option><option value="Hub de Notas">Hub de Notas</option><option value="BI">BI</option><option value="Dashboard">Dashboard</option><option value="BPO Financeiro">BPO Financeiro</option><option value="BPO Contábil">BPO Contábil</option><option value="BPO Fiscal">BPO Fiscal</option><option value="BPO Folha">BPO Folha</option><option value="Integrações">Integrações</option><option value="Dúvidas">Dúvidas</option></select></div>
+            <div class="form-group full-span"><label for="chamadoDescricao">Descrição</label><textarea id="chamadoDescricao" class="form-textarea" required></textarea></div>
+            <div class="form-group"><label for="chamadoPrioridade">Prioridade</label><select id="chamadoPrioridade" class="form-select"><option value="alta">Alta</option><option value="media" selected>Média</option><option value="baixa">Baixa</option></select></div>
+            <div class="inline-actions"><button type="submit" class="btn btn-primary">Criar Chamado</button></div>
+          </form>
+        </section>
+        <section class="surface-card">
+          <div class="section-header"><div><h2>Lista de Chamados</h2><p>Filtre chamados abertos, fechados ou todos.</p></div><div class="form-group"><label for="chamadosStatusFilter">Status</label><select id="chamadosStatusFilter" class="form-select"><option value="todos">Todos</option><option value="abertos">Abertos + Em atendimento</option><option value="fechados">Fechados</option><option value="aberto">Somente abertos</option><option value="em_atendimento">Em atendimento</option></select></div></div>
+          <div class="table-wrapper">
+            <table class="client-table">
+              <thead><tr><th>ID</th><th>Título</th><th>Modalidade</th><th>Prioridade</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead>
+              <tbody id="chamadosTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <div id="chamadoDetail"></div>
 
-    <!-- HEADER -->
-    <header class="cliente-header">
-      <div class="header-title">
-        <h1>Help Desk - Chamados</h1>
-        <div class="header-breadcrumb">Home / Chamados</div>
-      </div>
-      <div class="header-actions">
-        <button class="logout-btn" onclick="logout()">
-          <span>🚪</span>
-          Sair
-        </button>
-      </div>
-    </header>
-
-    <!-- CONTEÚDO -->
-    <main class="cliente-content">
-      <!-- HEADER COM BOTÃO -->
-      <div class="chamados-header">
-        <h2 style="font-size: var(--fs-2xl); font-weight: var(--fw-bold);">Meus Chamados</h2>
-        <button class="btn-novo" onclick="openNewChamado()">➕ Novo Chamado</button>
-      </div>
-
-      <!-- FILTROS -->
-      <div class="chamados-filters">
-        <button class="filter-btn active" onclick="filterChamados('todos')">Todos</button>
-        <button class="filter-btn" onclick="filterChamados('aberto')">📄 Abertos</button>
-        <button class="filter-btn" onclick="filterChamados('em-andamento')">⚙️ Em Andamento</button>
-        <button class="filter-btn" onclick="filterChamados('resolvido')">✅ Resolvidos</button>
-        <button class="filter-btn" onclick="filterChamados('fechado')">🗑️ Fechados</button>
-      </div>
-
-      <!-- TABELA DE CHAMADOS -->
-      <table class="chamados-table">
-        <thead>
-          <tr>
-            <th>Chamado</th>
-            <th>Assunto</th>
-            <th>Projeto</th>
-            <th>Status</th>
-            <th>Prioridade</th>
-            <th>Data</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <div class="chamado-numero">#CHD-001</div>
-              <div class="chamado-titulo">Problema no módulo financeiro</div>
-            </td>
-            <td>Login não funciona</td>
-            <td>Impl. ERP - Financeiro</td>
-            <td><span class="status-badge status-em-andamento">Em Andamento</span></td>
-            <td><span class="prioridade-badge prioridade-alta" title="Alta"></span>Alta</td>
-            <td>12/09/2026</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action" onclick="viewChamado('CHD-001)" title="Ver">👁️</button>
-                <button class="btn-action" onclick="editChamado('CHD-001')" title="Editar">📄</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="chamado-numero">#CHD-002</div>
-              <div class="chamado-titulo">Solicitação de treinamento adicional</div>
-            </td>
-            <td>Capacitação de novos usuários</td>
-            <td>Treinamento</td>
-            <td><span class="status-badge status-aberto">Aberto</span></td>
-            <td><span class="prioridade-badge prioridade-media" title="Média"></span>Média</td>
-            <td>11/09/2026</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action" onclick="viewChamado('CHD-002')" title="Ver">👁️</button>
-                <button class="btn-action" onclick="editChamado('CHD-002')" title="Editar">📄</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="chamado-numero">#CHD-003</div>
-              <div class="chamado-titulo">Relatório de dados inconsistentes</div>
-            </td>
-            <td>Integração de dados</td>
-            <td>Impl. ERP - Fiscal</td>
-            <td><span class="status-badge status-resolvido">Resolvido</span></td>
-            <td><span class="prioridade-badge prioridade-alta" title="Alta"></span>Alta</td>
-            <td>08/09/2026</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action" onclick="viewChamado('CHD-003')" title="Ver">👁️</button>
-                <button class="btn-action" onclick="editChamado('CHD-003')" title="Editar">📄</button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="chamado-numero">#CHD-004</div>
-              <div class="chamado-titulo">Acesso ao portal cliente</div>
-            </td>
-            <td>Criação de usuário</td>
-            <td>Suporte Premium</td>
-            <td><span class="status-badge status-fechado">Fechado</span></td>
-            <td><span class="prioridade-badge prioridade-baixa" title="Baixa"></span>Baixa</td>
-            <td>05/09/2026</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action" onclick="viewChamado('CHD-004')" title="Ver">👁️</button>
-                <button class="btn-action" onclick="editChamado('CHD-004')" title="Editar">📄</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </main>
+      </main>
+    </div>
   </div>
-
-  <script>
-    function checkSession() {
-      const session = localStorage.getItem('cliente_session');
-      if (!session) {
-        window.location.href = './login.html';
-      } else {
-        const cliente = JSON.parse(session);
-        document.getElementById('clienteNome').textContent = cliente.empresa;
-        document.getElementById('clienteAvatar').textContent = cliente.avatar;
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('cliente_session');
-      window.location.href = './login.html';
-    }
-
-    function filterChamados(status) {
-      alert(`Filtrar chamados por status: ${status}`);
-    }
-
-    function openNewChamado() {
-      alert('🎆 Abrir formulário para novo chamado');
-    }
-
-    function viewChamado(id) {
-      alert(`Visualizar chamado: ${id}`);
-    }
-
-    function editChamado(id) {
-      alert(`Editar chamado: ${id}`);
-    }
-
-    window.addEventListener('load', checkSession);
-  </script>
 </body>
 </html>

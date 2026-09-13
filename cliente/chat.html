@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meus Projetos - Portal do Cliente - BPI Governança</title>
+  <title>Chat Inteligente - Portal do Cliente - BPI Governança</title>
   <link rel="stylesheet" href="../assets/css/design-system.css">
   <link rel="stylesheet" href="../assets/css/portal.css">
   <link rel="stylesheet" href="../assets/css/cliente-portal.css">
   <script src="../assets/js/cliente-portal.js" defer></script>
 </head>
-<body data-page="meus-projetos">
+<body data-page="chat">
   <div class="portal-container">
     <aside class="sidebar cliente-sidebar">
       <div class="sidebar-header">
@@ -23,9 +23,9 @@
         <div class="nav-section">
           <div class="nav-section-title">Menu</div>
           <a class="nav-link" href="./dashboard.html"><span class="nav-icon">📊</span>Dashboard</a>
-          <a class="nav-link active" href="./meus-projetos.html"><span class="nav-icon">🗂️</span>Meus Projetos</a>
+          <a class="nav-link" href="./meus-projetos.html"><span class="nav-icon">🗂️</span>Meus Projetos</a>
           <a class="nav-link" href="./chamados.html"><span class="nav-icon">🎫</span>Chamados</a>
-          <a class="nav-link" href="./chat.html"><span class="nav-icon">💬</span>Chat Inteligente</a>
+          <a class="nav-link active" href="./chat.html"><span class="nav-icon">💬</span>Chat Inteligente</a>
           <a class="nav-link" href="./treinamentos.html"><span class="nav-icon">🎓</span>Treinamentos</a>
           <a class="nav-link" href="./certificados.html"><span class="nav-icon">📜</span>Certificados</a>
           <a class="nav-link" href="./perfil.html"><span class="nav-icon">🏢</span>Perfil</a>
@@ -45,42 +45,39 @@
     <div style="flex: 1; min-width: 0;">
       <header class="portal-header cliente-header">
         <div class="header-title">
-          <h1>Meus Projetos</h1>
-          <div class="header-breadcrumb">Portal do Cliente / Meus Projetos</div>
+          <h1>Chat Inteligente</h1>
+          <div class="header-breadcrumb">Portal do Cliente / Chat Inteligente</div>
         </div>
         <div class="header-actions">
           <button class="logout-btn" type="button" data-action="logout">🚪 Sair</button>
         </div>
       </header>
       <main class="portal-content cliente-page-content">
-        <section class="surface-card">
-          <div class="filter-row">
-            <div class="form-group">
-              <label for="projectStatusFilter">Filtrar projetos</label>
-              <select id="projectStatusFilter" class="form-select">
-                <option value="todos">Todos</option>
-                <option value="planejamento">Planejamento</option>
-                <option value="em_andamento">Em andamento</option>
-                <option value="encerrado">Encerrado</option>
-              </select>
+        <section class="chat-shell">
+          <article class="chat-panel">
+            <div class="chat-header">
+              <h2>Assistente BPI</h2>
+              <p>Respostas simuladas com base em palavras-chave e no seu contexto atual.</p>
             </div>
-            <div class="form-group">
-              <label for="activityStatusFilter">Filtrar atividades</label>
-              <select id="activityStatusFilter" class="form-select">
-                <option value="todas">Todas</option>
-                <option value="nao_iniciada">Não iniciada</option>
-                <option value="em_andamento">Em andamento</option>
-                <option value="finalizada">Finalizada</option>
-              </select>
-            </div>
-          </div>
-        </section>
-        <section class="content-columns">
-          <article class="surface-card">
-            <div class="section-header"><div><h2>Projetos do Cliente</h2><p>Selecione um projeto para ver escopo, serviços e documentos.</p></div></div>
-            <div id="projectList" class="project-grid"></div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <form id="chatForm" class="message-composer">
+              <textarea id="chatInput" class="form-textarea" placeholder="Digite sua mensagem" required></textarea>
+              <button type="submit" class="btn btn-primary">Enviar</button>
+            </form>
           </article>
-          <div id="projectDetail"></div>
+          <article class="surface-card">
+            <div class="section-header"><div><h2>Sugestões rápidas</h2><p>Clique para iniciar conversas frequentes.</p></div></div>
+            <div class="suggestion-list">
+              <button type="button" class="btn btn-outline" data-chat-suggestion="Como acompanhar meu projeto?">Como acompanhar meu projeto?</button>
+              <button type="button" class="btn btn-outline" data-chat-suggestion="Quais são os próximos passos?">Quais são os próximos passos?</button>
+              <button type="button" class="btn btn-outline" data-chat-suggestion="Falar com um especialista">Falar com um especialista</button>
+              <button type="button" class="btn btn-outline" data-chat-suggestion="Ver meus chamados">Ver meus chamados</button>
+            </div>
+            <div class="resource-list">
+              <article class="doc-card"><h3>Histórico persistente</h3><p>Mensagens armazenadas em <code>cliente_chat_historico</code>.</p></article>
+              <article class="doc-card"><h3>Integração</h3><p>Use o chat para chegar rapidamente às páginas de projetos, chamados e treinamentos.</p></article>
+            </div>
+          </article>
         </section>
 
       </main>
