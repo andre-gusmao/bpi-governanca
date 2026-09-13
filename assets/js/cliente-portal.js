@@ -10,7 +10,7 @@
     chatCurrent: 'cliente_chat_historico',
     chatMap: 'cliente_chat_historico_map',
     trainingProgress: 'cliente_treinamentos_status',
-    certificates: 'cliente_treinamentos_concluidos'
+    completedTrainings: 'cliente_treinamentos_concluidos'
   };
 
   const PORTAL_PAGES = ['dashboard.html', 'meus-projetos.html', 'chamados.html', 'chat.html', 'treinamentos.html', 'certificados.html', 'perfil.html'];
@@ -161,7 +161,7 @@
     selectedTrainingId: null,
     quizQuestions: [],
     selectedQuizTrainingId: null,
-    certificationMessage: ''
+    certificationMessages: {}
   };
 
   function readJson(key, fallback) {
@@ -520,8 +520,8 @@
       writeJson(STORAGE_KEYS.chamados, buildSeedChamados());
     }
 
-    if (!Array.isArray(readJson(STORAGE_KEYS.certificates, []))) {
-      writeJson(STORAGE_KEYS.certificates, []);
+    if (!Array.isArray(readJson(STORAGE_KEYS.completedTrainings, []))) {
+      writeJson(STORAGE_KEYS.completedTrainings, []);
     }
 
     if (!Array.isArray(readJson(STORAGE_KEYS.trainingProgress, []))) {
@@ -1283,8 +1283,8 @@
     writeJson(STORAGE_KEYS.trainingProgress, remaining);
   }
 
-  function getCertificates(clientId) {
-    return readJson(STORAGE_KEYS.certificates, []).filter((item) => item.clientId === clientId);
+  function getTrainingAwards(clientId) {
+    return readJson(STORAGE_KEYS.completedTrainings, []).filter((item) => item.clientId === clientId);
   }
 
   function buildTrainingStatus(clientId, trainingId) {
@@ -1382,9 +1382,12 @@
 
     document.getElementById('startTrainingBtn').addEventListener('click', () => startTraining(clientId, trainingId));
     quiz.innerHTML = '<div class="empty-state"><strong>Inicie o treinamento para gerar a prova automática.</strong><p>São 20 questões aleatórias de um pool com mais de 40 perguntas.</p></div>';
-    if (message && state.certificationMessage) {
-      message.textContent = state.certificationMessage;
-      message.className = state.certificationMessage.includes('Tente novamente') ? 'error-banner is-visible' : 'success-banner is-visible';
+    const trainingMessage = state.certificationMessages[trainingId];
+    if (message && trainingMessage) {
+      message.textContent = trainingMessage.text;
+      message.className = trainingMessage.type === 'error' ? 'error-banner is-visible' : 'success-banner is-visible';
+    } else if (message) {
+      hideBanner('trainingFeedback');
     }
   }
 
@@ -1445,47 +1448,52 @@
     const score = Math.round((correct / state.quizQuestions.length) * 100);
     if (score >= 70) {
       upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'concluido', atualizadoEm: new Date().toISOString() });
-      const certificate = issueCertificate(clientId, trainingId, score);
-      state.certificationMessage = `Parabéns! Você acertou ${score}% e o certificado ${certificate.numeroCertificado} já está disponível.`;
+    const record = issueTrainingAward(clientId, trainingId, score);
+    state.certificationMessages[trainingId] = {
+      type: 'success',
+      text: `Parabéns! Você acertou ${score}% e o certificado ${record.numeroCertificado} já está disponível.`
+    };
     } else {
-      upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'em_andamento', atualizadoEm: new Date().toISOString(), ultimoResultado: score });
-      state.certificationMessage = `Você acertou ${score}%. Tente novamente para liberar o certificado.`;
+    upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'em_andamento', atualizadoEm: new Date().toISOString(), ultimoResultado: score });
+    state.certificationMessages[trainingId] = {
+      type: 'error',
+      text: `Você acertou ${score}%. Tente novamente para liberar o certificado.`
+    };
     }
     renderTrainings(clientId, document.getElementById('trainingStatusFilter').value);
     renderTrainingDetail(clientId, trainingId);
   }
 
-  function issueCertificate(clientId, trainingId, score) {
-    const certificates = readJson(STORAGE_KEYS.certificates, []);
-    const existing = certificates.find((item) => item.clientId === clientId && item.treinamentoId === trainingId);
+  function issueTrainingAward(clientId, trainingId, score) {
+    const records = readJson(STORAGE_KEYS.completedTrainings, []);
+    const existing = records.find((item) => item.clientId === clientId && item.treinamentoId === trainingId);
     if (existing) {
     existing.percentualAcerto = score;
     existing.dataConclusao = new Date().toISOString();
-    writeJson(STORAGE_KEYS.certificates, certificates);
+    writeJson(STORAGE_KEYS.completedTrainings, records);
     return existing;
     }
     const training = TRAININGS.find((item) => item.id === trainingId);
-    const profile = getClientProfile(clientId);
     const year = new Date().getFullYear();
-    const certificateNumber = `CERT-${year}-${String(certificates.length + 1).padStart(5, '0')}`;
-    const certificate = {
-      id: `cert-${year}-${String(certificates.length + 1).padStart(3, '0')}`,
-      clientId,
-      treinamentoId: trainingId,
-      nomeTreinamento: training ? training.titulo : 'Treinamento',
-      numeroCertificado: certificateNumber,
-      dataConclusao: new Date().toISOString(),
-      percentualAcerto: score,
-      linkedinUrl: null
+    const codigoCertificado = `CERT-${year}-${String(records.length + 1).padStart(5, '0')}`;
+    const record = {
+    id: `cert-${year}-${String(records.length + 1).padStart(3, '0')}`,
+    clientId,
+    treinamentoId: trainingId,
+    nomeTreinamento: training ? training.titulo : 'Treinamento',
+    numeroCertificado: codigoCertificado,
+    dataConclusao: new Date().toISOString(),
+    percentualAcerto: score,
+    linkedinUrl: null
     };
-    certificates.push(certificate);
-    writeJson(STORAGE_KEYS.certificates, certificates);
-    appendProfileHistoryMessage(clientId, `Treinamento concluído: ${certificate.nomeTreinamento}.`);
-    return certificate;
+    records.push(record);
+    writeJson(STORAGE_KEYS.completedTrainings, records);
+    appendProfileHistoryMessage(clientId, `Treinamento concluído: ${record.nomeTreinamento}.`);
+    return record;
   }
 
-  function buildCertificateContent(profile, trainingName, certificateNumber, completionDate) {
-    return `Certificado BPI Governança\n\nCliente: ${profile ? profile.nomeCliente || profile.nome : 'Cliente'}\nTreinamento: ${trainingName || 'Treinamento'}\nNúmero: ${certificateNumber}\nData: ${formatDate(completionDate || new Date().toISOString())}\nAssinatura digital simulada: BPI Governança`;
+  function buildAwardDocumentContent(profile, trainingName, awardCode, completionDate) {
+    return `Certificado BPI Governança\n\nCliente: ${profile ? profile.nomeCliente || profile.nome : 'Cliente'}\nTreinamento: ${trainingName || 'Treinamento'}\nNúmero: ${awardCode}\nData: ${formatDate(completionDate || new Date().toISOString())}\nAssinatura digital simulada: BPI Governança`;
   }
 
   function initCertificados(session) {
@@ -1496,8 +1504,8 @@
     const container = document.getElementById('certificateList');
     const shareBox = document.getElementById('linkedinShareBox');
     if (!container) return;
-    const certificates = getCertificates(clientId);
-    if (!certificates.length) {
+    const records = getTrainingAwards(clientId);
+    if (!records.length) {
       container.innerHTML = '<div class="empty-state"><strong>Nenhum certificado conquistado ainda.</strong><p>Conclua um treinamento com pelo menos 70% de acerto para liberar certificados.</p></div>';
       if (shareBox) {
         shareBox.innerHTML = '';
@@ -1505,19 +1513,19 @@
       return;
     }
 
-    container.innerHTML = certificates.map((certificate) => `
+    container.innerHTML = records.map((record) => `
       <article class="certificate-card">
         <div>
-          <h3>${escapeHtml(certificate.nomeTreinamento)}</h3>
-          <p class="cert-number">${escapeHtml(certificate.numeroCertificado)}</p>
+          <h3>${escapeHtml(record.nomeTreinamento)}</h3>
+          <p class="cert-number">${escapeHtml(record.numeroCertificado)}</p>
         </div>
         <div class="summary-grid">
-          <div><span class="small-muted">Conclusão</span><strong>${escapeHtml(formatDate(certificate.dataConclusao))}</strong></div>
-          <div><span class="small-muted">Resultado</span><strong>${escapeHtml(String(certificate.percentualAcerto))}%</strong></div>
+          <div><span class="small-muted">Conclusão</span><strong>${escapeHtml(formatDate(record.dataConclusao))}</strong></div>
+          <div><span class="small-muted">Resultado</span><strong>${escapeHtml(String(record.percentualAcerto))}%</strong></div>
         </div>
         <div class="inline-actions">
-          <button type="button" class="btn btn-outline" data-cert-download="${escapeHtml(certificate.id)}">Download PDF</button>
-          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(certificate.id)}" aria-controls="linkedinShareBox">Publicar no LinkedIn</button>
+          <button type="button" class="btn btn-outline" data-cert-download="${escapeHtml(record.id)}">Download PDF</button>
+          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(record.id)}" aria-controls="linkedinShareBox">Publicar no LinkedIn</button>
         </div>
       </article>`).join('');
 
@@ -1530,27 +1538,28 @@
   }
 
   function downloadCertificate(clientId, certificateId) {
-    const certificate = getCertificates(clientId).find((item) => item.id === certificateId);
-    if (!certificate) return;
+    const record = getTrainingAwards(clientId).find((item) => item.id === certificateId);
+    if (!record) return;
     const profile = getClientProfile(clientId);
-    const content = buildCertificateContent(profile, certificate.nomeTreinamento, certificate.numeroCertificado, certificate.dataConclusao);
-    downloadBlob(`${slugify(certificate.nomeTreinamento)}-${certificate.numeroCertificado}.pdf`, content, 'application/pdf');
+    const content = buildAwardDocumentContent(profile, record.nomeTreinamento, record.numeroCertificado, record.dataConclusao);
+    downloadBlob(`${slugify(record.nomeTreinamento)}-${record.numeroCertificado}.pdf`, content, 'application/pdf');
   }
 
   function shareCertificateOnLinkedIn(clientId, certificateId) {
-    const certificates = readJson(STORAGE_KEYS.certificates, []);
-    const certificate = certificates.find((item) => item.id === certificateId && item.clientId === clientId);
+    const records = readJson(STORAGE_KEYS.completedTrainings, []);
+    const record = records.find((item) => item.id === certificateId && item.clientId === clientId);
     const profile = getClientProfile(clientId);
-    if (!certificate || !profile) return;
-    const certificateDate = new Date(certificate.dataConclusao);
-    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certUrl=${encodeURIComponent(window.location.href)}&certId=${encodeURIComponent(certificate.numeroCertificado)}`;
-    certificate.linkedinUrl = url;
-    writeJson(STORAGE_KEYS.certificates, certificates);
+    if (!record || !profile) return;
+    const certificateDate = new Date(record.dataConclusao);
+    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certUrl=${encodeURIComponent(window.location.href)}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
+    record.linkedinUrl = url;
+    writeJson(STORAGE_KEYS.completedTrainings, records);
     const shareBox = document.getElementById('linkedinShareBox');
     if (shareBox) {
       shareBox.innerHTML = `
         <section class="info-banner is-visible" aria-live="polite">
           <strong>Link pronto para publicação</strong>
+          <p>${escapeHtml(record.nomeTreinamento)} • ${escapeHtml(record.numeroCertificado)}</p>
           <div class="link-box">${escapeHtml(url)}</div>
           <div class="inline-actions"><a class="btn btn-primary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir LinkedIn</a></div>
         </section>`;
@@ -1568,8 +1577,8 @@
     const log = readJson(`cliente_activity_log_${clientId}`, []);
     const projects = getProjects(clientId).map((project) => ({ descricao: `Projeto ${project.titulo} em ${statusLabel(project.status)}.`, data: project.dataInicio }));
     const chamados = getChamados(clientId).map((chamado) => ({ descricao: `Chamado ${chamado.id} - ${chamado.titulo}.`, data: chamado.dataCriacao }));
-    const certificates = getCertificates(clientId).map((certificate) => ({ descricao: `Certificado liberado: ${certificate.nomeTreinamento}.`, data: certificate.dataConclusao }));
-    return [...log, ...projects, ...chamados, ...certificates]
+    const awards = getTrainingAwards(clientId).map((record) => ({ descricao: `Certificado liberado: ${record.nomeTreinamento}.`, data: record.dataConclusao }));
+    return [...log, ...projects, ...chamados, ...awards]
       .filter((item) => item && item.data)
       .sort((left, right) => new Date(right.data) - new Date(left.data))
       .slice(0, 10);
