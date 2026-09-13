@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help Desk - Base de Conhecimento</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/helpdesk.css">
+</head>
+<body data-page="base-conhecimento">
+  <div class="portal-container">
+    <aside class="sidebar">
+      <h2>BPI Help Desk</h2><small data-session-name></small>
+      <nav class="nav">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./fila.html">Fila</a>
+        <a class="active" href="./base-conhecimento.html">Base de Conhecimento</a>
+        <a href="./relatorios.html">Relatórios</a>
+        <a href="./config.html">Configurações</a>
+      </nav>
+    </aside>
+    <section class="main">
+      <header class="header"><h1>Base de Conhecimento</h1><button class="btn secondary" data-logout>Sair</button></header>
+      <main class="content">
+        <section class="card filters" style="grid-template-columns: 2fr 1fr;">
+          <input id="buscaGlobal" type="text" placeholder="Buscar por título e conteúdo">
+          <select id="filtroCategoria"></select>
+        </section>
+
+        <section class="card table-wrap">
+          <table><thead><tr><th>Título</th><th>Autor</th><th>Data</th><th>Visualizações</th><th>Ações</th></tr></thead><tbody id="artigosBody"></tbody></table>
+        </section>
+
+        <section class="grid-2">
+          <article class="card">
+            <h3>Visualizar Artigo</h3>
+            <div id="visualizadorArtigo"><p>Selecione um artigo para leitura.</p></div>
+          </article>
+          <article class="card">
+            <h3>Criar / Editar Artigo</h3>
+            <form id="formArtigo">
+              <label for="artigoTitulo">Título</label>
+              <input id="artigoTitulo" required>
+              <label for="artigoModalidade">Modalidade</label>
+              <select id="artigoModalidade"></select>
+              <label for="artigoConteudo">Conteúdo</label>
+              <textarea id="artigoConteudo" rows="8" required></textarea>
+              <button class="btn" type="submit">Publicar</button>
+            </form>
+          </article>
+        </section>
+      </main>
+    </section>
+  </div>
+  <script src="../assets/js/helpdesk-interno.js"></script>
+</body>
+</html>
