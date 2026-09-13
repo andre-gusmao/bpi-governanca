@@ -132,7 +132,7 @@
       } else if (pathname.includes('/colaborador/')) {
         retornoBase = `../colaborador/${arquivoAtual}`;
       }
-      const retornoAtual = `${retornoBase}${window.location.search || ''}${window.location.hash || ''}`;
+      const retornoAtual = retornoBase;
       const [semHash, hash = ''] = destino.split('#');
       const [path = '', query = ''] = semHash.split('?');
       const params = new URLSearchParams(query);

@@ -38,7 +38,35 @@
     </div>
     <script>
         const destinoBase = '../cliente/login.html';
-        const destinoFinal = `${destinoBase}${window.location.search || ''}${window.location.hash || ''}`;
+        const params = new URLSearchParams(window.location.search || '');
+        const retornoCru = params.get('return');
+        if (retornoCru) {
+            let retorno = retornoCru;
+            try {
+                retorno = decodeURIComponent(retornoCru);
+            } catch (_) {
+                retorno = retornoCru;
+            }
+            const retornoNormalizado = {
+                'chat.html': '../portal/chat.html',
+                './chat.html': '../portal/chat.html',
+                '../portal/chat.html': '../portal/chat.html',
+                'meus-projetos.html': '../cliente/meus-projetos.html',
+                './meus-projetos.html': '../cliente/meus-projetos.html',
+                '../cliente/meus-projetos.html': '../cliente/meus-projetos.html',
+                'chamados.html': '../cliente/chamados.html',
+                './chamados.html': '../cliente/chamados.html',
+                '../cliente/chamados.html': '../cliente/chamados.html'
+            }[retorno];
+
+            if (retornoNormalizado) {
+                params.set('return', retornoNormalizado);
+            } else {
+                params.delete('return');
+            }
+        }
+        const query = params.toString();
+        const destinoFinal = `${destinoBase}${query ? `?${query}` : ''}${window.location.hash || ''}`;
         document.getElementById('loginLink').href = destinoFinal;
         window.location.replace(destinoFinal);
     </script>

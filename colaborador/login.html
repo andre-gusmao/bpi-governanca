@@ -267,7 +267,15 @@
 
       function obterRetornoSeguro() {
         const urlParams = new URLSearchParams(window.location.search);
-        const retorno = urlParams.get('return');
+        const retornoCru = urlParams.get('return');
+        let retorno = retornoCru;
+        if (retornoCru) {
+          try {
+            retorno = decodeURIComponent(retornoCru);
+          } catch (_) {
+            retorno = retornoCru;
+          }
+        }
         if (!retorno) return null;
         const retornosPermitidos = {
           '../colaborador/dashboard.html': './dashboard.html',

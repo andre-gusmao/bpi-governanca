@@ -254,7 +254,13 @@
         window.addEventListener('load', () => {
             const session = BPIAdminCore.auth.getSession();
             if (session) {
-                if (!BPIAdminCore.auth.isTrustedSession(session)) {
+                const usuarioAtivo = BPIAdminCore.data.usuarios().some((usuario) =>
+                    usuario.id === session.id &&
+                    (usuario.email || '').trim().toLowerCase() === (session.email || '').trim().toLowerCase() &&
+                    usuario.tipo === session.type &&
+                    usuario.ativo === true
+                );
+                if (!BPIAdminCore.auth.isTrustedSession(session) || !usuarioAtivo) {
                     localStorage.removeItem(BPIAdminCore.KEYS.session);
                     return;
                 }

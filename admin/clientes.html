@@ -141,8 +141,8 @@
                     <td><span style="background: #f0f0f0; padding: 0.4rem 0.8rem; border-radius: 20px;">${chamadosCliente.length}</span></td>
                     <td><span style="color: ${cliente.ativo ? '#28A745' : '#DC143C'}; font-weight: 600;">${cliente.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
                     <td>
-                        <button type="button" onclick="editarCliente('${cliente.id}')" style="color: #8A6A35; margin-right: 0.5rem; background: #fff9ef; border: 1px solid #C9A66B; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">✏️ Editar</button>
-                        <button type="button" onclick="alternarStatusCliente('${cliente.id}')" style="color: #7f1d1d; background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">${cliente.ativo ? '⏸ Inativar' : '▶ Reativar'}</button>
+                        <button type="button" aria-label="Editar cliente ${cliente.nome}" onclick="editarCliente('${cliente.id}')" style="color: #8A6A35; margin-right: 0.5rem; background: #fff9ef; border: 1px solid #C9A66B; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">✏️ Editar</button>
+                        <button type="button" aria-label="${cliente.ativo ? 'Inativar' : 'Reativar'} cliente ${cliente.nome}" onclick="alternarStatusCliente('${cliente.id}')" style="color: #7f1d1d; background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; padding: 0.3rem 0.55rem; font-weight: 600;">${cliente.ativo ? '⏸ Inativar' : '▶ Reativar'}</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
