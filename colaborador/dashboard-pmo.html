@@ -526,6 +526,7 @@
 
     window.addEventListener('load', function() {
       checkSession();
+      DashboardPMO.ensureSeedData();
       DashboardPMO.bindDashboardFilters();
       DashboardPMO.initRealtimeRefresh();
       DashboardPMO.renderDashboardPage();

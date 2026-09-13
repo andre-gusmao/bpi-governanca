@@ -21,6 +21,9 @@
     media: { label: 'Média', icon: '🟡', color: '#D97706' },
     baixa: { label: 'Baixa', icon: '🟢', color: '#16A34A' }
   };
+  let dashboardFiltersBound = false;
+  let pmoFiltersBound = false;
+  let realtimeRefreshBound = false;
 
   function safeParse(value, fallback) {
     if (!value) return fallback;
@@ -421,22 +424,20 @@
       }
     ];
 
-    if (!projetosExistentes) {
+    if (projetosExistentes === null) {
       saveStorage(STORAGE_KEYS.projetos, projetos);
     }
 
-    if (!atividadesExistentes) {
+    if (atividadesExistentes === null) {
       saveStorage(STORAGE_KEYS.atividades, atividades);
     }
   }
 
   function getProjetos() {
-    ensureSeedData();
     return safeParse(localStorage.getItem(STORAGE_KEYS.projetos), []);
   }
 
   function getAtividades() {
-    ensureSeedData();
     return safeParse(localStorage.getItem(STORAGE_KEYS.atividades), []);
   }
 
@@ -502,7 +503,7 @@
           return atividade.status !== 'finalizada';
         })
         .sort(function(a, b) {
-          return parseDate(a.dataPrevista) - parseDate(b.dataPrevista);
+          return toTimestamp(a.dataPrevista, Number.MAX_SAFE_INTEGER) - toTimestamp(b.dataPrevista, Number.MAX_SAFE_INTEGER);
         })[0] || null;
       const possuiAtividadeIniciada = atividadesProjeto.some(function(atividade) {
         return atividade.status === 'em_andamento' || atividade.status === 'finalizada';
@@ -1174,14 +1175,19 @@
   }
 
   function bindDashboardFilters() {
+    if (dashboardFiltersBound) return;
+
     const filtro = document.getElementById('projetosStatusFiltro');
     const ordenacao = document.getElementById('projetosOrdenacao');
 
     if (filtro) filtro.addEventListener('change', renderProjetosDestaque);
     if (ordenacao) ordenacao.addEventListener('change', renderProjetosDestaque);
+    dashboardFiltersBound = true;
   }
 
   function bindPmoFilters() {
+    if (pmoFiltersBound) return;
+
     document.querySelectorAll('.filter-btn[data-filter]').forEach(function(button) {
       button.addEventListener('click', function() {
         const filter = button.getAttribute('data-filter');
@@ -1189,9 +1195,12 @@
         window.location.href = './pmo-geral.html' + query;
       });
     });
+    pmoFiltersBound = true;
   }
 
   function initRealtimeRefresh() {
+    if (realtimeRefreshBound) return;
+
     window.addEventListener('storage', function() {
       renderDashboardPage();
       renderPmoProjetosGrid();
@@ -1203,6 +1212,7 @@
       renderPmoProjetosGrid();
       syncPmoButtons();
     });
+    realtimeRefreshBound = true;
   }
 
   const api = {

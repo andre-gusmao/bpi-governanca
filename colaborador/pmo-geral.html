@@ -317,6 +317,7 @@
 
     window.addEventListener('load', () => {
       checkSession();
+      DashboardPMO.ensureSeedData();
       DashboardPMO.bindPmoFilters();
       DashboardPMO.initRealtimeRefresh();
       DashboardPMO.syncPmoButtons();
