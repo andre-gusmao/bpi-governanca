@@ -162,10 +162,6 @@
     const projetosExistentes = localStorage.getItem(STORAGE_KEYS.projetos);
     const atividadesExistentes = localStorage.getItem(STORAGE_KEYS.atividades);
 
-    if (projetosExistentes || atividadesExistentes) {
-      return;
-    }
-
     const projetos = [
       {
         id: 'proj-seed-001',
@@ -405,8 +401,13 @@
       }
     ];
 
-    saveStorage(STORAGE_KEYS.projetos, projetos);
-    saveStorage(STORAGE_KEYS.atividades, atividades);
+    if (!projetosExistentes) {
+      saveStorage(STORAGE_KEYS.projetos, projetos);
+    }
+
+    if (!atividadesExistentes) {
+      saveStorage(STORAGE_KEYS.atividades, atividades);
+    }
   }
 
   function getProjetos() {
@@ -431,6 +432,7 @@
       const projeto = projetosMap[atividade.projetoId] || {};
       const status = normalizeStatusAtividade(atividade.status);
       const dataPrevista = parseDate(atividade.dataPrevista);
+      const dataRealizada = parseDate(atividade.dataRealizada);
       const finalizada = status === 'finalizada';
       const diasAtraso = !finalizada && dataPrevista ? Math.max(0, diffInDays(today, dataPrevista)) : 0;
       const diasRestantes = dataPrevista ? diffInDays(dataPrevista, today) : null;
@@ -439,7 +441,7 @@
         status: status,
         prioridade: normalizePrioridade(atividade.prioridade),
         dataPrevista: dataPrevista ? formatDateISO(dataPrevista) : '',
-        dataRealizada: atividade.dataRealizada ? formatDateISO(parseDate(atividade.dataRealizada)) : '',
+        dataRealizada: dataRealizada ? formatDateISO(dataRealizada) : '',
         diasAtraso: typeof atividade.diasAtraso === 'number' ? atividade.diasAtraso : diasAtraso,
         statusAtraso: diasAtraso > 0 ? 'atrasada' : 'em_dia',
         diasRestantes: diasRestantes,
@@ -863,16 +865,17 @@
 
     items.slice(0, 5).forEach(function(item, index) {
       const y = 40 + (index * 42);
-      const width = 120 + ((item.total / maxValue) * 320);
+      const trackWidth = 330;
+      const width = Math.max(24, (item.total / maxValue) * trackWidth);
 
       ctx.fillStyle = '#EFE7DA';
-      ctx.fillRect(180, y, 330, 18);
+      ctx.fillRect(180, y, trackWidth, 18);
       ctx.fillStyle = '#C9A66B';
       ctx.fillRect(180, y, width, 18);
       ctx.fillStyle = '#374151';
       ctx.font = '12px Montserrat, sans-serif';
       ctx.fillText(item.modalidade, 20, y + 13);
-      ctx.fillText(String(item.total), Math.min(530, 190 + width), y + 13);
+      ctx.fillText(String(item.total), Math.min(520, 190 + width), y + 13);
     });
   }
 
