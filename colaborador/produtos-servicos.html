@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtos & Serviços - BPI Governança</title>
+  <link rel="stylesheet" href="../assets/css/design-system.css">
+  <link rel="stylesheet" href="../assets/css/portal.css">
+  <style>
+    .catalogo-layout {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xl);
+    }
+
+    .catalogo-hero,
+    .catalogo-filtros {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-xl);
+    }
+
+    .catalogo-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--spacing-lg);
+    }
+
+    .catalogo-hero p,
+    .catalogo-resumo {
+      margin: 0;
+    }
+
+    .catalogo-resumo {
+      min-width: 220px;
+      padding: var(--spacing-lg);
+      border-radius: var(--border-radius-lg);
+      background: linear-gradient(135deg, #FFFBF7 0%, #F7F3EC 100%);
+      color: var(--color-dark-primary);
+    }
+
+    .catalogo-resumo strong {
+      display: block;
+      font-size: var(--fs-2xl);
+      font-family: var(--font-mono);
+      margin-top: var(--spacing-xs);
+    }
+
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .filter-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .filter-field label {
+      font-size: var(--fs-sm);
+      font-weight: var(--fw-semibold);
+      color: var(--color-dark-primary);
+    }
+
+    .filter-field input,
+    .filter-field select {
+      min-height: 48px;
+      padding: 0 var(--spacing-md);
+      border: 1px solid #D1D5DB;
+      border-radius: var(--border-radius-lg);
+      font-family: var(--font-primary);
+      font-size: var(--fs-base);
+      transition: all var(--transition-fast);
+      background: white;
+    }
+
+    .filter-field input:focus,
+    .filter-field select:focus {
+      outline: none;
+      border-color: var(--color-primary-gold);
+      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.12);
+    }
+
+    .catalogo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .produto-card {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      border: 1px solid transparent;
+      padding: var(--spacing-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      transition: all var(--transition-base);
+    }
+
+    .produto-card:hover {
+      border-color: rgba(201, 166, 107, 0.45);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .produto-topo {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      align-items: flex-start;
+    }
+
+    .produto-topo h2 {
+      font-size: var(--fs-xl);
+      margin: 0 0 var(--spacing-xs);
+    }
+
+    .produto-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: var(--border-radius-full);
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-bold);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .tag.tipo-setup {
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--color-info);
+    }
+
+    .tag.tipo-recorrente {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--color-success);
+    }
+
+    .tag-categoria {
+      background: rgba(201, 166, 107, 0.14);
+      color: var(--color-primary-gold-dark);
+    }
+
+    .produto-descricao,
+    .produto-escopo {
+      margin: 0;
+      color: var(--color-dark-tertiary);
+    }
+
+    .produto-kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-sm);
+    }
+
+    .produto-kpi {
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius-lg);
+      background: var(--color-gray-lighter);
+    }
+
+    .produto-kpi span {
+      display: block;
+      font-size: var(--fs-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6B7280;
+      margin-bottom: var(--spacing-2xs);
+    }
+
+    .produto-kpi strong {
+      color: var(--color-dark-primary);
+      font-size: var(--fs-base);
+    }
+
+    .produto-lista-bloco h3 {
+      font-size: var(--fs-base);
+      font-family: var(--font-primary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .produto-lista-bloco ul {
+      padding-left: 18px;
+      color: var(--color-dark-tertiary);
+      display: grid;
+      gap: var(--spacing-2xs);
+      margin: 0;
+    }
+
+    .produto-rodape {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-top: auto;
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid #E5E7EB;
+    }
+
+    .produto-rodape small {
+      color: #6B7280;
+    }
+
+    .produto-rodape .btn {
+      min-width: 210px;
+    }
+
+    .empty-state {
+      background: white;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      padding: var(--spacing-2xl);
+      text-align: center;
+      color: #6B7280;
+    }
+
+    @media (max-width: 1024px) {
+      .catalogo-hero {
+        flex-direction: column;
+      }
+
+      .catalogo-resumo {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .filtros-grid,
+      .produto-kpis {
+        grid-template-columns: 1fr;
+      }
+
+      .portal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+      }
+
+      .produto-rodape {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .produto-rodape .btn {
+        width: 100%;
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">◆</div>
+        <div>
+          <div class="sidebar-title">BPI</div>
+          <div class="sidebar-subtitle">Governança</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu Principal</div>
+          <a class="nav-link" href="./dashboard.html">
+            <span class="nav-icon">📊</span>
+            Dashboard
+          </a>
+          <a class="nav-link" href="./pmo-geral.html">
+            <span class="nav-icon">🏗️</span>
+            PMO Geral
+          </a>
+          <a class="nav-link" href="./comercial.html">
+            <span class="nav-icon">💼</span>
+            Comercial
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Referências</div>
+          <a class="nav-link active" href="./produtos-servicos.html">
+            <span class="nav-icon">📦</span>
+            Produtos/Serviços
+          </a>
+          <a class="nav-link" href="./escopo-detalhado.html">
+            <span class="nav-icon">📋</span>
+            Escopo
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">AG</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">André Gusmão</span>
+            <span class="user-role" id="userRole">Comercial</span>
+          </div>
+        </div>
+        <a class="nav-link" href="./login.html" onclick="return logout(event)">
+          <span class="nav-icon">🚪</span>
+          Sair
+        </a>
+      </div>
+    </aside>
+
+    <header class="portal-header">
+      <div class="header-title">
+        <h1>📦 SERVIÇOS &amp; PRODUTOS DISPONÍVEIS</h1>
+        <div class="header-breadcrumb">Início / Comercial / Catálogo</div>
+      </div>
+      <div class="header-actions">
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          Sair
+        </button>
+      </div>
+    </header>
+
+    <main class="portal-content">
+      <div class="catalogo-layout">
+        <section class="catalogo-hero">
+          <div>
+            <h2>Catálogo consultivo BPI</h2>
+            <p>Liste, filtre e selecione serviços de setup e contratos recorrentes para apoiar a elaboração de propostas comerciais.</p>
+          </div>
+          <div class="catalogo-resumo">
+            Itens encontrados
+            <strong id="catalogoResumo">0</strong>
+          </div>
+        </section>
+
+        <section class="catalogo-filtros">
+          <div class="filtros-grid">
+            <div class="filter-field">
+              <label for="filtroTipo">Tipo</label>
+              <select id="filtroTipo">
+                <option value="todos">Todos</option>
+                <option value="setup">Setup</option>
+                <option value="recorrente">Recorrente</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="filtroModalidade">Modalidade</label>
+              <select id="filtroModalidade">
+                <option value="todas">Todas</option>
+              </select>
+            </div>
+            <div class="filter-field">
+              <label for="filtroBusca">Buscar</label>
+              <input id="filtroBusca" type="search" placeholder="Nome, descrição ou categoria">
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="catalogo-grid" id="catalogoGrid"></div>
+          <div class="empty-state" id="catalogoVazio" hidden>Nenhum produto encontrado para os filtros selecionados.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/catalogo.js"></script>
+  <script>
+    function obterSessaoColaborador() {
+      try {
+        const session = JSON.parse(localStorage.getItem('colaborador_session') || 'null');
+        if (!session || !session.id || !session.name || !session.email) {
+          return null;
+        }
+
+        return session;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function checkSession() {
+      const user = obterSessaoColaborador();
+      if (!user) {
+        localStorage.removeItem('colaborador_session');
+        window.location.href = './login.html';
+        return;
+      }
+
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userAvatar').textContent = user.avatar || user.name.slice(0, 2).toUpperCase();
+      document.getElementById('userRole').textContent = user.role || 'Colaborador';
+    }
+
+    function logout(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      localStorage.removeItem('colaborador_session');
+      localStorage.removeItem('helpdesk_catalogo_selecao');
+      window.location.href = './login.html';
+      return false;
+    }
+
+    function formatarMoeda(valor) {
+      return `R$ ${Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function escaparHtml(valor) {
+      return String(valor || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function popularModalidades() {
+      const select = document.getElementById('filtroModalidade');
+      const modalidades = [...new Set(CatalogoDB.listar().map(produto => produto.modalidade))].sort((a, b) => a.localeCompare(b));
+
+      select.innerHTML = '';
+      select.appendChild(new Option('Todas', 'todas'));
+
+      modalidades.forEach(modalidade => {
+        select.appendChild(new Option(modalidade, modalidade));
+      });
+    }
+
+    function renderizarCards(produtos) {
+      const grid = document.getElementById('catalogoGrid');
+      const emptyState = document.getElementById('catalogoVazio');
+      const resumo = document.getElementById('catalogoResumo');
+
+      resumo.textContent = produtos.length;
+      emptyState.hidden = produtos.length > 0;
+      grid.style.display = produtos.length > 0 ? 'grid' : 'none';
+
+      if (produtos.length === 0) {
+        grid.innerHTML = '';
+        return;
+      }
+
+      grid.innerHTML = produtos.map(produto => `
+        <article class="produto-card">
+          <div class="produto-topo">
+            <div>
+              <h2>${escaparHtml(produto.nome)}</h2>
+              <div class="produto-meta">
+                <span class="tag ${produto.tipo === 'setup' ? 'tipo-setup' : 'tipo-recorrente'}">${produto.tipo}</span>
+                <span class="tag tag-categoria">${escaparHtml(produto.modalidade)}</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="produto-descricao">${escaparHtml(produto.descricao)}</p>
+          <p class="produto-escopo"><strong>Categoria:</strong> ${escaparHtml(produto.categoria)}</p>
+
+          <div class="produto-kpis">
+            ${produto.tipo === 'setup' ? `
+              <div class="produto-kpi">
+                <span>Horas estimadas</span>
+                <strong>${produto.horasEstimadas} horas</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Valor/hora</span>
+                <strong>${formatarMoeda(produto.valorHora)}</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Valor total</span>
+                <strong>${formatarMoeda(produto.valorTotal)}</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Prazo</span>
+                <strong>${produto.prazoEstimado} dias</strong>
+              </div>
+            ` : `
+              <div class="produto-kpi">
+                <span>Valor mensal</span>
+                <strong>${formatarMoeda(produto.valorMensal)}</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Periodicidade</span>
+                <strong>${produto.periodicidade}</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Contrato mínimo</span>
+                <strong>${produto.prazoPagamento} meses</strong>
+              </div>
+              <div class="produto-kpi">
+                <span>Escopo</span>
+                <strong>${produto.categoria}</strong>
+              </div>
+            `}
+          </div>
+
+          <div class="produto-lista-bloco">
+            <h3>Entregas esperadas</h3>
+            <ul>${produto.entregas.map(item => `<li>${escaparHtml(item)}</li>`).join('')}</ul>
+          </div>
+
+          <div class="produto-lista-bloco">
+            <h3>Dependências do cliente</h3>
+            <ul>${produto.dependenciasCliente.map(item => `<li>${escaparHtml(item)}</li>`).join('')}</ul>
+          </div>
+
+          <div class="produto-rodape">
+            <small>${escaparHtml(produto.escopo)}</small>
+            <button class="btn btn-primary js-adicionar-proposta" type="button" data-produto-id="${escaparHtml(produto.id)}">+ Adicionar à Proposta</button>
+          </div>
+        </article>
+      `).join('');
+
+      grid.querySelectorAll('.js-adicionar-proposta').forEach(botao => {
+        botao.addEventListener('click', () => adicionarAProposta(botao.dataset.produtoId));
+      });
+    }
+
+    function aplicarFiltros() {
+      const tipo = document.getElementById('filtroTipo').value;
+      const modalidade = document.getElementById('filtroModalidade').value;
+      const busca = document.getElementById('filtroBusca').value;
+      renderizarCards(CatalogoDB.filtrar(tipo, modalidade, busca));
+    }
+
+    function adicionarAProposta(produtoId) {
+      const produto = CatalogoDB.obter(produtoId);
+      if (!produto) {
+        return;
+      }
+
+      try {
+        const selecionados = JSON.parse(localStorage.getItem('helpdesk_catalogo_selecao') || '[]');
+        if (!Array.isArray(selecionados)) {
+          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify([produto.id]));
+        } else if (!selecionados.includes(produto.id)) {
+          selecionados.push(produto.id);
+          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(selecionados));
+        }
+      } catch (error) {
+        localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify([produto.id]));
+      }
+
+      alert(`✅ ${produto.nome} foi preparado para a proposta.\n\nAbra a página Comercial para continuar.`);
+    }
+
+    window.addEventListener('load', () => {
+      checkSession();
+      popularModalidades();
+      aplicarFiltros();
+
+      document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
+      document.getElementById('filtroModalidade').addEventListener('change', aplicarFiltros);
+      document.getElementById('filtroBusca').addEventListener('input', aplicarFiltros);
+    });
+  </script>
+</body>
+</html>

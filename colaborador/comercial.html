@@ -357,11 +357,6 @@
               <label class="form-label">Adicionar Produtos/Serviços</label>
               <select class="form-select" id="produtoSelect" onchange="adicionarProduto()">
                 <option value="">Selecione um produto...</option>
-                <option value="srv-impl-erp">Implementação ERP - Módulo Financeiro (R$ 30.000)</option>
-                <option value="srv-train-users">Treinamento de Usuários (R$ 8.000)</option>
-                <option value="srv-consult-opt">Consultoria de Otimização (R$ 18.000)</option>
-                <option value="lic-suporte-premium">Suporte Premium 24/7 (R$ 2.000/mês)</option>
-                <option value="lic-manutencao">Manutenção Preventiva (R$ 1.500/mês)</option>
               </select>
             </div>
 
@@ -438,8 +433,27 @@
     </main>
   </div>
 
+  <script src="../assets/js/catalogo.js"></script>
   <script>
     let produtosSelecionados = [];
+    const STATUS_ADICAO = {
+      ADICIONADO: 'added',
+      JA_SELECIONADO: 'already-selected',
+      INVALIDO: 'invalid'
+    };
+
+    function escaparHtml(valor) {
+      return String(valor || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatarMoeda(valor) {
+      return `R$ ${Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
 
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
@@ -458,27 +472,48 @@
       window.location.href = './login.html';
     }
 
-    function adicionarProduto() {
-      const select = document.getElementById('produtoSelect');
-      const produtoId = select.value;
-      
-      if (!produtoId) return;
-
-      // Dados dos produtos
-      const produtos = {
-        'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
-        'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
-        'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000 },
-        'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 },
-        'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500 }
-      };
-
-      if (produtos[produtoId]) {
-        produtosSelecionados.push({ id: produtoId, ...produtos[produtoId] });
-        renderizarProdutos();
-        calcularResumo();
-        select.value = '';
+    function formatarValorProduto(produto) {
+      if (produto.tipo === 'setup') {
+        return `${formatarMoeda(produto.valorTotal)} • ${produto.horasEstimadas}h`;
       }
+
+      return `${formatarMoeda(produto.valorMensal)}/${produto.periodicidade}`;
+    }
+
+    function popularProdutosDisponiveis() {
+      const select = document.getElementById('produtoSelect');
+      const produtos = CatalogoDB.listar().filter(produto => produto.ativo !== false);
+
+      select.innerHTML = '';
+      select.appendChild(new Option('Selecione um produto...', ''));
+
+      produtos.forEach(produto => {
+        select.appendChild(new Option(`${produto.nome} (${formatarValorProduto(produto)})`, produto.id));
+      });
+    }
+
+    function adicionarProduto(produtoIdInicial) {
+      const select = document.getElementById('produtoSelect');
+      const produtoId = produtoIdInicial || select.value;
+      
+      if (!produtoId) return STATUS_ADICAO.INVALIDO;
+
+      if (produtosSelecionados.some(produto => produto.id === produtoId)) {
+        select.value = '';
+        return STATUS_ADICAO.JA_SELECIONADO;
+      }
+
+      const produto = CatalogoDB.obter(produtoId);
+      if (!produto || produto.ativo === false) {
+        select.value = '';
+        return STATUS_ADICAO.INVALIDO;
+      }
+
+      produtosSelecionados.push(produto);
+      renderizarProdutos();
+      calcularResumo();
+      select.value = '';
+      return STATUS_ADICAO.ADICIONADO;
     }
 
     function removerProduto(index) {
@@ -498,8 +533,10 @@
       lista.innerHTML = produtosSelecionados.map((p, i) => `
         <div class="produto-selecionado">
           <div class="produto-info">
-            <div class="produto-nome">${p.nome}</div>
-            <div class="produto-valor">${p.tipo === 'setup' ? `R$ ${p.valor.toLocaleString('pt-BR')}` : `R$ ${p.valor.toLocaleString('pt-BR')}/mês`}</div>
+            <div class="produto-nome">${escaparHtml(p.nome)}</div>
+            <div class="produto-valor">${p.tipo === 'setup'
+              ? `Setup • ${formatarMoeda(p.valorTotal)} • ${p.prazoEstimado} dias`
+              : `Recorrente • ${formatarMoeda(p.valorMensal)}/${p.periodicidade} • mínimo ${p.prazoPagamento} meses`}</div>
           </div>
           <button type="button" class="remove-btn" onclick="removerProduto(${i})">✕ Remover</button>
         </div>
@@ -512,9 +549,9 @@
 
       produtosSelecionados.forEach(p => {
         if (p.tipo === 'setup') {
-          setup += p.valor;
+          setup += p.valorTotal;
         } else {
-          recorrente += p.valor;
+          recorrente += p.valorMensal;
         }
       });
 
@@ -534,10 +571,44 @@
       // Aqui entra a integração com jsPDF e SendGrid
     }
 
+    function importarSelecaoCatalogo() {
+      try {
+        const pendentes = JSON.parse(localStorage.getItem('helpdesk_catalogo_selecao') || '[]');
+        if (!Array.isArray(pendentes)) {
+          return;
+        }
+
+        const pendentesUnicos = [...new Set(pendentes)];
+        const naoImportados = pendentesUnicos.filter(produtoId => {
+          const resultado = adicionarProduto(produtoId);
+          if (resultado === STATUS_ADICAO.JA_SELECIONADO) {
+            return false;
+          }
+
+          return resultado === STATUS_ADICAO.INVALIDO;
+        });
+
+        const filaRestante = [...new Set(naoImportados)];
+        if (filaRestante.length > 0) {
+          localStorage.setItem('helpdesk_catalogo_selecao', JSON.stringify(filaRestante));
+        } else {
+          localStorage.removeItem('helpdesk_catalogo_selecao');
+        }
+      } catch (error) {
+        localStorage.removeItem('helpdesk_catalogo_selecao');
+      }
+    }
+
     // Adicionar listener para recalcular ao mudar desconto
     document.getElementById('desconto')?.addEventListener('input', calcularResumo);
 
-    window.addEventListener('load', checkSession);
+    window.addEventListener('load', () => {
+      checkSession();
+      popularProdutosDisponiveis();
+      importarSelecaoCatalogo();
+      renderizarProdutos();
+      calcularResumo();
+    });
   </script>
 </body>
 </html>
