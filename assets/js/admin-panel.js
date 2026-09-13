@@ -63,6 +63,14 @@
         localStorage.setItem(key, JSON.stringify(value));
     }
 
+    function getJsonFromText(text) {
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            return null;
+        }
+    }
+
     function formatMoney(value) {
         return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
@@ -367,9 +375,9 @@
             recordAudit({
                 acao: "login_admin",
                 recurso: "sessao",
-                recursoId: account.adminId,
+                recursoId: profile.adminId,
                 descricao: "Login administrativo realizado",
-                detalhes: { antes: null, depois: { email: account.email } }
+                detalhes: { antes: null, depois: { email } }
             });
             window.location.href = "/admin/dashboard.html";
         });
@@ -640,7 +648,11 @@
         const roleFilter = document.getElementById("filtro-role-col");
         const sortBy = document.getElementById("ordenacao-col");
         const form = document.getElementById("colaborador-form");
+        const roleInput = document.getElementById("col-role");
         let editingId = null;
+
+        roleFilter.innerHTML = `<option value="todos">Todos os roles</option>${ROLES.map((role) => `<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("")}`;
+        roleInput.innerHTML = ROLES.map((role) => `<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("");
 
         function render() {
             const list = getJson(STORAGE_KEYS.colaboradores, []);
@@ -724,7 +736,7 @@
                     emails.push({
                         para: item.email,
                         assunto: "Reset de senha",
-                        corpo: `Nova senha temporária: ${senha}`,
+                        corpo: "Senha temporária gerada e enviada ao colaborador (simulação).",
                         dataPedido: new Date().toISOString()
                     });
                     setJson("helpdesk_emails", emails);
@@ -735,7 +747,7 @@
                         descricao: `Reset de senha enviado para ${item.email}`,
                         detalhes: { antes: null, depois: { email: item.email } }
                     });
-                    alert(`Email simulado enviado para ${item.email}`);
+                    alert(`Email simulado enviado para ${item.email}. Senha temporária: ${senha}`);
                 });
                 tr.querySelector("[data-action='projetos']").addEventListener("click", () => {
                     const vinculados = projetos.filter((p) => p.gestorEmail === item.email).map((p) => p.titulo || p.id);
@@ -1017,7 +1029,10 @@
         const tabs = document.querySelectorAll(".tab-btn");
         const panels = document.querySelectorAll(".tab-panel");
         const clienteSelect = document.getElementById("filtro-cliente");
+        const modalidadeSelect = document.getElementById("filtro-modalidade");
         clienteSelect.innerHTML = `<option value="todos">Todos</option>${clientes.map((c) => `<option value="${escapeHtml(c.clientId)}">${escapeHtml(c.razaoSocial)}</option>`).join("")}`;
+        const modalidades = getJson(STORAGE_KEYS.modalidades, MODALIDADES_PADRAO);
+        modalidadeSelect.innerHTML = `<option value="todos">Todas modalidades</option>${modalidades.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("")}`;
 
         tabs.forEach((tab) => tab.addEventListener("click", () => {
             tabs.forEach((btn) => btn.classList.remove("active"));
@@ -1124,6 +1139,14 @@
             if (input) input.value = value || "";
         });
 
+        function isValidBackupValue(key, value) {
+            const parsed = typeof value === "string" ? getJsonFromText(value) : value;
+            if (key === STORAGE_KEYS.empresa) return parsed && typeof parsed === "object" && !Array.isArray(parsed);
+            if (key === STORAGE_KEYS.modalidades) return Array.isArray(parsed) && parsed.every((item) => typeof item === "string");
+            if ([STORAGE_KEYS.clientes, STORAGE_KEYS.colaboradores, STORAGE_KEYS.projetos, STORAGE_KEYS.catalogo, STORAGE_KEYS.auditoria, "helpdesk_atividades", "helpdesk_propostas", "helpdesk_escopo", "helpdesk_emails"].includes(key)) return Array.isArray(parsed);
+            return false;
+        }
+
         function renderModalidades() {
             const list = getJson(STORAGE_KEYS.modalidades, []);
             const body = document.getElementById("modalidades-body");
@@ -1229,6 +1252,7 @@
             BACKUP_ALLOWED_KEYS.forEach((key) => {
                 if (Object.prototype.hasOwnProperty.call(data, key)) {
                     const value = data[key];
+                    if (!isValidBackupValue(key, value)) return;
                     localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
                 }
             });

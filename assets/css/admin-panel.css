@@ -345,6 +345,6 @@ textarea {
     }
 
     .bar-row {
-        grid-template-columns: 95px 1fr;
+        grid-template-columns: 95px 1fr auto;
     }
 }
