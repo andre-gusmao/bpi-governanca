@@ -86,6 +86,10 @@
     return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
   }
 
+  function progressKey(colaboradorId) {
+    return `${KEYS.progresso}_${colaboradorId}`;
+  }
+
   function ensureSeedData() {
     if (!Array.isArray(read(KEYS.catalogo, null))) {
       const catalogo = [
@@ -172,15 +176,22 @@
     if (!Array.isArray(read(KEYS.emails, null))) write(KEYS.emails, []);
 
     const user = getCurrentUser();
-    const progressoAtual = read(KEYS.progresso, null);
+    const progressoAtual = read(progressKey(user.id), null) || read(KEYS.progresso, null);
     if (!progressoAtual || !Array.isArray(progressoAtual.historico)) {
       const seed = {
         colaboradorId: user.id,
         colaboradorNome: user.name,
         historico: []
       };
+      write(progressKey(user.id), seed);
       write(KEYS.progresso, seed);
       upsertProgressList(seed);
+    } else {
+      progressoAtual.colaboradorId = user.id;
+      progressoAtual.colaboradorNome = user.name;
+      write(progressKey(user.id), progressoAtual);
+      write(KEYS.progresso, progressoAtual);
+      upsertProgressList(progressoAtual);
     }
   }
 
@@ -250,7 +261,7 @@
 
   function getProgressoAtual() {
     const user = getCurrentUser();
-    const progresso = read(KEYS.progresso, { colaboradorId: user.id, colaboradorNome: user.name, historico: [] });
+    const progresso = read(progressKey(user.id), null) || read(KEYS.progresso, { colaboradorId: user.id, colaboradorNome: user.name, historico: [] });
     if (!Array.isArray(progresso.historico)) progresso.historico = [];
     progresso.colaboradorId = user.id;
     progresso.colaboradorNome = user.name;
@@ -258,6 +269,7 @@
   }
 
   function saveProgressoAtual(progresso) {
+    write(progressKey(progresso.colaboradorId), progresso);
     write(KEYS.progresso, progresso);
     upsertProgressList(progresso);
   }
@@ -918,6 +930,7 @@
   }
 
   function startCertificadoPage() {
+    const user = getCurrentUser();
     requireColaborador();
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id') || '';
@@ -926,6 +939,10 @@
 
     if (!cert) {
       app.innerHTML = '<div class="card">Certificado não encontrado.</div>';
+      return;
+    }
+    if (cert.colaboradorId !== user.id) {
+      app.innerHTML = '<div class="card">Você não tem permissão para visualizar este certificado.</div>';
       return;
     }
 
@@ -1100,7 +1117,8 @@
 
   function startRelatoriosPage() {
     const user = getCurrentUser();
-    const isAdmin = !!getCurrentAdmin();
+    const adminSession = getCurrentAdmin();
+    const isAdmin = !!(adminSession && adminSession.type === 'admin');
     const tag = document.getElementById('viewerTag');
     if (tag) tag.textContent = isAdmin ? 'Admin (todos os colaboradores)' : `${user.name} (somente seus dados)`;
 
@@ -1126,8 +1144,9 @@
 
     const popular = {};
     allHistoricos.forEach((h) => { popular[h.treinamentoId] = (popular[h.treinamentoId] || 0) + 1; });
+    const catalogoMap = Object.fromEntries(catalogo.map((t) => [t.id, t]));
     const top = Object.entries(popular)
-      .map(([id, count]) => ({ titulo: catalogo.find((t) => t.id === id)?.titulo || id, count }))
+      .map(([id, count]) => ({ titulo: catalogoMap[id]?.titulo || id, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
@@ -1212,6 +1231,31 @@
 
     let editingId = null;
     let draftVideos = [];
+
+    function parseCsvRow(line) {
+      const out = [];
+      let current = '';
+      let quoted = false;
+      for (let i = 0; i < line.length; i += 1) {
+        const ch = line[i];
+        const next = line[i + 1];
+        if (ch === '"') {
+          if (quoted && next === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (ch === ',' && !quoted) {
+          out.push(current.trim());
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      out.push(current.trim());
+      return out;
+    }
 
     function fillBancos() {
       const bancos = getBancos();
@@ -1443,7 +1487,7 @@
       try {
         const text = await file.text();
         const lines = text.split(/\r?\n/).filter(Boolean);
-        const rows = lines.slice(1).map((line) => line.split(',').map((cell) => cell.trim()));
+        const rows = lines.slice(1).map((line) => parseCsvRow(line));
         const id = uid('banco');
         const questoes = rows.filter((r) => r.length >= 7).map((r, idx) => ({
           id: `${id}-q-${pad(idx + 1, 3)}`,
