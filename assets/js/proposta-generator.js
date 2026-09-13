@@ -138,11 +138,16 @@
 
   function saveStorage(key, value) {
     if (!global.localStorage) {
-      return value;
+      return false;
     }
 
-    global.localStorage.setItem(key, JSON.stringify(value));
-    return value;
+    try {
+      global.localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      console.warn('Falha ao gravar localStorage para', key, error);
+      return false;
+    }
   }
 
   function formatCurrency(value) {
@@ -347,7 +352,7 @@
     const recorrenteAnual = recorrente * 12;
     const percentual = Math.min(Math.max(Number(descontoPercentual) || 0, 0), 100);
     const subtotal = setup + recorrenteAnual;
-    const desconto = subtotal * (percentual / 100);
+    const desconto = setup * (percentual / 100);
     const total = subtotal - desconto;
 
     return {
@@ -416,6 +421,7 @@
     };
     const servicos = Array.isArray(payload.servicos) ? payload.servicos.map(sanitizeServico) : [];
     const dataCriacao = payload.dataCriacao || new Date().toISOString();
+    const dataAtualizacao = payload.dataAtualizacao || dataCriacao;
     const descontoPercentual = payload.descontoPercentual != null
       ? payload.descontoPercentual
       : (payload.valores && payload.valores.descontoPercentual);
@@ -453,6 +459,7 @@
       prazos: prazos,
       status: payload.status || 'rascunho',
       dataCriacao: dataCriacao,
+      dataAtualizacao: dataAtualizacao,
       dataEnvio: payload.dataEnvio || null,
       dataResposta: payload.dataResposta || null,
       elaboradoPor: payload.elaboradoPor || '',
@@ -465,7 +472,13 @@
   const PropostaDB = {
     salvar: function (proposta) {
       const propostas = parseStorage(STORAGE_KEYS.propostas, []);
-      const propostaNormalizada = criarProposta(proposta);
+      const existente = propostas.find((item) => item.id === proposta.id);
+      const agora = new Date().toISOString();
+      const propostaNormalizada = criarProposta({
+        ...proposta,
+        dataCriacao: proposta.dataCriacao || (existente && existente.dataCriacao) || agora,
+        dataAtualizacao: agora
+      });
       const index = propostas.findIndex((item) => item.id === propostaNormalizada.id);
 
       if (index >= 0) {
@@ -474,7 +487,10 @@
         propostas.push(propostaNormalizada);
       }
 
-      saveStorage(STORAGE_KEYS.propostas, propostas);
+      if (!saveStorage(STORAGE_KEYS.propostas, propostas)) {
+        return null;
+      }
+
       return propostaNormalizada;
     },
 
@@ -513,6 +529,7 @@
           : (dados.descontoPercentual != null ? dados.descontoPercentual : (existente.valores && existente.valores.descontoPercentual)),
         servicos: dados.servicos || existente.servicos,
         dataCriacao: existente.dataCriacao,
+        dataAtualizacao: new Date().toISOString(),
         dataEnvio: dados.dataEnvio !== undefined ? dados.dataEnvio : existente.dataEnvio,
         dataResposta: dados.dataResposta !== undefined ? dados.dataResposta : existente.dataResposta,
         elaboradoPor: dados.elaboradoPor || existente.elaboradoPor,
@@ -763,7 +780,9 @@
 
       const emails = parseStorage(STORAGE_KEYS.emails, []);
       emails.push(registro);
-      saveStorage(STORAGE_KEYS.emails, emails);
+      if (!saveStorage(STORAGE_KEYS.emails, emails)) {
+        return null;
+      }
 
       const propostaAtualizada = PropostaDB.atualizar(proposta.id, {
         status: 'enviada',
@@ -772,6 +791,10 @@
         emailCliente: destino,
         pdfUrl: proposta.pdfUrl || null
       });
+
+      if (!propostaAtualizada) {
+        return null;
+      }
 
       return {
         registro: registro,

@@ -961,6 +961,10 @@
       }
 
       const salva = window.PropostaDB.salvar(proposta);
+      if (!salva) {
+        showStatus('Não foi possível salvar a proposta no navegador. Verifique o armazenamento local.', 'error');
+        return null;
+      }
       propostaAtualId = salva.id;
       return salva;
     }
@@ -1018,6 +1022,10 @@
         emailEnviadoPara: destinatario
       };
       const envio = window.EmailSimulator.enviar(propostaComPdf, destinatario);
+      if (!envio) {
+        showStatus('Não foi possível registrar o envio do email no navegador.', 'error');
+        return;
+      }
       propostaAtualId = envio.proposta.id;
       atualizarPreview();
       showStatus('Email simulado enviado para ' + envio.registro.para + '.', 'success');
@@ -1051,7 +1059,7 @@
       }
 
       const proposta = propostas.slice().sort((a, b) => {
-        return new Date(b.dataCriacao || 0).getTime() - new Date(a.dataCriacao || 0).getTime();
+        return new Date(b.dataAtualizacao || b.dataCriacao || 0).getTime() - new Date(a.dataAtualizacao || a.dataCriacao || 0).getTime();
       })[0];
 
       if (!proposta) {
