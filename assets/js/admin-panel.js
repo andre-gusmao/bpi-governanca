@@ -3,6 +3,7 @@
 
     const STORAGE_KEYS = {
         session: "admin_session",
+        sessionToken: "admin_session_token",
         clientes: "helpdesk_clientes",
         colaboradores: "helpdesk_colaboradores",
         projetos: "helpdesk_projetos",
@@ -20,7 +21,7 @@
     ];
 
     const TRUSTED_ACCOUNTS = window.TRUSTED_ACCOUNTS || {
-        admin: [{ email: "admin@bpi.com.br", senha: "admin123", adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" }]
+        admin: [{ email: "admin@bpi.com.br", senhaHash: "240be518fabd2724ddb6f04eeb652e4dd04f28bc072dd4d06fbbe2eb5b78372f", adminId: "admin-001", nome: "Admin BPI", role: "Super Admin" }]
     };
     window.TRUSTED_ACCOUNTS = TRUSTED_ACCOUNTS;
 
@@ -32,6 +33,15 @@
             "\"": "&quot;",
             "'": "&#39;"
         }[char]));
+    }
+
+    function simpleHash(value) {
+        let hash = 0;
+        const input = String(value || "");
+        for (let i = 0; i < input.length; i += 1) {
+            hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+        }
+        return String(hash);
     }
 
     function getJson(key, fallback) {
@@ -142,18 +152,23 @@
     }
 
     function saveSession(admin) {
+        const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        sessionStorage.setItem(STORAGE_KEYS.sessionToken, token);
         setJson(STORAGE_KEYS.session, {
             adminId: admin.adminId,
             email: admin.email,
             nome: admin.nome,
             role: admin.role,
-            loginEm: new Date().toISOString()
+            loginEm: new Date().toISOString(),
+            tokenHash: simpleHash(token)
         });
     }
 
     function requireAuth() {
         const session = getSession();
-        if (!session) {
+        const token = sessionStorage.getItem(STORAGE_KEYS.sessionToken);
+        const trusted = (TRUSTED_ACCOUNTS.admin || []).find((item) => String(item.email).toLowerCase() === String(session?.email || "").toLowerCase() && item.adminId === session?.adminId);
+        if (!session || !token || session.tokenHash !== simpleHash(token) || !trusted) {
             window.location.href = "/admin/login.html";
             return null;
         }
@@ -164,6 +179,7 @@
 
     function logout() {
         localStorage.removeItem(STORAGE_KEYS.session);
+        sessionStorage.removeItem(STORAGE_KEYS.sessionToken);
         window.location.href = "/admin/login.html";
     }
 
@@ -300,22 +316,40 @@
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     }
 
+    async function digestSha256(value) {
+        if (!window.crypto || !window.crypto.subtle) return simpleHash(value);
+        const msgBuffer = new TextEncoder().encode(value);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
     function initLogin() {
         const form = document.getElementById("admin-login-form");
         if (!form) return;
         if (getSession()) window.location.href = "/admin/dashboard.html";
-        form.addEventListener("submit", (event) => {
+        form.addEventListener("submit", async (event) => {
             event.preventDefault();
             const email = document.getElementById("email").value.trim().toLowerCase();
             const senha = document.getElementById("senha").value;
-            const account = (TRUSTED_ACCOUNTS.admin || []).find((item) => item.email.toLowerCase() === email && item.senha === senha);
+            const senhaHash = await digestSha256(senha);
+            const account = (TRUSTED_ACCOUNTS.admin || []).find((item) => {
+                if (String(item.email).toLowerCase() !== email) return false;
+                if (item.senhaHash) return item.senhaHash === senhaHash;
+                return item.senha === senha;
+            });
             const feedback = document.getElementById("login-feedback");
             if (!account) {
                 feedback.textContent = "Credenciais inválidas.";
                 feedback.className = "muted";
                 return;
             }
-            saveSession(account);
+            saveSession({
+                adminId: account.adminId,
+                email: account.email,
+                nome: account.nome,
+                role: account.role
+            });
             recordAudit({
                 acao: "login_admin",
                 recurso: "sessao",
@@ -545,7 +579,7 @@
                 const novo = {
                     clientId: nextId("cli", list, "clientId"),
                     ...payload,
-                    modalidade: MODALIDADES_PADRAO[0],
+                    modalidade: (getJson(STORAGE_KEYS.modalidades, MODALIDADES_PADRAO)[0] || MODALIDADES_PADRAO[0]),
                     status: "ativo",
                     dataCriacao: new Date().toISOString(),
                     dataAtualizacao: new Date().toISOString()
@@ -731,28 +765,40 @@
         return safe;
     }
 
-    function parseCsvRow(row) {
-        const result = [];
+    function parseCsv(content) {
+        const rows = [];
+        let row = [];
         let current = "";
         let inside = false;
-        for (let i = 0; i < row.length; i += 1) {
-            const char = row[i];
+        for (let i = 0; i < content.length; i += 1) {
+            const char = content[i];
             if (char === "\"") {
-                if (inside && row[i + 1] === "\"") {
+                if (inside && content[i + 1] === "\"") {
                     current += "\"";
                     i += 1;
-                } else inside = !inside;
+                } else {
+                    inside = !inside;
+                }
                 continue;
             }
             if (char === "," && !inside) {
-                result.push(current);
+                row.push(current);
+                current = "";
+                continue;
+            }
+            if ((char === "\n" || char === "\r") && !inside) {
+                if (char === "\r" && content[i + 1] === "\n") i += 1;
+                row.push(current);
+                if (row.some((cell) => String(cell).trim() !== "")) rows.push(row);
+                row = [];
                 current = "";
                 continue;
             }
             current += char;
         }
-        result.push(current);
-        return result;
+        row.push(current);
+        if (row.some((cell) => String(cell).trim() !== "")) rows.push(row);
+        return rows;
     }
 
     function initCatalogo() {
@@ -881,12 +927,12 @@
             const file = event.target.files && event.target.files[0];
             if (!file) return;
             const content = await file.text();
-            const rows = content.split(/\r?\n/).filter(Boolean);
+            const rows = parseCsv(content);
             if (rows.length < 2) return;
-            const headers = parseCsvRow(rows[0]);
+            const headers = rows[0];
             const list = getJson(STORAGE_KEYS.catalogo, []);
             for (let i = 1; i < rows.length; i += 1) {
-                const values = parseCsvRow(rows[i]);
+                const values = rows[i];
                 const row = {};
                 headers.forEach((header, idx) => {
                     row[header] = values[idx] ?? "";
@@ -981,8 +1027,8 @@
             });
 
             document.getElementById("rel-clientes-body").innerHTML = clientesFiltrados.map((item) => {
-                const p = projetos.filter((proj) => proj.clientId === item.clientId && proj.status !== "encerrado");
-                const valor = projetos.filter((proj) => proj.clientId === item.clientId).reduce((acc, proj) => acc + sumProjetoValor(proj), 0);
+                const p = projetosFiltrados.filter((proj) => proj.clientId === item.clientId && proj.status !== "encerrado");
+                const valor = projetosFiltrados.filter((proj) => proj.clientId === item.clientId).reduce((acc, proj) => acc + sumProjetoValor(proj), 0);
                 return `<tr><td>${escapeHtml(item.razaoSocial)}</td><td>${escapeHtml(item.cnpj || "-")}</td><td>${escapeHtml(item.email || "-")}</td><td>${escapeHtml(item.telefone || "-")}</td><td>${p.length}</td><td>${formatMoney(valor)}</td><td>${escapeHtml(item.status)}</td></tr>`;
             }).join("") || "<tr><td colspan='7' class='muted'>Sem dados</td></tr>";
             document.getElementById("tot-clientes").textContent = clientesFiltrados.length;
@@ -1151,7 +1197,22 @@
             if (!file) return;
             const content = await file.text();
             const data = JSON.parse(content);
-            Object.entries(data).forEach(([key, value]) => localStorage.setItem(key, value));
+            const allowed = [
+                STORAGE_KEYS.clientes,
+                STORAGE_KEYS.colaboradores,
+                STORAGE_KEYS.projetos,
+                STORAGE_KEYS.catalogo,
+                STORAGE_KEYS.auditoria,
+                STORAGE_KEYS.modalidades,
+                STORAGE_KEYS.empresa,
+                "helpdesk_atividades",
+                "helpdesk_propostas",
+                "helpdesk_escopo",
+                "helpdesk_emails"
+            ];
+            allowed.forEach((key) => {
+                if (Object.prototype.hasOwnProperty.call(data, key)) localStorage.setItem(key, data[key]);
+            });
             recordAudit({ acao: "restore_dados", recurso: "configuracao", recursoId: "restore", descricao: "Restore executado", detalhes: { antes: null, depois: { keys: Object.keys(data).length } } });
             alert("Backup restaurado.");
             window.location.reload();
