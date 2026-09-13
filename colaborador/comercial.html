@@ -357,11 +357,6 @@
               <label class="form-label">Adicionar Produtos/Serviços</label>
               <select class="form-select" id="produtoSelect" onchange="adicionarProduto()">
                 <option value="">Selecione um produto...</option>
-                <option value="srv-impl-erp">Implementação ERP - Módulo Financeiro (R$ 30.000)</option>
-                <option value="srv-train-users">Treinamento de Usuários (R$ 8.000)</option>
-                <option value="srv-consult-opt">Consultoria de Otimização (R$ 18.000)</option>
-                <option value="lic-suporte-premium">Suporte Premium 24/7 (R$ 2.000/mês)</option>
-                <option value="lic-manutencao">Manutenção Preventiva (R$ 1.500/mês)</option>
               </select>
             </div>
 
@@ -438,8 +433,18 @@
     </main>
   </div>
 
+  <script src="../assets/js/catalogo.js"></script>
   <script>
     let produtosSelecionados = [];
+
+    function escaparHtml(valor) {
+      return String(valor || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
@@ -458,27 +463,47 @@
       window.location.href = './login.html';
     }
 
-    function adicionarProduto() {
+    function formatarValorProduto(produto) {
+      if (produto.tipo === 'setup') {
+        return `R$ ${produto.valorTotal.toLocaleString('pt-BR')} • ${produto.horasEstimadas}h`;
+      }
+
+      return `R$ ${produto.valorMensal.toLocaleString('pt-BR')}/${produto.periodicidade}`;
+    }
+
+    function popularProdutosDisponiveis() {
       const select = document.getElementById('produtoSelect');
-      const produtoId = select.value;
+      const produtos = CatalogoDB.listar();
+
+      select.innerHTML = '';
+      select.appendChild(new Option('Selecione um produto...', ''));
+
+      produtos.forEach(produto => {
+        select.appendChild(new Option(`${produto.nome} (${formatarValorProduto(produto)})`, produto.id));
+      });
+    }
+
+    function adicionarProduto(produtoIdInicial) {
+      const select = document.getElementById('produtoSelect');
+      const produtoId = produtoIdInicial || select.value;
       
       if (!produtoId) return;
 
-      // Dados dos produtos
-      const produtos = {
-        'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
-        'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
-        'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000 },
-        'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 },
-        'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500 }
-      };
-
-      if (produtos[produtoId]) {
-        produtosSelecionados.push({ id: produtoId, ...produtos[produtoId] });
-        renderizarProdutos();
-        calcularResumo();
+      if (produtosSelecionados.some(produto => produto.id === produtoId)) {
         select.value = '';
+        return;
       }
+
+      const produto = CatalogoDB.obter(produtoId);
+      if (!produto) {
+        select.value = '';
+        return;
+      }
+
+      produtosSelecionados.push(produto);
+      renderizarProdutos();
+      calcularResumo();
+      select.value = '';
     }
 
     function removerProduto(index) {
@@ -498,8 +523,10 @@
       lista.innerHTML = produtosSelecionados.map((p, i) => `
         <div class="produto-selecionado">
           <div class="produto-info">
-            <div class="produto-nome">${p.nome}</div>
-            <div class="produto-valor">${p.tipo === 'setup' ? `R$ ${p.valor.toLocaleString('pt-BR')}` : `R$ ${p.valor.toLocaleString('pt-BR')}/mês`}</div>
+            <div class="produto-nome">${escaparHtml(p.nome)}</div>
+            <div class="produto-valor">${p.tipo === 'setup'
+              ? `Setup • R$ ${p.valorTotal.toLocaleString('pt-BR')} • ${p.prazoEstimado} dias`
+              : `Recorrente • R$ ${p.valorMensal.toLocaleString('pt-BR')}/${p.periodicidade} • mínimo ${p.prazoPagamento} meses`}</div>
           </div>
           <button type="button" class="remove-btn" onclick="removerProduto(${i})">✕ Remover</button>
         </div>
@@ -512,9 +539,9 @@
 
       produtosSelecionados.forEach(p => {
         if (p.tipo === 'setup') {
-          setup += p.valor;
+          setup += p.valorTotal;
         } else {
-          recorrente += p.valor;
+          recorrente += p.valorMensal;
         }
       });
 
@@ -534,10 +561,30 @@
       // Aqui entra a integração com jsPDF e SendGrid
     }
 
+    function importarSelecaoCatalogo() {
+      try {
+        const pendentes = JSON.parse(localStorage.getItem('helpdesk_catalogo_selecao') || '[]');
+        if (!Array.isArray(pendentes)) {
+          return;
+        }
+
+        pendentes.forEach(produtoId => adicionarProduto(produtoId));
+        localStorage.removeItem('helpdesk_catalogo_selecao');
+      } catch (error) {
+        localStorage.removeItem('helpdesk_catalogo_selecao');
+      }
+    }
+
     // Adicionar listener para recalcular ao mudar desconto
     document.getElementById('desconto')?.addEventListener('input', calcularResumo);
 
-    window.addEventListener('load', checkSession);
+    window.addEventListener('load', () => {
+      checkSession();
+      popularProdutosDisponiveis();
+      importarSelecaoCatalogo();
+      renderizarProdutos();
+      calcularResumo();
+    });
   </script>
 </body>
 </html>
