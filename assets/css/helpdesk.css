@@ -17,6 +17,7 @@ body { background: var(--color-gray-lighter); }
 .kpi-card { background: #fff; border-radius: 14px; box-shadow: var(--shadow-md); padding: 14px; }
 .kpi-label { color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; }
 .kpi-value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.kpi-change { margin-top: 6px; color: #6b7280; font-size: 12px; }
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 
@@ -63,6 +64,7 @@ input, select, textarea { border: 1px solid #d1d5db; border-radius: 10px; paddin
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .tab-btn { border: 1px solid #d1d5db; background: #fff; color: #111827; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
 .tab-btn.active { background: #111827; color: #fff; }
+.tab-download { margin-left: auto; }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 .alert-box { margin-top: 10px; background: #fffbeb; border: 1px solid #fcd34d; padding: 10px; border-radius: 10px; }

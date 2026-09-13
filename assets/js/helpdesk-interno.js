@@ -17,12 +17,19 @@
   ];
 
   const TRUSTED_ACCOUNTS = {
-    colaborador: [
-      { colaboradorId: 'col-001', email: 'andre@bpi.com.br', nome: 'André Gusmão', role: 'Consultor', senha: '123456' },
-      { colaboradorId: 'col-002', email: 'maria@bpi.com.br', nome: 'Maria Silva', role: 'Suporte', senha: '123456' },
-      { colaboradorId: 'col-003', email: 'admin.helpdesk@bpi.com.br', nome: 'Admin Help Desk', role: 'Admin', senha: '123456' }
-    ]
+    colaborador: {
+      'andre@bpi.com.br': { senhaHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92' },
+      'maria@bpi.com.br': { senhaHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92' },
+      'admin.helpdesk@bpi.com.br': { senhaHash: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92' }
+    }
   };
+
+  const COLABORADORES = [
+    { colaboradorId: 'col-001', email: 'andre@bpi.com.br', nome: 'André Gusmão', role: 'Consultor' },
+    { colaboradorId: 'col-002', email: 'maria@bpi.com.br', nome: 'Maria Silva', role: 'Suporte' },
+    { colaboradorId: 'col-003', email: 'admin.helpdesk@bpi.com.br', nome: 'Admin Help Desk', role: 'Admin' }
+  ];
+  const REPORT_RATING = { min: 2, max: 5, baselineHours: 24 };
 
   function readJSON(key, fallback) {
     try {
@@ -50,6 +57,12 @@
     return new Date().toISOString();
   }
 
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(String(text || ''));
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
   function formatDate(dateISO) {
     if (!dateISO) return '-';
     const d = new Date(dateISO);
@@ -61,13 +74,14 @@
     return Math.max(0, (new Date(b).getTime() - new Date(a).getTime()) / 36e5);
   }
 
+  function hoursUntil(dateISO) {
+    return Math.max(0, (new Date(dateISO).getTime() - Date.now()) / 36e5);
+  }
+
   function getSlaConfig() {
     const existing = readJSON(STORAGE.configSla, null);
     if (existing) return existing;
-    const config = MODALIDADES.reduce((acc, modalidade) => {
-      acc[modalidade] = 24;
-      return acc;
-    }, {});
+    const config = Object.fromEntries(MODALIDADES.map((modalidade) => [modalidade, 24]));
     writeJSON(STORAGE.configSla, config);
     return config;
   }
@@ -105,7 +119,7 @@
         clientId: `cli-${String((i % 5) + 1).padStart(3, '0')}`,
         nomeCliente: names[i % names.length],
         emailCliente: `contato${i}@cliente.com.br`,
-        telefonecliente: `(11) 3000-00${String(i).padStart(2, '0')}`,
+        telefoneCliente: `(11) 3000-00${String(i).padStart(2, '0')}`,
         titulo: `Solicitação ${i} - ${modalidade}`,
         modalidade,
         descricao: `Descrição do chamado ${i} para ${modalidade}.`,
@@ -187,9 +201,19 @@
     return readJSON(STORAGE.session, null);
   }
 
+  function isSessionValid(session) {
+    if (!session || !session.email || !session.loginEm) return false;
+    const trusted = COLABORADORES.some((item) => item.email === session.email && item.colaboradorId === session.colaboradorId);
+    if (!trusted) return false;
+    const loginTime = new Date(session.loginEm).getTime();
+    if (!loginTime || Number.isNaN(loginTime)) return false;
+    return (Date.now() - loginTime) <= 12 * 36e5;
+  }
+
   function requireAuth() {
     const session = getSession();
-    if (!session) {
+    if (!isSessionValid(session)) {
+      localStorage.removeItem(STORAGE.session);
       window.location.href = './login.html';
       return null;
     }
@@ -205,14 +229,18 @@
     window.location.href = './login.html';
   }
 
-  function login(email, senha) {
-    const match = TRUSTED_ACCOUNTS.colaborador.find((acc) => acc.email === email && acc.senha === senha);
-    if (!match) return null;
+  async function login(email, senha) {
+    const trusted = TRUSTED_ACCOUNTS.colaborador[email];
+    if (!trusted) return null;
+    const providedHash = await sha256Hex(senha);
+    if (providedHash !== trusted.senhaHash) return null;
+    const profile = COLABORADORES.find((acc) => acc.email === email);
+    if (!profile) return null;
     const session = {
-      colaboradorId: match.colaboradorId,
-      email: match.email,
-      nome: match.nome,
-      role: match.role,
+      colaboradorId: profile.colaboradorId,
+      email: profile.email,
+      nome: profile.nome,
+      role: profile.role,
       loginEm: nowISO()
     };
     writeJSON(STORAGE.session, session);
@@ -237,6 +265,13 @@
     if (p === 'alta') return 3;
     if (p === 'media' || p === 'média') return 2;
     return 1;
+  }
+
+  function canonicalPriority(priority) {
+    const p = (priority || '').toLowerCase();
+    if (p === 'média') return 'media';
+    if (p === 'critica') return 'crítica';
+    return p;
   }
 
   function getRiskIndicator(chamado) {
@@ -268,6 +303,10 @@
       chamado.dataFechamento = nowISO();
     } else if (statusAlvo === 'pendente_cliente') {
       chamado.status = 'pendente_cliente';
+      chamado.dataFechamento = null;
+    } else if (statusAlvo && statusAlvo !== 'fechado') {
+      chamado.status = statusAlvo;
+      chamado.dataFechamento = null;
     }
 
     saveChamados(chamados);
@@ -279,10 +318,15 @@
     if (!chamado) return;
 
     const previousStatus = chamado.status;
+    if (updates.prioridade) {
+      updates.prioridade = canonicalPriority(updates.prioridade);
+    }
     Object.assign(chamado, updates);
 
     if (updates.status === 'fechado' && previousStatus !== 'fechado') {
       chamado.dataFechamento = nowISO();
+    } else if (updates.status && updates.status !== 'fechado') {
+      chamado.dataFechamento = null;
     }
 
     if (updates.atribuidoPara && !chamado.dataAtribuicao) {
@@ -290,6 +334,7 @@
     }
 
     if (updates.novaTag) {
+      chamado.tags = Array.isArray(chamado.tags) ? chamado.tags : [];
       const tag = String(updates.novaTag).trim();
       if (tag && !chamado.tags.includes(tag)) chamado.tags.push(tag);
       delete chamado.novaTag;
@@ -370,7 +415,7 @@
     return getChamados().filter((c) => {
       const statusOk = !filters.status || filters.status === 'todos' || c.status === filters.status;
       const modOk = !filters.modalidade || filters.modalidade === 'todos' || c.modalidade === filters.modalidade;
-      const prioOk = !filters.prioridade || filters.prioridade === 'todos' || c.prioridade === filters.prioridade;
+      const prioOk = !filters.prioridade || filters.prioridade === 'todos' || canonicalPriority(c.prioridade) === canonicalPriority(filters.prioridade);
       const dateOk = (() => {
         if (!filters.periodo || filters.periodo === 'todos') return true;
         const created = new Date(c.dataCriacao).getTime();
@@ -474,8 +519,69 @@
     return { progress: Math.round(progress), color, remaining };
   }
 
-  function setInnerHTMLSafe(container, html) {
-    container.innerHTML = html;
+  function sanitizeRichContent(html) {
+    const template = document.createElement('template');
+    template.innerHTML = String(html || '');
+    const allowedTags = new Set(['P', 'BR', 'STRONG', 'B', 'EM', 'I', 'UL', 'OL', 'LI', 'A', 'CODE', 'PRE']);
+
+    (function walk(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (!allowedTags.has(node.tagName)) {
+          const textNode = document.createTextNode(node.textContent || '');
+          node.replaceWith(textNode);
+          return;
+        }
+
+        Array.from(node.attributes).forEach((attr) => {
+          const isHref = node.tagName === 'A' && attr.name === 'href';
+          if (!isHref) {
+            node.removeAttribute(attr.name);
+          }
+          if (isHref) {
+            const href = node.getAttribute('href') || '';
+            if (!href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('mailto:')) {
+              node.removeAttribute('href');
+            }
+          }
+        });
+      }
+      Array.from(node.childNodes).forEach(walk);
+    }(template.content));
+
+    return template.innerHTML;
+  }
+
+  function sanitizeTemplateHTML(html) {
+    const template = document.createElement('template');
+    template.innerHTML = String(html || '');
+
+    (function walk(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        Array.from(node.attributes).forEach((attr) => {
+          const name = attr.name.toLowerCase();
+          const value = attr.value || '';
+          if (name.startsWith('on') || name === 'srcdoc') {
+            node.removeAttribute(attr.name);
+            return;
+          }
+          if ((name === 'href' || name === 'src') && /^javascript:/i.test(value.trim())) {
+            node.removeAttribute(attr.name);
+            return;
+          }
+          if (name === 'style' && !/^\\s*width\\s*:\\s*\\d{1,3}%\\s*;?\\s*$/i.test(value)) {
+            node.removeAttribute(attr.name);
+          }
+        });
+      }
+      Array.from(node.childNodes).forEach(walk);
+    }(template.content));
+
+    return template.innerHTML;
+  }
+
+  // Use apenas com templates internos já escapados/sanitizados.
+  function setTrustedHTML(container, html) {
+    container.innerHTML = sanitizeTemplateHTML(html);
   }
 
   function renderDashboard() {
@@ -495,10 +601,10 @@
         <td>${escapeHtml(c.nomeCliente)}</td>
         <td><span class="badge ${escapeHtml(c.status)}">${escapeHtml(c.status)}</span></td>
         <td>${escapeHtml(c.prioridade)}</td>
-        <td>${Math.max(0, Math.round(hoursBetween(nowISO(), c.slaVencimento)))}h</td>
+        <td>${Math.round(hoursUntil(c.slaVencimento))}h</td>
       </tr>
     `).join('') || '<tr><td colspan="5">Sem chamados atribuídos.</td></tr>';
-    setInnerHTMLSafe(document.getElementById('meusChamadosBody'), meusRows);
+    setTrustedHTML(document.getElementById('meusChamadosBody'), meusRows);
 
     const criticosRows = data.criticos.map((c) => `
       <tr>
@@ -508,20 +614,20 @@
         <td>${Math.round(hoursBetween(c.dataCriacao, nowISO()))}h</td>
       </tr>
     `).join('') || '<tr><td colspan="4">Sem chamados críticos.</td></tr>';
-    setInnerHTMLSafe(document.getElementById('criticosBody'), criticosRows);
+    setTrustedHTML(document.getElementById('criticosBody'), criticosRows);
 
     const pie = pieSegmentsByModalidade(chamados).map((x) => `<div class="chart-row"><span>${escapeHtml(x.modalidade)}</span><div class="bar"><div style="width:${x.percent}%"></div></div><strong>${x.percent}%</strong></div>`).join('') || '<p>Sem dados.</p>';
-    setInnerHTMLSafe(document.getElementById('chartPizza'), pie);
+    setTrustedHTML(document.getElementById('chartPizza'), pie);
 
     const age = ageBuckets(chamados);
     const maxAge = Math.max(...Object.values(age), 1);
     const ageHtml = Object.entries(age).map(([k, v]) => `<div class="chart-row"><span>${k}</span><div class="bar"><div style="width:${Math.round((v / maxAge) * 100)}%"></div></div><strong>${v}</strong></div>`).join('');
-    setInnerHTMLSafe(document.getElementById('chartAge'), ageHtml);
+    setTrustedHTML(document.getElementById('chartAge'), ageHtml);
 
     const trend = avgResolutionTrend(chamados, 7);
     const maxTrend = Math.max(...trend.map((x) => x.avg), 1);
     const trendHtml = trend.map((x) => `<div class="chart-row"><span>${x.day}</span><div class="bar"><div style="width:${Math.round((x.avg / maxTrend) * 100)}%"></div></div><strong>${x.avg}h</strong></div>`).join('');
-    setInnerHTMLSafe(document.getElementById('chartTempo'), trendHtml);
+    setTrustedHTML(document.getElementById('chartTempo'), trendHtml);
   }
 
   function renderFila() {
@@ -548,7 +654,7 @@
           <td>${escapeHtml(c.prioridade)}</td>
           <td><span class="badge ${escapeHtml(c.status)}">${escapeHtml(c.status)}</span></td>
           <td>${Math.round(hoursBetween(c.dataCriacao, nowISO()))}h</td>
-          <td>${Math.max(0, Math.round(hoursBetween(nowISO(), c.slaVencimento)))}h</td>
+          <td>${Math.round(hoursUntil(c.slaVencimento))}h</td>
           <td>
             <button data-assign="${escapeHtml(c.id)}" class="btn small">Atribuir a mim</button>
             <a class="btn small secondary" href="./chamado.html?id=${encodeURIComponent(c.id)}">Ver Detalhes</a>
@@ -556,7 +662,7 @@
         </tr>
       `).join('') || '<tr><td colspan="9">Nenhum chamado encontrado.</td></tr>';
 
-      setInnerHTMLSafe(document.getElementById('filaBody'), rows);
+      setTrustedHTML(document.getElementById('filaBody'), rows);
 
       document.querySelectorAll('[data-assign]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -579,6 +685,10 @@
 
     const id = new URLSearchParams(window.location.search).get('id');
     const chamado = getChamadoById(id);
+    const currentNavLink = document.querySelector('a[aria-current="page"]');
+    if (currentNavLink && id) {
+      currentNavLink.href = `./chamado.html?id=${encodeURIComponent(id)}`;
+    }
     if (!chamado) {
       document.getElementById('chamadoContainer').innerHTML = '<p>Chamado não encontrado.</p>';
       return;
@@ -586,13 +696,14 @@
 
     function draw() {
       const updated = getChamadoById(id);
+      updated.prioridade = canonicalPriority(updated.prioridade);
       const sla = getSlaVisual(updated);
       const optionsModalidade = MODALIDADES.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
 
-      setInnerHTMLSafe(document.getElementById('chamadoContainer'), `
+      setTrustedHTML(document.getElementById('chamadoContainer'), `
         <div class="card">
           <h2>${escapeHtml(updated.id)} - ${escapeHtml(updated.titulo)}</h2>
-          <p><strong>Cliente:</strong> ${escapeHtml(updated.nomeCliente)} | ${escapeHtml(updated.emailCliente)} | ${escapeHtml(updated.telefonecliente)}</p>
+          <p><strong>Cliente:</strong> ${escapeHtml(updated.nomeCliente)} | ${escapeHtml(updated.emailCliente)} | ${escapeHtml(updated.telefoneCliente)}</p>
           <p><strong>Modalidade:</strong> ${escapeHtml(updated.modalidade)} | <strong>Prioridade:</strong> ${escapeHtml(updated.prioridade)} | <strong>Status:</strong> ${escapeHtml(updated.status)}</p>
           <p><strong>Datas:</strong> Criação ${formatDate(updated.dataCriacao)} | Atribuição ${formatDate(updated.dataAtribuicao)} | Fechamento ${formatDate(updated.dataFechamento)}</p>
           <p><strong>Atribuído para:</strong> ${escapeHtml(updated.atribuidoPara || '-')}</p>
@@ -632,7 +743,7 @@
           <div class="grid-2">
             <div>
               <label>Atribuir para colaborador</label>
-              <select id="acaoAtribuir"><option value="">Selecione</option>${TRUSTED_ACCOUNTS.colaborador.map((c) => `<option value="${escapeHtml(c.email)}">${escapeHtml(c.nome)}</option>`).join('')}</select>
+              <select id="acaoAtribuir"><option value="">Selecione</option>${COLABORADORES.map((c) => `<option value="${escapeHtml(c.email)}">${escapeHtml(c.nome)}</option>`).join('')}</select>
             </div>
             <div>
               <label>Mudar status</label>
@@ -737,17 +848,17 @@
           </td>
         </tr>
       `).join('') || '<tr><td colspan="5">Nenhum artigo encontrado.</td></tr>';
-      setInnerHTMLSafe(document.getElementById('artigosBody'), rows);
+      setTrustedHTML(document.getElementById('artigosBody'), rows);
 
       document.querySelectorAll('[data-read]').forEach((btn) => btn.addEventListener('click', () => {
         artigoAberto = getArtigos().find((a) => a.id === btn.getAttribute('data-read'));
         if (!artigoAberto) return;
         trackArtigoView(artigoAberto.id);
         artigoAberto = getArtigos().find((a) => a.id === artigoAberto.id);
-        setInnerHTMLSafe(document.getElementById('visualizadorArtigo'), `
+        setTrustedHTML(document.getElementById('visualizadorArtigo'), `
           <h3>${escapeHtml(artigoAberto.titulo)}</h3>
           <p><strong>Autor:</strong> ${escapeHtml(artigoAberto.autor)} | <strong>Data:</strong> ${formatDate(artigoAberto.dataAtualizacao)} | <strong>Views:</strong> ${artigoAberto.visualizacoes}</p>
-          <div class="article-content">${escapeHtml(artigoAberto.conteudo).replace(/\n/g, '<br>')}</div>
+          <div class="article-content">${sanitizeRichContent(artigoAberto.conteudo)}</div>
           <p><strong>Relacionados:</strong> ${getArtigos().filter((x) => x.modalidade === artigoAberto.modalidade && x.id !== artigoAberto.id).slice(0, 3).map((x) => escapeHtml(x.titulo)).join(' | ') || 'Sem sugestões'}</p>
           <button id="btnVoltarArtigo" class="btn secondary">Voltar</button>
         `);
@@ -761,7 +872,7 @@
         const artigo = getArtigos().find((a) => a.id === btn.getAttribute('data-edit'));
         if (!artigo) return;
         if (artigo.autorEmail !== session.email && session.role !== 'Admin') {
-          window.alert('Somente autor ou admin pode editar.');
+          window.alert('Somente o autor do artigo ou um usuário com perfil Admin pode editar.');
           return;
         }
         editandoId = artigo.id;
@@ -804,7 +915,7 @@
     if (!session) return;
 
     document.getElementById('filtroRelModalidade').innerHTML = '<option value="todos">Todas</option>' + MODALIDADES.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
-    document.getElementById('filtroRelAtendente').innerHTML = '<option value="todos">Todos</option>' + TRUSTED_ACCOUNTS.colaborador.map((c) => `<option value="${escapeHtml(c.email)}">${escapeHtml(c.nome)}</option>`).join('');
+    document.getElementById('filtroRelAtendente').innerHTML = '<option value="todos">Todos</option>' + COLABORADORES.map((c) => `<option value="${escapeHtml(c.email)}">${escapeHtml(c.nome)}</option>`).join('');
 
     function getRange() {
       const ini = document.getElementById('filtroRelInicio').value;
@@ -812,22 +923,25 @@
       return { ini: ini ? new Date(`${ini}T00:00:00`).getTime() : null, fim: fim ? new Date(`${fim}T23:59:59`).getTime() : null };
     }
 
+    function inRange(timestamp, range) {
+      return (!range.ini || timestamp >= range.ini) && (!range.fim || timestamp <= range.fim);
+    }
+
     function dataset() {
       const mod = document.getElementById('filtroRelModalidade').value;
       const atendente = document.getElementById('filtroRelAtendente').value;
-      const range = getRange();
       return getChamados().filter((c) => {
-        const t = new Date(c.dataCriacao).getTime();
-        const inRange = (!range.ini || t >= range.ini) && (!range.fim || t <= range.fim);
         const modOk = mod === 'todos' || c.modalidade === mod;
         const atendOk = atendente === 'todos' || c.atribuidoPara === atendente;
-        return inRange && modOk && atendOk;
+        return modOk && atendOk;
       });
     }
 
     function calc() {
-      const chamados = dataset();
-      const resolvidos = chamados.filter((c) => c.status === 'fechado');
+      const all = dataset();
+      const range = getRange();
+      const chamados = all.filter((c) => inRange(new Date(c.dataCriacao).getTime(), range));
+      const resolvidos = all.filter((c) => c.status === 'fechado' && c.dataFechamento && inRange(new Date(c.dataFechamento).getTime(), range));
       const sla = resolvidos.length
         ? Math.round((resolvidos.filter((c) => new Date(c.dataFechamento) <= new Date(c.slaVencimento)).length / resolvidos.length) * 100)
         : 0;
@@ -846,18 +960,39 @@
 
     function draw() {
       const { chamados, resolvidos, sla, tempoMedio } = calc();
-      document.getElementById('visaoGeral').innerHTML = `
-        <div class="dashboard-grid">
-          <div class="kpi-card"><div class="kpi-label">Total</div><div class="kpi-value">${chamados.length}</div></div>
-          <div class="kpi-card"><div class="kpi-label">Abertos</div><div class="kpi-value">${chamados.filter((c) => c.status === 'aberto').length}</div></div>
-          <div class="kpi-card"><div class="kpi-label">Resolvidos</div><div class="kpi-value">${resolvidos.length}</div></div>
-          <div class="kpi-card"><div class="kpi-label">Tempo Médio</div><div class="kpi-value">${tempoMedio}h</div><div class="kpi-change">SLA ${sla}%</div></div>
-        </div>
-      `;
+      const geral = document.getElementById('visaoGeral');
+      geral.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'dashboard-grid';
+      [
+        ['Total', `${chamados.length}`],
+        ['Abertos', `${chamados.filter((c) => c.status === 'aberto').length}`],
+        ['Resolvidos', `${resolvidos.length}`],
+        ['Tempo Médio', `${tempoMedio}h`]
+      ].forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'kpi-card';
+        const label = document.createElement('div');
+        label.className = 'kpi-label';
+        label.textContent = item[0];
+        const value = document.createElement('div');
+        value.className = 'kpi-value';
+        value.textContent = item[1];
+        card.appendChild(label);
+        card.appendChild(value);
+        if (index === 3) {
+          const change = document.createElement('div');
+          change.className = 'kpi-change';
+          change.textContent = `SLA ${sla}%`;
+          card.appendChild(change);
+        }
+        grid.appendChild(card);
+      });
+      geral.appendChild(grid);
 
       const porMod = MODALIDADES.map((m) => {
         const group = chamados.filter((c) => c.modalidade === m);
-        const gRes = group.filter((c) => c.status === 'fechado');
+        const gRes = resolvidos.filter((c) => c.modalidade === m);
         const gSla = gRes.length ? Math.round((gRes.filter((c) => new Date(c.dataFechamento) <= new Date(c.slaVencimento)).length / gRes.length) * 100) : 0;
         const gTempo = gRes.length ? Math.round(gRes.reduce((sum, c) => sum + hoursBetween(c.dataCriacao, c.dataFechamento), 0) / gRes.length) : 0;
         return { m, total: group.length, resolvidos: gRes.length, sla: gSla, tempo: gTempo };
@@ -869,11 +1004,19 @@
         <div class="chart-card">${porMod.map((x) => `<div class="chart-row"><span>${escapeHtml(x.m)}</span><div class="bar"><div style="width:${Math.max(5, x.total * 10)}%"></div></div><strong>${x.total}</strong></div>`).join('')}</div>
       `;
 
-      const porAtendente = TRUSTED_ACCOUNTS.colaborador.map((u) => {
+      const porAtendente = COLABORADORES.map((u) => {
         const group = chamados.filter((c) => c.atribuidoPara === u.email);
-        const gRes = group.filter((c) => c.status === 'fechado');
+        const gRes = resolvidos.filter((c) => c.atribuidoPara === u.email);
         const gTempo = gRes.length ? Math.round(gRes.reduce((sum, c) => sum + hoursBetween(c.dataCriacao, c.dataFechamento), 0) / gRes.length) : 0;
-        return { u, atribu: group.length, resolvidos: gRes.length, tempo: gTempo, rating: Math.max(2, Math.min(5, 5 - (gTempo / 24))).toFixed(1) };
+        return {
+          u,
+          atribu: group.length,
+          resolvidos: gRes.length,
+          tempo: gTempo,
+          rating: gRes.length === 0
+            ? '-'
+            : Math.max(REPORT_RATING.min, Math.min(REPORT_RATING.max, REPORT_RATING.max - (gTempo / REPORT_RATING.baselineHours))).toFixed(1)
+        };
       });
 
       document.getElementById('porAtendente').innerHTML = `
@@ -918,7 +1061,7 @@
           <td><button class="btn small" data-save-sla="${escapeHtml(mod)}">Salvar</button></td>
         </tr>
       `).join('');
-      setInnerHTMLSafe(document.getElementById('slaBody'), rows);
+      setTrustedHTML(document.getElementById('slaBody'), rows);
 
       document.querySelectorAll('[data-save-sla]').forEach((btn) => btn.addEventListener('click', () => {
         const mod = btn.getAttribute('data-save-sla');
@@ -927,6 +1070,7 @@
         writeJSON(STORAGE.configSla, cfg);
         const chamados = getChamados();
         chamados.forEach((c) => {
+          if (c.status === 'fechado') return;
           c.slaHoras = cfg[c.modalidade] || c.slaHoras || 24;
           c.slaVencimento = new Date(new Date(c.dataCriacao).getTime() + c.slaHoras * 36e5).toISOString();
         });
@@ -936,7 +1080,7 @@
 
     function drawTemplates() {
       const templates = readJSON(STORAGE.templates, []);
-      setInnerHTMLSafe(document.getElementById('templatesBody'), templates.map((t) => `
+      setTrustedHTML(document.getElementById('templatesBody'), templates.map((t) => `
         <tr>
           <td>${escapeHtml(t.titulo)}</td>
           <td>${escapeHtml(t.conteudo)}</td>
@@ -1011,17 +1155,18 @@
   function renderLogin() {
     ensureData();
     const session = getSession();
-    if (session) {
+    if (isSessionValid(session)) {
       window.location.href = './dashboard.html';
       return;
     }
+    localStorage.removeItem(STORAGE.session);
 
     const form = document.getElementById('loginForm');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value;
-      const result = login(email, senha);
+      const result = await login(email, senha);
       if (!result) {
         document.getElementById('erroLogin').textContent = 'Email e/ou senha inválidos.';
         return;
