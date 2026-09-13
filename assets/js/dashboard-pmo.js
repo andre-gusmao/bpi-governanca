@@ -77,6 +77,20 @@
     }).format(Number(value) || 0);
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function toTimestamp(value, fallback) {
+    const date = parseDate(value);
+    return date ? date.getTime() : fallback;
+  }
+
   function normalizeStatusProjeto(status) {
     const raw = String(status || '').toLowerCase().trim();
 
@@ -917,15 +931,20 @@
       const prioridade = PRIORIDADES[atividade.prioridade] || PRIORIDADES.media;
       const status = STATUS_ATIVIDADE[atividade.status] || STATUS_ATIVIDADE.nao_iniciada;
       const prazoTexto = atividade.diasRestantes === 0 ? 'Hoje' : 'Em ' + atividade.diasRestantes + ' dia(s)';
+      const titulo = escapeHtml(atividade.titulo);
+      const projeto = escapeHtml(atividade.projeto);
+      const cliente = escapeHtml(atividade.cliente);
+      const prazo = escapeHtml(formatDateBR(atividade.dataPrevista));
+      const statusLabel = escapeHtml(status.label);
 
       return (
         '<article class="timeline-item">'
         + '<div class="timeline-priority">' + prioridade.icon + '</div>'
         + '<div class="timeline-content">'
-        + '<div class="timeline-title-row"><h3>' + atividade.titulo + '</h3><span class="status-pill ' + status.className + '">' + status.label + '</span></div>'
-        + '<p><strong>Projeto:</strong> ' + atividade.projeto + '</p>'
-        + '<p><strong>Cliente:</strong> ' + atividade.cliente + '</p>'
-        + '<p><strong>Prazo:</strong> ' + formatDateBR(atividade.dataPrevista) + ' · ' + prazoTexto + '</p>'
+        + '<div class="timeline-title-row"><h3>' + titulo + '</h3><span class="status-pill ' + status.className + '">' + statusLabel + '</span></div>'
+        + '<p><strong>Projeto:</strong> ' + projeto + '</p>'
+        + '<p><strong>Cliente:</strong> ' + cliente + '</p>'
+        + '<p><strong>Prazo:</strong> ' + prazo + ' · ' + escapeHtml(prazoTexto) + '</p>'
         + '</div>'
         + '</article>'
       );
@@ -951,8 +970,8 @@
 
     projetos.sort(function(a, b) {
       if (ordenacaoAtual === 'conclusao_asc') return a.percentualConclusao - b.percentualConclusao;
-      if (ordenacaoAtual === 'data_desc') return parseDate(b.dataFimPrevisto || b.dataInicio || new Date(0)) - parseDate(a.dataFimPrevisto || a.dataInicio || new Date(0));
-      if (ordenacaoAtual === 'data_asc') return parseDate(a.dataFimPrevisto || a.dataInicio || new Date(0)) - parseDate(b.dataFimPrevisto || b.dataInicio || new Date(0));
+      if (ordenacaoAtual === 'data_desc') return toTimestamp(b.dataFimPrevisto || b.dataInicio, 0) - toTimestamp(a.dataFimPrevisto || a.dataInicio, 0);
+      if (ordenacaoAtual === 'data_asc') return toTimestamp(a.dataFimPrevisto || a.dataInicio, Number.MAX_SAFE_INTEGER) - toTimestamp(b.dataFimPrevisto || b.dataInicio, Number.MAX_SAFE_INTEGER);
       return b.percentualConclusao - a.percentualConclusao;
     });
 
@@ -964,14 +983,17 @@
     tbody.innerHTML = projetos.map(function(projeto) {
       const status = STATUS_PROJETO[projeto.status];
       const proximaAtividade = projeto.proximaAtividade
-        ? projeto.proximaAtividade.titulo + ' · ' + formatDateBR(projeto.proximaAtividade.dataPrevista)
+        ? escapeHtml(projeto.proximaAtividade.titulo) + ' · ' + escapeHtml(formatDateBR(projeto.proximaAtividade.dataPrevista))
         : 'Sem atividades pendentes';
+      const cliente = escapeHtml(projeto.nomeCliente || '—');
+      const titulo = escapeHtml(projeto.titulo);
+      const statusLabel = escapeHtml(status.label);
 
       return (
         '<tr>'
-        + '<td>' + (projeto.nomeCliente || '—') + '</td>'
-        + '<td>' + projeto.titulo + '</td>'
-        + '<td><span class="status-pill ' + status.className + '">' + status.label + '</span></td>'
+        + '<td>' + cliente + '</td>'
+        + '<td>' + titulo + '</td>'
+        + '<td><span class="status-pill ' + status.className + '">' + statusLabel + '</span></td>'
         + '<td>'
         + '<div class="progress-cell"><span>' + projeto.percentualConclusao + '%</span><div class="progress-bar"><div class="progress-fill" style="width:' + projeto.percentualConclusao + '%"></div></div></div>'
         + '</td>'
@@ -994,7 +1016,7 @@
         '<section class="alert-block critical">'
         + '<h3>CRÍTICO 🔴</h3>'
         + alertas.criticos.map(function(atividade) {
-          return '<div class="alert-row"><strong>' + atividade.titulo + '</strong><span>' + atividade.projeto + ' · ' + atividade.diasAtraso + ' dias de atraso</span></div>';
+          return '<div class="alert-row"><strong>' + escapeHtml(atividade.titulo) + '</strong><span>' + escapeHtml(atividade.projeto) + ' · ' + atividade.diasAtraso + ' dias de atraso</span></div>';
         }).join('')
         + '</section>'
       );
@@ -1005,7 +1027,7 @@
         '<section class="alert-block warning">'
         + '<h3>ALERTA 🟡</h3>'
         + alertas.alertas.map(function(atividade) {
-          return '<div class="alert-row"><strong>' + atividade.titulo + '</strong><span>' + atividade.projeto + ' · ' + atividade.diasAtraso + ' dias de atraso</span></div>';
+          return '<div class="alert-row"><strong>' + escapeHtml(atividade.titulo) + '</strong><span>' + escapeHtml(atividade.projeto) + ' · ' + atividade.diasAtraso + ' dias de atraso</span></div>';
         }).join('')
         + '</section>'
       );
@@ -1016,7 +1038,7 @@
         '<section class="alert-block neutral">'
         + '<h3>Sem atividades iniciadas há mais de 7 dias</h3>'
         + alertas.semInicio.map(function(projeto) {
-          return '<div class="alert-row"><strong>' + projeto.titulo + '</strong><span>' + (projeto.nomeCliente || 'Cliente não informado') + '</span></div>';
+          return '<div class="alert-row"><strong>' + escapeHtml(projeto.titulo) + '</strong><span>' + escapeHtml(projeto.nomeCliente || 'Cliente não informado') + '</span></div>';
         }).join('')
         + '</section>'
       );
@@ -1091,24 +1113,31 @@
         const statusAtividade = STATUS_ATIVIDADE[atividade.status] || STATUS_ATIVIDADE.nao_iniciada;
         return (
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-sm);gap:var(--spacing-sm);">'
-          + '<span style="font-size:var(--fs-sm);">' + atividade.titulo + '</span>'
-          + '<span class="status-badge ' + statusAtividade.className + '">' + statusAtividade.label + '</span>'
+          + '<span style="font-size:var(--fs-sm);">' + escapeHtml(atividade.titulo) + '</span>'
+          + '<span class="status-badge ' + statusAtividade.className + '">' + escapeHtml(statusAtividade.label) + '</span>'
           + '</div>'
         );
       }).join('');
+      const titulo = escapeHtml(projeto.titulo);
+      const cliente = escapeHtml(projeto.nomeCliente || 'Cliente não informado');
+      const statusLabel = escapeHtml(status.label);
+      const gestor = escapeHtml(projeto.gestorResponsavel || '—');
+      const inicio = escapeHtml(formatDateBR(projeto.dataInicio));
+      const previsao = escapeHtml(formatDateBR(projeto.dataFimPrevisto));
+      const valor = escapeHtml(formatCurrency(projeto.valorTotal));
 
       return (
         '<div class="projeto-card ' + status.className + (projetoId === projeto.id ? ' selected' : '') + '">'
         + '<div class="projeto-header">'
-        + '<h3 class="projeto-titulo">' + projeto.titulo + '</h3>'
-        + '<p class="projeto-cliente">👤 ' + (projeto.nomeCliente || 'Cliente não informado') + '</p>'
-        + '<span class="projeto-status">' + status.label + '</span>'
+        + '<h3 class="projeto-titulo">' + titulo + '</h3>'
+        + '<p class="projeto-cliente">👤 ' + cliente + '</p>'
+        + '<span class="projeto-status">' + statusLabel + '</span>'
         + '</div>'
         + '<div class="projeto-body">'
-        + '<div class="projeto-info-row"><span class="info-label">Gestor</span><span class="info-value">' + (projeto.gestorResponsavel || '—') + '</span></div>'
-        + '<div class="projeto-info-row"><span class="info-label">Início</span><span class="info-value">' + formatDateBR(projeto.dataInicio) + '</span></div>'
-        + '<div class="projeto-info-row"><span class="info-label">Previsão</span><span class="info-value">' + formatDateBR(projeto.dataFimPrevisto) + '</span></div>'
-        + '<div class="projeto-info-row"><span class="info-label">Valor</span><span class="info-value">' + formatCurrency(projeto.valorTotal) + '</span></div>'
+        + '<div class="projeto-info-row"><span class="info-label">Gestor</span><span class="info-value">' + gestor + '</span></div>'
+        + '<div class="projeto-info-row"><span class="info-label">Início</span><span class="info-value">' + inicio + '</span></div>'
+        + '<div class="projeto-info-row"><span class="info-label">Previsão</span><span class="info-value">' + previsao + '</span></div>'
+        + '<div class="projeto-info-row"><span class="info-label">Valor</span><span class="info-value">' + valor + '</span></div>'
         + '<div class="projeto-info-row"><span class="info-label">Progresso</span><span class="info-value">' + projeto.percentualConclusao + '%</span></div>'
         + '<div class="progress-bar"><div class="progress-fill" style="width:' + projeto.percentualConclusao + '%"></div></div>'
         + '<h4 style="margin-top:var(--spacing-lg);margin-bottom:var(--spacing-md);font-weight:var(--fw-bold);font-size:var(--fs-base);">Próximas atividades</h4>'
