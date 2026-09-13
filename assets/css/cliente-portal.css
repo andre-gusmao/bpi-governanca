@@ -3,6 +3,10 @@
 body.cliente-auth {
   background: linear-gradient(135deg, #FFFBF7 0%, #1A1A1A 100%);
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
 }
 
 .cliente-page-content {

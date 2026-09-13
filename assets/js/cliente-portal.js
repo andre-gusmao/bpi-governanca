@@ -576,6 +576,14 @@
     return readJson(STORAGE_KEYS.session, null);
   }
 
+  function isSessionActive(session) {
+    if (!session || !session.clientId) {
+      return false;
+    }
+    const profile = getClientProfile(session.clientId);
+    return Boolean(profile && profile.ativo !== false);
+  }
+
   function setCurrentSession(profile) {
     const session = {
       clientId: profile.clientId,
@@ -596,7 +604,8 @@
 
   function requireSession() {
     const session = getCurrentSession();
-    if (!session) {
+    if (!isSessionActive(session)) {
+      window.localStorage.removeItem(STORAGE_KEYS.session);
       const currentPath = `${window.location.pathname.split('/').pop()}${window.location.search || ''}${window.location.hash || ''}`;
       window.location.href = `./login.html?return=${encodeURIComponent(currentPath)}`;
       return null;
@@ -1439,6 +1448,14 @@
   }
 
   function submitQuiz(clientId, trainingId) {
+    if (!state.quizQuestions.length) {
+      state.certificationMessages[trainingId] = {
+        type: 'error',
+        text: 'Não foi possível iniciar a prova. Recarregue o treinamento e tente novamente.'
+      };
+      renderTrainingDetail(clientId, trainingId);
+      return;
+    }
     const answers = new FormData(document.getElementById('quizForm'));
     let correct = 0;
     state.quizQuestions.forEach((question) => {
@@ -1477,7 +1494,11 @@
     }
     const training = TRAININGS.find((item) => item.id === trainingId);
     const year = new Date().getFullYear();
-    const awardCode = `CERT-${year}-${String(records.length + 1).padStart(5, '0')}`;
+    const yearCount = records.filter((item) => {
+      const itemDate = new Date(item.dataConclusao);
+      return !Number.isNaN(itemDate.getTime()) && itemDate.getFullYear() === year;
+    }).length;
+    const awardCode = `CERT-${year}-${String(yearCount + 1).padStart(5, '0')}`;
     const record = {
     id: `cert-${year}-${String(records.length + 1).padStart(3, '0')}`,
     clientId,
@@ -1712,9 +1733,11 @@
     const form = document.getElementById('loginForm');
     if (!form) return;
     const currentSession = getCurrentSession();
-    if (currentSession) {
+    if (isSessionActive(currentSession)) {
       window.location.href = getSafeReturnPath(new URLSearchParams(window.location.search).get('return'));
       return;
+    } else if (currentSession) {
+      window.localStorage.removeItem(STORAGE_KEYS.session);
     }
     const demoList = document.getElementById('demoAccountList');
     if (demoList) {
