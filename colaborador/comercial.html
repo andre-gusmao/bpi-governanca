@@ -56,12 +56,13 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--spacing-lg);
     }
 
-    .form-grid.full {
-      grid-template-columns: 1fr;
+    .form-grid.full,
+    .form-group.full {
+      grid-column: 1 / -1;
     }
 
     .form-group {
@@ -85,6 +86,7 @@
       font-family: var(--font-primary);
       font-size: var(--fs-base);
       transition: all var(--transition-fast);
+      width: 100%;
     }
 
     .form-input:focus,
@@ -97,8 +99,22 @@
     }
 
     .form-textarea {
-      min-height: 150px;
+      min-height: 140px;
       resize: vertical;
+    }
+
+    .input-helper {
+      font-size: var(--fs-xs);
+      color: #6B7280;
+    }
+
+    .inline-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-sm);
+      color: #6B7280;
+      font-size: var(--fs-sm);
     }
 
     .produtos-lista {
@@ -116,6 +132,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: var(--spacing-lg);
     }
 
     .produto-info {
@@ -127,21 +144,37 @@
       color: var(--color-dark-primary);
     }
 
+    .produto-meta,
     .produto-valor {
       font-size: var(--fs-sm);
       color: #6B7280;
       margin-top: var(--spacing-xs);
     }
 
+    .produto-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: 4px 10px;
+      border-radius: var(--border-radius-full);
+      background: rgba(201, 166, 107, 0.12);
+      color: #8A6A35;
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
     .remove-btn {
       background: rgba(239, 68, 68, 0.1);
       color: var(--color-error);
       border: none;
-      padding: 6px 12px;
+      padding: 8px 12px;
       border-radius: var(--border-radius-md);
       cursor: pointer;
       font-weight: var(--fw-bold);
       transition: all var(--transition-fast);
+      white-space: nowrap;
     }
 
     .remove-btn:hover {
@@ -155,7 +188,7 @@
       padding: var(--spacing-lg);
       border-radius: var(--border-radius-lg);
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: var(--spacing-lg);
       text-align: center;
     }
@@ -168,14 +201,227 @@
     }
 
     .resumo-item-value {
-      font-size: var(--fs-2xl);
+      font-size: var(--fs-xl);
       font-weight: var(--fw-bold);
       font-family: var(--font-mono);
       margin-top: var(--spacing-xs);
     }
 
+    .resumo-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+    }
+
+    .resumo-detail-item {
+      background: #FFFBF7;
+      border: 1px solid rgba(201, 166, 107, 0.18);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-md);
+      display: flex;
+      justify-content: space-between;
+      gap: var(--spacing-md);
+      font-size: var(--fs-sm);
+    }
+
+    .status-banner {
+      display: none;
+      margin-bottom: var(--spacing-lg);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-radius: var(--border-radius-lg);
+      font-weight: var(--fw-semibold);
+      border: 1px solid transparent;
+    }
+
+    .status-banner.show {
+      display: block;
+    }
+
+    .status-banner.success {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.22);
+      color: #047857;
+    }
+
+    .status-banner.info {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.22);
+      color: #1D4ED8;
+    }
+
+    .status-banner.error {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.22);
+      color: #B91C1C;
+    }
+
+    .pdf-preview-wrapper {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: var(--border-radius-xl);
+      padding: var(--spacing-lg);
+      overflow-x: auto;
+    }
+
+    .pdf-preview-sheet {
+      min-width: 720px;
+      background: white;
+      border-radius: 20px;
+      padding: var(--spacing-2xl);
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+
+    .pdf-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--spacing-lg);
+      padding-bottom: var(--spacing-lg);
+      border-bottom: 2px solid #F3F4F6;
+    }
+
+    .pdf-preview-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gradient-gold);
+      color: white;
+      font-size: 28px;
+      font-weight: var(--fw-bold);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .pdf-preview-subtitle {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      letter-spacing: 1px;
+    }
+
+    .pdf-preview-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: var(--fs-sm);
+      color: #4B5563;
+      text-align: right;
+    }
+
+    .pdf-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-lg);
+    }
+
+    .pdf-preview-grid.resumo {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pdf-preview-card {
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      padding: var(--spacing-lg);
+      background: #FFFEFC;
+    }
+
+    .pdf-preview-label {
+      font-size: var(--fs-xs);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9CA3AF;
+      font-weight: var(--fw-bold);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .pdf-preview-value {
+      font-size: var(--fs-lg);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-primary);
+      line-height: 1.4;
+    }
+
+    .pdf-preview-value.destaque {
+      color: #8A6A35;
+    }
+
+    .pdf-preview-muted {
+      color: #6B7280;
+      font-size: var(--fs-sm);
+      margin-top: 6px;
+    }
+
+    .pdf-preview-section h4 {
+      margin-bottom: var(--spacing-sm);
+      font-size: var(--fs-base);
+      color: var(--color-dark-primary);
+    }
+
+    .pdf-preview-section p {
+      color: #4B5563;
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    .pdf-preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-sm);
+    }
+
+    .pdf-preview-table th,
+    .pdf-preview-table td {
+      border-bottom: 1px solid #E5E7EB;
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .pdf-preview-table th {
+      background: #F9FAFB;
+      color: #374151;
+      font-size: var(--fs-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .pdf-preview-cta {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid #F3F4F6;
+    }
+
+    .pdf-preview-cta button {
+      border: none;
+      border-radius: var(--border-radius-lg);
+      padding: 10px 18px;
+      font-weight: var(--fw-bold);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .pdf-preview-cta button:first-child {
+      background: rgba(16, 185, 129, 0.12);
+      color: #047857;
+    }
+
+    .pdf-preview-cta button:last-child {
+      background: rgba(239, 68, 68, 0.12);
+      color: #B91C1C;
+    }
+
     .form-actions {
       display: flex;
+      flex-wrap: wrap;
       gap: var(--spacing-md);
       justify-content: flex-end;
       margin-top: var(--spacing-2xl);
@@ -188,8 +434,6 @@
       font-weight: var(--fw-bold);
       cursor: pointer;
       font-size: var(--fs-base);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       transition: all var(--transition-fast);
     }
 
@@ -214,24 +458,55 @@
       background: #E5E7EB;
     }
 
-    @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: #B91C1C;
+      border: 1px solid rgba(239, 68, 68, 0.16);
+    }
 
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.16);
+    }
+
+    @media (max-width: 992px) {
+      .resumo-card,
+      .pdf-preview-grid.resumo {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-grid,
+      .resumo-details,
+      .pdf-preview-grid,
+      .pdf-preview-grid.resumo,
       .resumo-card {
         grid-template-columns: 1fr;
       }
 
+      .produto-selecionado,
+      .pdf-preview-header,
       .form-actions {
         flex-direction: column;
+      }
+
+      .pdf-preview-sheet {
+        min-width: 100%;
+        padding: var(--spacing-lg);
+      }
+
+      .pdf-preview-meta {
+        text-align: left;
+      }
+
+      .form-body {
+        padding: var(--spacing-lg);
       }
     }
   </style>
 </head>
 <body>
   <div class="portal-container">
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">◆</div>
@@ -286,7 +561,6 @@
       </div>
     </aside>
 
-    <!-- HEADER -->
     <header class="portal-header">
       <div class="header-title">
         <h1>Elaborar Proposta</h1>
@@ -300,157 +574,161 @@
       </div>
     </header>
 
-    <!-- CONTEÚDO -->
     <main class="portal-content">
       <div class="form-container">
         <div class="form-header">
           <h2>📝 Nova Proposta Comercial</h2>
-          <p style="color: #9CA3AF; margin-top: var(--spacing-sm);">Preencha os dados abaixo para gerar uma proposta profissional em PDF</p>
+          <p style="color: #6B7280; margin-top: var(--spacing-sm);">Fluxo completo de proposta: seleção do cliente, cálculo automático, preview do PDF e envio simulado por email.</p>
         </div>
 
-        <form class="form-body" id="propostaForm" onsubmit="handleSubmit(event)">
-          <!-- DADOS DO CLIENTE -->
+        <form class="form-body" id="propostaForm">
+          <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
+
           <div class="form-section">
-            <h3 class="form-section-title">👤 Dados do Cliente</h3>
-            
+            <h3 class="form-section-title">👤 Seleção de Cliente</h3>
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label" for="clienteSelect">Cliente *</label>
+                <select class="form-select" id="clienteSelect" required></select>
+                <div class="inline-summary">
+                  <span id="clienteResumoCnpj">CNPJ: —</span>
+                  <span id="clienteResumoEmail">Email: —</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">📋 Informações da Proposta</h3>
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Nome da Empresa *</label>
-                <input type="text" class="form-input" id="nomeEmpresa" placeholder="Ex: Empresa XYZ Inc" required>
+                <label class="form-label" for="tituloProjeto">Título do projeto *</label>
+                <input type="text" class="form-input" id="tituloProjeto" placeholder="Ex: Implementação ERP - Módulo Financeiro" required>
               </div>
               <div class="form-group">
-                <label class="form-label">Email do Cliente *</label>
-                <input type="email" class="form-input" id="emailCliente" placeholder="cliente@empresa.com.br" required>
+                <label class="form-label" for="descricaoBreve">Descrição breve</label>
+                <input type="text" class="form-input" id="descricaoBreve" placeholder="Resumo curto para a proposta">
               </div>
               <div class="form-group">
-                <label class="form-label">Nome do Projeto *</label>
-                <input type="text" class="form-input" id="nomeProjeto" placeholder="Ex: Implementação ERP" required>
+                <label class="form-label" for="modalidade">Modalidade *</label>
+                <select class="form-select" id="modalidade" required></select>
               </div>
               <div class="form-group">
-                <label class="form-label">Modalidade *</label>
-                <select class="form-select" id="modalidade" required>
-                  <option value="">Selecione uma modalidade</option>
-                  <option value="Implementações">Implementações</option>
-                  <option value="Treinamento">Treinamento</option>
-                  <option value="Consultoria">Consultoria</option>
-                  <option value="Sustentação">Sustentação</option>
-                </select>
+                <label class="form-label" for="validade">Validade da proposta (dias) *</label>
+                <input type="number" class="form-input" id="validade" min="1" value="30" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="dataInicio">Data de início *</label>
+                <input type="date" class="form-input" id="dataInicio" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="duracaoDias">Duração em dias *</label>
+                <input type="number" class="form-input" id="duracaoDias" min="1" value="30" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="dataFim">Data de fim</label>
+                <input type="date" class="form-input" id="dataFim" readonly>
+                <span class="input-helper">Calculada automaticamente a partir da data de início e duração.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="dataValidade">Válida até</label>
+                <input type="date" class="form-input" id="dataValidade" readonly>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="escopoDetalhado">Escopo detalhado *</label>
+                <textarea class="form-textarea" id="escopoDetalhado" placeholder="Descreva o escopo completo, objetivos, entregas, premissas e restrições da proposta..." required></textarea>
               </div>
             </div>
           </div>
 
-          <!-- ESCOPO DO PROJETO -->
           <div class="form-section">
-            <h3 class="form-section-title">📋 Escopo do Projeto</h3>
-            
-            <div class="form-group full">
-              <label class="form-label">Descrição Detalhada do Escopo *</label>
-              <textarea class="form-textarea" id="escopoDescricao" placeholder="Descreva detalhadamente o que será feito, objetivos, abrangência..." required></textarea>
+            <h3 class="form-section-title">📦 Produtos/Serviços</h3>
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label" for="produtoSelect">Adicionar produtos/serviços</label>
+                <select class="form-select" id="produtoSelect"></select>
+                <span class="input-helper">Os valores são somados automaticamente em setup e recorrência.</span>
+              </div>
             </div>
+
+            <div class="produtos-lista" id="produtosLista"></div>
           </div>
 
-          <!-- PRODUTOS/SERVIÇOS -->
           <div class="form-section">
-            <h3 class="form-section-title">📦 Serviços Contratados</h3>
-            
-            <div class="form-group full">
-              <label class="form-label">Adicionar Produtos/Serviços</label>
-              <select class="form-select" id="produtoSelect" onchange="adicionarProduto()">
-                <option value="">Selecione um produto...</option>
-                <option value="srv-impl-erp">Implementação ERP - Módulo Financeiro (R$ 30.000)</option>
-                <option value="srv-train-users">Treinamento de Usuários (R$ 8.000)</option>
-                <option value="srv-consult-opt">Consultoria de Otimização (R$ 18.000)</option>
-                <option value="lic-suporte-premium">Suporte Premium 24/7 (R$ 2.000/mês)</option>
-                <option value="lic-manutencao">Manutenção Preventiva (R$ 1.500/mês)</option>
-              </select>
-            </div>
-
-            <div class="produtos-lista" id="produtosLista">
-              <!-- Produtos selecionados aparecerão aqui -->
-            </div>
-          </div>
-
-          <!-- PRAZOS E VALORES -->
-          <div class="form-section">
-            <h3 class="form-section-title">⏰ Prazos e Valores</h3>
-            
+            <h3 class="form-section-title">💰 Investimento</h3>
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Prazo do Projeto (dias) *</label>
-                <input type="number" class="form-input" id="prazo" placeholder="Ex: 45" min="1" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Validade da Proposta (dias) *</label>
-                <input type="number" class="form-input" id="validade" placeholder="Ex: 30" min="1" value="30" required>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Desconto (%) - Opcional</label>
-                <input type="number" class="form-input" id="desconto" placeholder="Ex: 10" min="0" max="100">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Forma de Faturamento</label>
-                <select class="form-select" id="faturamento">
-                  <option value="Parcelado">Parcelado</option>
-                  <option value="À vista">À vista</option>
-                  <option value="Outros">Outros</option>
-                </select>
+                <label class="form-label" for="desconto">Desconto (%)</label>
+                <input type="number" class="form-input" id="desconto" min="0" max="100" value="0">
               </div>
             </div>
-          </div>
 
-          <!-- OBSERVAÇÕES -->
-          <div class="form-section">
-            <h3 class="form-section-title">📝 Observações</h3>
-            
-            <div class="form-group full">
-              <label class="form-label">Observações Adicionais</label>
-              <textarea class="form-textarea" id="observacoes" placeholder="Termos especiais, condições acordadas, etc..."></textarea>
-            </div>
-          </div>
-
-          <!-- RESUMO -->
-          <div class="form-section">
-            <h3 class="form-section-title">💰 Resumo Financeiro</h3>
-            
             <div class="resumo-card">
               <div>
-                <div class="resumo-item-label">Setup</div>
-                <div class="resumo-item-value" id="resumoSetup">R$ 0</div>
+                <div class="resumo-item-label">Setup total</div>
+                <div class="resumo-item-value" id="resumoSetup">R$ 0,00</div>
               </div>
               <div>
-                <div class="resumo-item-label">Recorrência/Mês</div>
-                <div class="resumo-item-value" id="resumoRecorrente">R$ 0</div>
+                <div class="resumo-item-label">Recorrente / mês</div>
+                <div class="resumo-item-value" id="resumoRecorrente">R$ 0,00</div>
               </div>
               <div>
-                <div class="resumo-item-label">Total (1º ano)</div>
-                <div class="resumo-item-value" id="resumoTotal">R$ 0</div>
+                <div class="resumo-item-label">Subtotal (12 meses)</div>
+                <div class="resumo-item-value" id="resumoSubtotal">R$ 0,00</div>
               </div>
+              <div>
+                <div class="resumo-item-label">Total investimento</div>
+                <div class="resumo-item-value" id="resumoTotal">R$ 0,00</div>
+              </div>
+            </div>
+
+            <div class="resumo-details">
+              <div class="resumo-detail-item"><span>Desconto aplicado</span><strong id="resumoDesconto">R$ 0,00</strong></div>
+              <div class="resumo-detail-item"><span>Recorrente anual</span><strong id="resumoRecorrenteAnual">R$ 0,00</strong></div>
             </div>
           </div>
 
-          <!-- BOTÕES -->
-          <div class="form-actions">
-            <button type="reset" class="btn btn-secondary">Limpar Formulário</button>
-            <button type="submit" class="btn btn-primary">📄 Gerar PDF e Enviar</button>
+          <div class="form-section">
+            <h3 class="form-section-title">🖨️ Preview PDF</h3>
+            <div class="pdf-preview-wrapper">
+              <div id="pdfPreview"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">⚡ Ações</h3>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" id="btnGerarPdf">📄 Gerar PDF + Baixar</button>
+              <button type="button" class="btn btn-primary" id="btnEnviarEmail">📧 Enviar por Email</button>
+              <button type="button" class="btn btn-secondary" id="btnSalvarRascunho">💾 Salvar Rascunho</button>
+              <button type="button" class="btn btn-danger" id="btnLimpar">🗑️ Limpar Proposta</button>
+            </div>
           </div>
         </form>
       </div>
     </main>
   </div>
 
+  <script src="../assets/js/proposta-generator.js"></script>
   <script>
+    let sessionUser = null;
     let produtosSelecionados = [];
+    let propostaAtualId = null;
+    let ultimoPdfGerado = null;
+    let statusTimer = null;
 
     function checkSession() {
       const session = localStorage.getItem('colaborador_session');
       if (!session) {
         window.location.href = './login.html';
-      } else {
-        const user = JSON.parse(session);
-        document.getElementById('userName').textContent = user.name;
-        document.getElementById('userAvatar').textContent = user.avatar;
-        document.getElementById('userRole').textContent = user.role;
+        return false;
       }
+
+      sessionUser = JSON.parse(session);
+      document.getElementById('userName').textContent = sessionUser.name;
+      document.getElementById('userAvatar').textContent = sessionUser.avatar;
+      document.getElementById('userRole').textContent = sessionUser.role;
+      return true;
     }
 
     function logout() {
@@ -458,86 +736,339 @@
       window.location.href = './login.html';
     }
 
-    function adicionarProduto() {
-      const select = document.getElementById('produtoSelect');
-      const produtoId = select.value;
-      
-      if (!produtoId) return;
+    function showStatus(message, type) {
+      const banner = document.getElementById('statusBanner');
+      banner.textContent = message;
+      banner.className = 'status-banner show ' + (type || 'info');
 
-      // Dados dos produtos
-      const produtos = {
-        'srv-impl-erp': { nome: 'Implementação ERP - Módulo Financeiro', tipo: 'setup', valor: 30000 },
-        'srv-train-users': { nome: 'Treinamento de Usuários', tipo: 'setup', valor: 8000 },
-        'srv-consult-opt': { nome: 'Consultoria de Otimização', tipo: 'setup', valor: 18000 },
-        'lic-suporte-premium': { nome: 'Suporte Premium 24/7', tipo: 'recorrente', valor: 2000 },
-        'lic-manutencao': { nome: 'Manutenção Preventiva', tipo: 'recorrente', valor: 1500 }
-      };
-
-      if (produtos[produtoId]) {
-        produtosSelecionados.push({ id: produtoId, ...produtos[produtoId] });
-        renderizarProdutos();
-        calcularResumo();
-        select.value = '';
+      if (statusTimer) {
+        clearTimeout(statusTimer);
       }
+
+      statusTimer = window.setTimeout(() => {
+        banner.className = 'status-banner';
+      }, 5000);
+    }
+
+    function preencherClientes() {
+      const clienteSelect = document.getElementById('clienteSelect');
+      const clientes = window.PropostaClientes.listar();
+      clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>' + clientes.map((cliente) => {
+        return '<option value="' + cliente.id + '">' + cliente.empresa + ' · ' + cliente.email + '</option>';
+      }).join('');
+    }
+
+    function preencherModalidades() {
+      const modalidade = document.getElementById('modalidade');
+      modalidade.innerHTML = '<option value="">Selecione uma modalidade</option>' + window.PropostaUtils.modalidades.map((item) => {
+        return '<option value="' + item + '">' + item + '</option>';
+      }).join('');
+    }
+
+    function preencherProdutos() {
+      const produtoSelect = document.getElementById('produtoSelect');
+      const produtos = window.PropostaCatalogo.listar();
+      produtoSelect.innerHTML = '<option value="">Selecione um produto...</option>' + produtos.map((produto) => {
+        const valor = produto.tipo === 'setup' ? produto.valorTotal : produto.valorMensal;
+        const sufixo = produto.tipo === 'setup' ? '' : '/mês';
+        return '<option value="' + produto.id + '">' + produto.nome + ' (' + window.PropostaUtils.formatCurrency(valor) + sufixo + ')</option>';
+      }).join('');
+    }
+
+    function obterClienteSelecionado() {
+      const clienteId = document.getElementById('clienteSelect').value;
+      return window.PropostaClientes.listar().find((cliente) => cliente.id === clienteId) || null;
+    }
+
+    function atualizarResumoCliente() {
+      const cliente = obterClienteSelecionado();
+      document.getElementById('clienteResumoCnpj').textContent = 'CNPJ: ' + (cliente ? cliente.cnpj || '—' : '—');
+      document.getElementById('clienteResumoEmail').textContent = 'Email: ' + (cliente ? cliente.email || '—' : '—');
+    }
+
+    function sincronizarDatas() {
+      const inicio = document.getElementById('dataInicio').value;
+      const duracao = document.getElementById('duracaoDias').value;
+      const validade = document.getElementById('validade').value;
+      const prazos = window.PropostaUtils.calcularPrazos(inicio, duracao, validade, new Date());
+      document.getElementById('dataFim').value = prazos.fim;
+      document.getElementById('dataValidade').value = prazos.dataValidade;
+      return prazos;
+    }
+
+    function renderizarProdutos() {
+      const lista = document.getElementById('produtosLista');
+      if (!produtosSelecionados.length) {
+        lista.innerHTML = '<p style="color: #9CA3AF; text-align: center;">Nenhum produto selecionado.</p>';
+        return;
+      }
+
+      lista.innerHTML = produtosSelecionados.map((produto, index) => {
+        const valor = produto.tipo === 'setup'
+          ? window.PropostaUtils.formatCurrency(produto.valorTotal)
+          : window.PropostaUtils.formatCurrency(produto.valorMensal) + '/mês';
+        const meta = produto.tipo === 'setup'
+          ? (produto.horasEstimadas ? produto.horasEstimadas + ' horas estimadas' : 'Projeto setup')
+          : (produto.horasMes ? produto.horasMes + ' horas/mês' : 'Serviço recorrente');
+
+        return [
+          '<div class="produto-selecionado">',
+          '  <div class="produto-info">',
+          '    <span class="produto-tag">' + produto.tipo + '</span>',
+          '    <div class="produto-nome">' + produto.nome + '</div>',
+          '    <div class="produto-meta">' + meta + ' · ' + (produto.categoria || 'Catálogo') + '</div>',
+          '    <div class="produto-valor">' + valor + '</div>',
+          '  </div>',
+          '  <button type="button" class="remove-btn" data-index="' + index + '">✕ Remover</button>',
+          '</div>'
+        ].join('');
+      }).join('');
+    }
+
+    function atualizarResumoFinanceiro() {
+      const valores = window.PropostaUtils.calcularValores(produtosSelecionados, document.getElementById('desconto').value);
+      document.getElementById('resumoSetup').textContent = window.PropostaUtils.formatCurrency(valores.setup);
+      document.getElementById('resumoRecorrente').textContent = window.PropostaUtils.formatCurrency(valores.recorrente);
+      document.getElementById('resumoSubtotal').textContent = window.PropostaUtils.formatCurrency(valores.subtotal);
+      document.getElementById('resumoTotal').textContent = window.PropostaUtils.formatCurrency(valores.total);
+      document.getElementById('resumoDesconto').textContent = window.PropostaUtils.formatCurrency(valores.desconto);
+      document.getElementById('resumoRecorrenteAnual').textContent = window.PropostaUtils.formatCurrency(valores.recorrenteAnual);
+      return valores;
+    }
+
+    function construirProposta(status, relaxado) {
+      const propostaExistente = propostaAtualId ? window.PropostaDB.obter(propostaAtualId) : null;
+      const cliente = obterClienteSelecionado();
+      const titulo = document.getElementById('tituloProjeto').value.trim();
+      const modalidade = document.getElementById('modalidade').value;
+      const escopo = document.getElementById('escopoDetalhado').value.trim();
+      const descricao = document.getElementById('descricaoBreve').value.trim();
+      const inicio = document.getElementById('dataInicio').value;
+      const duracao = document.getElementById('duracaoDias').value;
+      const validade = document.getElementById('validade').value;
+      const desconto = document.getElementById('desconto').value;
+
+      if (!relaxado) {
+        if (!document.getElementById('propostaForm').reportValidity()) {
+          return null;
+        }
+
+        if (!cliente) {
+          showStatus('Selecione um cliente para continuar.', 'error');
+          return null;
+        }
+
+        if (!produtosSelecionados.length) {
+          showStatus('Adicione pelo menos um produto/serviço na proposta.', 'error');
+          return null;
+        }
+      }
+
+      return window.PropostaUtils.criarProposta({
+        id: propostaExistente ? propostaExistente.id : undefined,
+        numero: propostaExistente ? propostaExistente.numero : undefined,
+        codigoUnico: propostaExistente ? propostaExistente.codigoUnico : undefined,
+        cliente: cliente || {},
+        titulo: titulo,
+        descricao: descricao || titulo,
+        escopo: escopo,
+        modalidade: modalidade,
+        servicos: produtosSelecionados,
+        descontoPercentual: desconto,
+        inicio: inicio,
+        duracao: duracao,
+        validadeEmDias: validade,
+        status: status,
+        dataCriacao: propostaExistente ? propostaExistente.dataCriacao : new Date().toISOString(),
+        dataEnvio: propostaExistente ? propostaExistente.dataEnvio : null,
+        elaboradoPor: sessionUser ? sessionUser.email || sessionUser.name : 'Equipe BPI',
+        pdfUrl: ultimoPdfGerado ? ultimoPdfGerado.pdfUrl : (propostaExistente ? propostaExistente.pdfUrl : null)
+      });
+    }
+
+    function atualizarPreview() {
+      const draft = construirProposta('rascunho', true) || window.PropostaUtils.criarProposta({
+        cliente: obterClienteSelecionado() || {},
+        titulo: document.getElementById('tituloProjeto').value.trim(),
+        descricao: document.getElementById('descricaoBreve').value.trim(),
+        escopo: document.getElementById('escopoDetalhado').value.trim(),
+        modalidade: document.getElementById('modalidade').value,
+        servicos: produtosSelecionados,
+        descontoPercentual: document.getElementById('desconto').value,
+        inicio: document.getElementById('dataInicio').value,
+        duracao: document.getElementById('duracaoDias').value,
+        validadeEmDias: document.getElementById('validade').value,
+        elaboradoPor: sessionUser ? sessionUser.email || sessionUser.name : 'Equipe BPI'
+      });
+      document.getElementById('pdfPreview').innerHTML = window.PropostaUtils.buildPreviewHtml(draft);
+      return draft;
+    }
+
+    function adicionarProduto() {
+      const produtoSelect = document.getElementById('produtoSelect');
+      const produtoId = produtoSelect.value;
+      if (!produtoId) {
+        return;
+      }
+
+      if (produtosSelecionados.some((produto) => produto.id === produtoId)) {
+        showStatus('Este produto já foi adicionado à proposta.', 'info');
+        produtoSelect.value = '';
+        return;
+      }
+
+      const produto = window.PropostaCatalogo.listar().find((item) => item.id === produtoId);
+      if (!produto) {
+        showStatus('Produto não encontrado no catálogo.', 'error');
+        produtoSelect.value = '';
+        return;
+      }
+
+      produtosSelecionados.push(produto);
+      produtoSelect.value = '';
+      renderizarProdutos();
+      atualizarResumoFinanceiro();
+      atualizarPreview();
     }
 
     function removerProduto(index) {
       produtosSelecionados.splice(index, 1);
       renderizarProdutos();
-      calcularResumo();
+      atualizarResumoFinanceiro();
+      atualizarPreview();
     }
 
-    function renderizarProdutos() {
-      const lista = document.getElementById('produtosLista');
-      
-      if (produtosSelecionados.length === 0) {
-        lista.innerHTML = '<p style="color: #9CA3AF; text-align: center;">Nenhum produto selecionado</p>';
+    function persistirProposta(status, relaxado) {
+      const proposta = construirProposta(status || 'rascunho', !!relaxado);
+      if (!proposta) {
+        return null;
+      }
+
+      const salva = window.PropostaDB.salvar(proposta);
+      propostaAtualId = salva.id;
+      return salva;
+    }
+
+    function salvarRascunho() {
+      const salva = persistirProposta('rascunho', true);
+      if (!salva) {
         return;
       }
 
-      lista.innerHTML = produtosSelecionados.map((p, i) => `
-        <div class="produto-selecionado">
-          <div class="produto-info">
-            <div class="produto-nome">${p.nome}</div>
-            <div class="produto-valor">${p.tipo === 'setup' ? `R$ ${p.valor.toLocaleString('pt-BR')}` : `R$ ${p.valor.toLocaleString('pt-BR')}/mês`}</div>
-          </div>
-          <button type="button" class="remove-btn" onclick="removerProduto(${i})">✕ Remover</button>
-        </div>
-      `).join('');
+      atualizarPreview();
+      showStatus('Rascunho salvo com sucesso em localStorage.', 'success');
     }
 
-    function calcularResumo() {
-      let setup = 0;
-      let recorrente = 0;
+    function gerarPdf() {
+      const proposta = persistirProposta('rascunho', false);
+      if (!proposta) {
+        return;
+      }
 
-      produtosSelecionados.forEach(p => {
-        if (p.tipo === 'setup') {
-          setup += p.valor;
-        } else {
-          recorrente += p.valor;
-        }
+      ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
+      const atualizada = window.PropostaDB.atualizar(proposta.id, { pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl });
+      propostaAtualId = atualizada.id;
+      window.PDFGenerator.baixar(ultimoPdfGerado);
+      atualizarPreview();
+      showStatus('PDF simulado gerado e download iniciado.', 'success');
+    }
+
+    function enviarEmail() {
+      const proposta = persistirProposta('rascunho', false);
+      if (!proposta) {
+        return;
+      }
+
+      if (!ultimoPdfGerado) {
+        ultimoPdfGerado = window.PDFGenerator.gerar(proposta);
+      }
+
+      const propostaComPdf = window.PropostaDB.atualizar(proposta.id, { pdfUrl: ultimoPdfGerado.pdfUrl || proposta.pdfUrl });
+      const envio = window.EmailSimulator.enviar(propostaComPdf, propostaComPdf.emailCliente);
+      propostaAtualId = envio.proposta.id;
+      atualizarPreview();
+      showStatus('Email simulado enviado para ' + envio.registro.para + '.', 'success');
+    }
+
+    function limparProposta() {
+      document.getElementById('propostaForm').reset();
+      produtosSelecionados = [];
+      propostaAtualId = null;
+      ultimoPdfGerado = null;
+      document.getElementById('validade').value = '30';
+      document.getElementById('duracaoDias').value = '30';
+      document.getElementById('dataInicio').value = window.PropostaUtils.toISODate(new Date());
+      preencherClientes();
+      preencherModalidades();
+      preencherProdutos();
+      atualizarResumoCliente();
+      sincronizarDatas();
+      renderizarProdutos();
+      atualizarResumoFinanceiro();
+      atualizarPreview();
+      showStatus('Proposta limpa. Você pode começar um novo rascunho.', 'info');
+    }
+
+    function configurarEventos() {
+      document.getElementById('clienteSelect').addEventListener('change', () => {
+        atualizarResumoCliente();
+        atualizarPreview();
+      });
+      document.getElementById('produtoSelect').addEventListener('change', adicionarProduto);
+      document.getElementById('desconto').addEventListener('input', () => {
+        atualizarResumoFinanceiro();
+        atualizarPreview();
+      });
+      document.getElementById('dataInicio').addEventListener('input', () => {
+        sincronizarDatas();
+        atualizarPreview();
+      });
+      document.getElementById('duracaoDias').addEventListener('input', () => {
+        sincronizarDatas();
+        atualizarPreview();
+      });
+      document.getElementById('validade').addEventListener('input', () => {
+        sincronizarDatas();
+        atualizarPreview();
       });
 
-      const desconto = parseFloat(document.getElementById('desconto').value) || 0;
-      const descontoValor = setup * (desconto / 100);
-      const setupComDesconto = setup - descontoValor;
-      const total = setupComDesconto + (recorrente * 12);
+      ['tituloProjeto', 'descricaoBreve', 'modalidade', 'escopoDetalhado'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', atualizarPreview);
+      });
 
-      document.getElementById('resumoSetup').textContent = `R$ ${setupComDesconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      document.getElementById('resumoRecorrente').textContent = `R$ ${recorrente.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      document.getElementById('resumoTotal').textContent = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('produtosLista').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-index]');
+        if (!button) {
+          return;
+        }
+        removerProduto(Number(button.dataset.index));
+      });
+
+      document.getElementById('btnSalvarRascunho').addEventListener('click', salvarRascunho);
+      document.getElementById('btnGerarPdf').addEventListener('click', gerarPdf);
+      document.getElementById('btnEnviarEmail').addEventListener('click', enviarEmail);
+      document.getElementById('btnLimpar').addEventListener('click', limparProposta);
+      document.getElementById('propostaForm').addEventListener('submit', (event) => event.preventDefault());
     }
 
-    function handleSubmit(event) {
-      event.preventDefault();
-      alert('✅ Proposta gerada com sucesso!\n\nEm breve: PDF será gerado e enviado por email');
-      // Aqui entra a integração com jsPDF e SendGrid
+    function initPage() {
+      if (!checkSession()) {
+        return;
+      }
+
+      preencherClientes();
+      preencherModalidades();
+      preencherProdutos();
+      document.getElementById('dataInicio').value = window.PropostaUtils.toISODate(new Date());
+      sincronizarDatas();
+      renderizarProdutos();
+      atualizarResumoCliente();
+      atualizarResumoFinanceiro();
+      atualizarPreview();
+      configurarEventos();
     }
 
-    // Adicionar listener para recalcular ao mudar desconto
-    document.getElementById('desconto')?.addEventListener('input', calcularResumo);
-
-    window.addEventListener('load', checkSession);
+    window.addEventListener('load', initPage);
   </script>
 </body>
 </html>
