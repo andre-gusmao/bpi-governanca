@@ -1447,7 +1447,7 @@
     });
     const score = Math.round((correct / state.quizQuestions.length) * 100);
     if (score >= 70) {
-      upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'concluido', atualizadoEm: new Date().toISOString() });
+    upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'concluido', atualizadoEm: new Date().toISOString(), ultimoResultado: score });
     const record = issueTrainingAward(clientId, trainingId, score);
     state.certificationMessages[trainingId] = {
       type: 'success',
@@ -1475,13 +1475,13 @@
     }
     const training = TRAININGS.find((item) => item.id === trainingId);
     const year = new Date().getFullYear();
-    const codigoCertificado = `CERT-${year}-${String(records.length + 1).padStart(5, '0')}`;
+    const awardCode = `CERT-${year}-${String(records.length + 1).padStart(5, '0')}`;
     const record = {
     id: `cert-${year}-${String(records.length + 1).padStart(3, '0')}`,
     clientId,
     treinamentoId: trainingId,
     nomeTreinamento: training ? training.titulo : 'Treinamento',
-    numeroCertificado: codigoCertificado,
+    numeroCertificado: awardCode,
     dataConclusao: new Date().toISOString(),
     percentualAcerto: score,
     linkedinUrl: null
@@ -1551,7 +1551,7 @@
     const profile = getClientProfile(clientId);
     if (!record || !profile) return;
     const certificateDate = new Date(record.dataConclusao);
-    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certUrl=${encodeURIComponent(window.location.href)}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
+    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${certificateDate.getFullYear()}&issueMonth=${certificateDate.getMonth() + 1}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
     record.linkedinUrl = url;
     writeJson(STORAGE_KEYS.completedTrainings, records);
     const shareBox = document.getElementById('linkedinShareBox');
