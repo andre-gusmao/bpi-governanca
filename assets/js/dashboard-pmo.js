@@ -91,6 +91,12 @@
     return date ? date.getTime() : fallback;
   }
 
+  function clampPercent(value) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.min(100, Math.max(0, Math.round(numeric)));
+  }
+
   function normalizeStatusProjeto(status) {
     const raw = String(status || '').toLowerCase().trim();
 
@@ -450,14 +456,15 @@
       const finalizada = status === 'finalizada';
       const diasAtraso = !finalizada && dataPrevista ? Math.max(0, diffInDays(today, dataPrevista)) : 0;
       const diasRestantes = dataPrevista ? diffInDays(dataPrevista, today) : null;
+      const diasAtrasoFinal = typeof atividade.diasAtraso === 'number' ? atividade.diasAtraso : diasAtraso;
 
       return Object.assign({}, atividade, {
         status: status,
         prioridade: normalizePrioridade(atividade.prioridade),
         dataPrevista: dataPrevista ? formatDateISO(dataPrevista) : '',
         dataRealizada: dataRealizada ? formatDateISO(dataRealizada) : '',
-        diasAtraso: typeof atividade.diasAtraso === 'number' ? atividade.diasAtraso : diasAtraso,
-        statusAtraso: diasAtraso > 0 ? 'atrasada' : 'em_dia',
+        diasAtraso: diasAtrasoFinal,
+        statusAtraso: diasAtrasoFinal > 0 ? 'atrasada' : 'em_dia',
         diasRestantes: diasRestantes,
         projeto: projeto.titulo || 'Projeto não encontrado',
         cliente: projeto.nomeCliente || projeto.cliente || 'Cliente não informado'
@@ -482,9 +489,11 @@
         return atividade.status === 'finalizada';
       }).length;
       const percentualCalculado = atividadesProjeto.length ? Math.round((atividadesFinalizadas / atividadesProjeto.length) * 100) : 0;
-      const percentualConclusao = Number.isFinite(Number(projeto.percentualConclusao))
-        ? Number(projeto.percentualConclusao)
-        : percentualCalculado;
+      const percentualConclusao = clampPercent(
+        Number.isFinite(Number(projeto.percentualConclusao))
+          ? Number(projeto.percentualConclusao)
+          : percentualCalculado
+      );
       const atividadesAtrasadas = atividadesProjeto.filter(function(atividade) {
         return atividade.diasAtraso > 0 && atividade.status !== 'finalizada';
       });
@@ -982,6 +991,7 @@
 
     tbody.innerHTML = projetos.map(function(projeto) {
       const status = STATUS_PROJETO[projeto.status];
+      const progresso = clampPercent(projeto.percentualConclusao);
       const proximaAtividade = projeto.proximaAtividade
         ? escapeHtml(projeto.proximaAtividade.titulo) + ' · ' + escapeHtml(formatDateBR(projeto.proximaAtividade.dataPrevista))
         : 'Sem atividades pendentes';
@@ -995,7 +1005,7 @@
         + '<td>' + titulo + '</td>'
         + '<td><span class="status-pill ' + status.className + '">' + statusLabel + '</span></td>'
         + '<td>'
-        + '<div class="progress-cell"><span>' + projeto.percentualConclusao + '%</span><div class="progress-bar"><div class="progress-fill" style="width:' + projeto.percentualConclusao + '%"></div></div></div>'
+        + '<div class="progress-cell"><span>' + progresso + '%</span><div class="progress-bar"><div class="progress-fill" style="width:' + progresso + '%"></div></div></div>'
         + '</td>'
         + '<td>' + proximaAtividade + '</td>'
         + '<td><a class="table-link" href="./pmo-geral.html?projetoId=' + encodeURIComponent(projeto.id) + '">Ver Detalhes</a></td>'
@@ -1109,6 +1119,7 @@
 
     grid.innerHTML = projetos.map(function(projeto) {
       const status = STATUS_PROJETO[projeto.status];
+      const progresso = clampPercent(projeto.percentualConclusao);
       const atividades = projeto.atividades.slice(0, 4).map(function(atividade) {
         const statusAtividade = STATUS_ATIVIDADE[atividade.status] || STATUS_ATIVIDADE.nao_iniciada;
         return (
@@ -1138,8 +1149,8 @@
         + '<div class="projeto-info-row"><span class="info-label">Início</span><span class="info-value">' + inicio + '</span></div>'
         + '<div class="projeto-info-row"><span class="info-label">Previsão</span><span class="info-value">' + previsao + '</span></div>'
         + '<div class="projeto-info-row"><span class="info-label">Valor</span><span class="info-value">' + valor + '</span></div>'
-        + '<div class="projeto-info-row"><span class="info-label">Progresso</span><span class="info-value">' + projeto.percentualConclusao + '%</span></div>'
-        + '<div class="progress-bar"><div class="progress-fill" style="width:' + projeto.percentualConclusao + '%"></div></div>'
+        + '<div class="projeto-info-row"><span class="info-label">Progresso</span><span class="info-value">' + progresso + '%</span></div>'
+        + '<div class="progress-bar"><div class="progress-fill" style="width:' + progresso + '%"></div></div>'
         + '<h4 style="margin-top:var(--spacing-lg);margin-bottom:var(--spacing-md);font-weight:var(--fw-bold);font-size:var(--fs-base);">Próximas atividades</h4>'
         + (atividades || '<p class="text-muted">Sem atividades vinculadas.</p>')
         + '</div>'
