@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Configurações | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="configuracoes">
+    <div class="app">
+        <aside class="sidebar">
+            <h2>BPI Admin</h2>
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a href="/admin/catalogo.html">Catálogo</a>
+            <a href="/admin/relatorios.html">Relatórios</a>
+            <a class="active" href="/admin/configuracoes.html">Configurações</a>
+            <a href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Configurações</h1><p class="subtitle">Empresa, modalidades e integrações</p></div>
+                <small data-admin-user class="muted"></small>
+            </header>
+
+            <section class="card">
+                <h3>Dados da Empresa</h3>
+                <form id="empresa-form">
+                    <div class="inline"><div><label>Razão social</label><input id="empresa-razaoSocial" required></div><div><label>CNPJ</label><input id="empresa-cnpj" required></div></div>
+                    <div class="inline"><div><label>Email</label><input id="empresa-email" type="email" required></div><div><label>Telefone</label><input id="empresa-telefone"></div></div>
+                    <label>Endereço</label><textarea id="empresa-endereco"></textarea>
+                    <label>Website</label><input id="empresa-website" type="url">
+                    <button class="btn btn-primary" type="submit" style="margin-top:.8rem;">Salvar Dados</button>
+                </form>
+            </section>
+
+            <section class="card" style="margin-top:1rem;">
+                <h3>Modalidades</h3>
+                <form id="modalidade-form" class="filters"><input id="nova-modalidade" placeholder="Nova modalidade"><button class="btn btn-primary" type="submit">Adicionar</button></form>
+                <table><thead><tr><th>#</th><th>Nome</th><th>Ações</th></tr></thead><tbody id="modalidades-body"></tbody></table>
+            </section>
+
+            <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:1rem;">
+                <article class="card">
+                    <h3>Integração Email (stub)</h3>
+                    <label>API Key SendGrid</label><input value="**************">
+                    <label>Email padrão</label><input value="noreply@bpigovernanca.com.br">
+                    <label>Template</label><textarea>Olá {{nome}}, bem-vindo(a)!</textarea>
+                    <button id="btn-teste-email" class="btn btn-ghost" type="button">Enviar email de teste</button>
+                </article>
+                <article class="card">
+                    <h3>Integração LinkedIn (stub)</h3>
+                    <label>App ID</label><input value="********">
+                    <label>App Secret</label><input value="********">
+                    <button id="btn-teste-linkedin" class="btn btn-ghost" type="button">Testar autenticação</button>
+                </article>
+            </section>
+
+            <section class="card" style="margin-top:1rem;">
+                <h3>Backup / Restore</h3>
+                <div class="filters">
+                    <button id="btn-backup" class="btn btn-primary" type="button">Fazer Backup</button>
+                    <label class="btn btn-ghost">Restaurar Backup<input id="input-restore" class="hidden" type="file" accept=".json"></label>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

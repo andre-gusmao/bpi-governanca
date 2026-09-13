@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="dashboard">
+    <div class="app">
+        <aside class="sidebar">
+            <h2>BPI Admin</h2>
+            <a class="active" href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a href="/admin/catalogo.html">Catálogo</a>
+            <a href="/admin/relatorios.html">Relatórios</a>
+            <a href="/admin/configuracoes.html">Configurações</a>
+            <a href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Dashboard</h1><p class="subtitle">Visão geral administrativa</p></div>
+                <small data-admin-user class="muted"></small>
+            </header>
+            <section class="grid kpi-grid">
+                <article class="card"><h4>Total de Clientes</h4><p id="kpi-clientes" class="kpi-value">0</p></article>
+                <article class="card"><h4>Total de Colaboradores</h4><p id="kpi-colaboradores" class="kpi-value">0</p></article>
+                <article class="card"><h4>Total de Projetos</h4><p id="kpi-projetos" class="kpi-value">0</p></article>
+                <article class="card"><h4>Valor em Carteira</h4><p id="kpi-carteira" class="kpi-value">R$ 0</p></article>
+                <article class="card"><h4>Receita Realizada</h4><p id="kpi-receita" class="kpi-value">R$ 0</p></article>
+            </section>
+            <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:1rem;">
+                <article class="card chart"><h3>Clientes por Modalidade</h3><div id="chart-clientes-modalidade"></div></article>
+                <article class="card chart"><h3>Projetos por Status</h3><div id="chart-projetos-status"></div></article>
+                <article class="card chart"><h3>Receita Mensal (6 meses)</h3><div id="chart-receita-mensal"></div></article>
+                <article class="card chart"><h3>Top 10 Clientes por Valor</h3><div id="chart-top-clientes"></div></article>
+            </section>
+            <article class="card" style="margin-top:1rem;">
+                <h3>Últimas Ações</h3>
+                <div id="timeline-acoes" class="timeline"></div>
+            </article>
+        </main>
+    </div>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

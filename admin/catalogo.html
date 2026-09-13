@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Catálogo | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="catalogo">
+    <div class="app">
+        <aside class="sidebar">
+            <h2>BPI Admin</h2>
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a class="active" href="/admin/catalogo.html">Catálogo</a>
+            <a href="/admin/relatorios.html">Relatórios</a>
+            <a href="/admin/configuracoes.html">Configurações</a>
+            <a href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Catálogo</h1><p class="subtitle">Produtos e serviços</p></div>
+                <div class="filters" style="margin:0;">
+                    <button id="btn-novo-produto" class="btn btn-primary">Novo Produto</button>
+                    <button id="btn-exportar-csv" class="btn btn-ghost">Exportar CSV</button>
+                    <label class="btn btn-ghost">Importar CSV<input id="input-import-csv" type="file" accept=".csv" class="hidden"></label>
+                </div>
+            </header>
+            <section class="card">
+                <div class="filters">
+                    <select id="filtro-tipo"><option value="todos">Todos os tipos</option><option value="setup">Setup</option><option value="recorrente">Recorrente</option></select>
+                    <select id="filtro-status"><option value="todos">Todos os status</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+                    <small data-admin-user class="muted"></small>
+                </div>
+                <table>
+                    <thead><tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Valor</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="catalogo-body"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal-catalogo" class="modal">
+        <div class="card modal-body">
+            <h3>Cadastro de Produto</h3>
+            <form id="catalogo-form">
+                <label>Nome</label><input id="prod-nome" required>
+                <label>Descrição</label><textarea id="prod-descricao"></textarea>
+                <div class="inline">
+                    <div><label>Tipo</label><select id="prod-tipo"><option value="setup">setup</option><option value="recorrente">recorrente</option></select></div>
+                    <div><label>Valor</label><input id="prod-valor" type="number" min="0" required></div>
+                    <div><label>Prazo</label><input id="prod-prazo" type="number" min="0" required></div>
+                </div>
+                <label><input type="checkbox" id="prod-status" checked> Ativo</label>
+                <div class="inline" style="margin-top:1rem;">
+                    <button type="button" class="btn btn-ghost" data-close-modal="modal-catalogo">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

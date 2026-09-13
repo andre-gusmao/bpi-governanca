@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Auditoria | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="auditoria">
+    <div class="app">
+        <aside class="sidebar">
+            <h2>BPI Admin</h2>
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a href="/admin/catalogo.html">Catálogo</a>
+            <a href="/admin/relatorios.html">Relatórios</a>
+            <a href="/admin/configuracoes.html">Configurações</a>
+            <a class="active" href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Auditoria</h1><p class="subtitle">Rastreabilidade de ações</p></div>
+                <small data-admin-user class="muted"></small>
+            </header>
+            <section class="card">
+                <div class="filters">
+                    <input id="audit-inicio" type="date" aria-label="Data início">
+                    <input id="audit-fim" type="date" aria-label="Data fim">
+                    <select id="audit-admin"><option value="todos">Todos</option></select>
+                    <select id="audit-acao"><option value="todos">Todas ações</option><option value="criar">criar</option><option value="editar">editar</option><option value="deletar">deletar</option><option value="ativar">ativar</option><option value="desativar">desativar</option></select>
+                </div>
+                <table>
+                    <thead><tr><th>Timestamp</th><th>Admin</th><th>Ação</th><th>Recurso</th><th>Descrição</th><th>Detalhes</th></tr></thead>
+                    <tbody id="auditoria-body"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

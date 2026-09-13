@@ -3,202 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientes | BPI Governança</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Admin Clientes | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
+<body data-page="clientes">
+    <div class="app">
         <aside class="sidebar">
-            <div class="sidebar-logo">
-                <img src="../assets/images/logobpi.png" alt="BPI">
-                <span style="font-weight: 700;">BPI</span>
-            </div>
-
-            <ul class="sidebar-menu">
-                <li><a href="dashboard-admin.html">📊 Dashboard</a></li>
-                <li><a href="chamados-admin.html">🎫 Chamados</a></li>
-                <li><a href="clientes.html" class="active">👥 Clientes</a></li>
-                <li><a href="usuarios.html">👤 Usuários/Atendentes</a></li>
-                <li><a href="sla-config.html">⚙️ Configurações</a></li>
-            </ul>
-
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.2);">
-                <button onclick="logoutAdmin()" class="btn btn-primary" style="width: 100%; background-color: rgba(201, 166, 107, 0.8);">
-                    Sair
-                </button>
-            </div>
+            <h2>BPI Admin</h2>
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a class="active" href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a href="/admin/catalogo.html">Catálogo</a>
+            <a href="/admin/relatorios.html">Relatórios</a>
+            <a href="/admin/configuracoes.html">Configurações</a>
+            <a href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
         </aside>
-
-        <!-- Main Content -->
-        <main class="dashboard-content">
-            <div class="dashboard-header">
-                <div>
-                    <h1>Gerenciar Clientes</h1>
-                    <p style="color: #555555; margin: 0;">Cadastro e controle de clientes</p>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Clientes</h1><p class="subtitle">CRUD completo de clientes</p></div>
+                <div class="inline" style="max-width:420px;">
+                    <button id="btn-novo-cliente" class="btn btn-primary">Novo Cliente</button>
+                    <small data-admin-user class="muted"></small>
                 </div>
-                <button onclick="abrirFormNovoCliente()" class="btn btn-primary">+ Novo Cliente</button>
-            </div>
-
-            <!-- Tabela de Clientes -->
-            <div class="table-wrapper">
+            </header>
+            <section class="card">
+                <div class="filters">
+                    <select id="filtro-status"><option value="todos">Todos</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+                    <select id="ordenacao"><option value="data">Data</option><option value="nome">Nome</option><option value="cnpj">CNPJ</option></select>
+                </div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome/Empresa</th>
-                            <th>Email</th>
-                            <th>Telefone</th>
-                            <th>Chamados</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyClientes">
-                        <!-- Preenchido dinamicamente -->
-                    </tbody>
+                    <thead><tr><th>ID</th><th>Razão Social</th><th>CNPJ</th><th>Email</th><th>Telefone</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="clientes-body"></tbody>
                 </table>
-            </div>
+            </section>
         </main>
     </div>
 
-    <!-- Modal Novo Cliente -->
-    <div id="modalNovoCliente" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-        <div class="dashboard-card" style="max-width: 500px; width: 90%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="margin: 0;">Novo Cliente</h2>
-                <button onclick="fecharFormNovoCliente()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✕</button>
-            </div>
-
-            <form id="formNovoCliente" onsubmit="salvarCliente(event)">
-                <div class="form-group">
-                    <label>Nome/Empresa</label>
-                    <input type="text" id="nomeCliente" required>
+    <div id="modal-cliente" class="modal">
+        <div class="card modal-body">
+            <h3>Cadastro de Cliente</h3>
+            <form id="cliente-form">
+                <div class="inline">
+                    <div><label>Razão Social</label><input id="cliente-razao" required></div>
+                    <div><label>CNPJ</label><input id="cliente-cnpj" required></div>
                 </div>
-
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="emailCliente" required>
+                <div class="inline">
+                    <div><label>Email</label><input id="cliente-email" type="email" required></div>
+                    <div><label>Telefone</label><input id="cliente-telefone"></div>
                 </div>
-
-                <div class="form-group">
-                    <label>Telefone</label>
-                    <input type="tel" id="telefoneCliente">
-                </div>
-
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input type="text" id="enderecoCliente">
-                </div>
-
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" onclick="fecharFormNovoCliente()" class="btn btn-secondary">Cancelar</button>
+                <label>Endereço</label>
+                <textarea id="cliente-endereco"></textarea>
+                <div class="topbar" style="margin-top:.8rem;"><h4>Contatos</h4><button id="add-contato" type="button" class="btn btn-ghost">Adicionar contato</button></div>
+                <div id="contatos-list" class="grid"></div>
+                <div class="inline" style="margin-top:1rem;">
+                    <button type="button" class="btn btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar Cliente</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="../assets/js/helpdesk.js"></script>
-    <script>
-        // Sistema de gerenciamento de clientes
-        const ClientesDB = {
-            obterTodos: function() {
-                const clientes = localStorage.getItem('helpdesk_clientes');
-                return clientes ? JSON.parse(clientes) : [
-                    { id: 'CLI-001', nome: 'Empresa Demo', email: 'demo@empresa.com', telefone: '(11) 98765-4321', endereco: 'São Paulo, SP', ativo: true }
-                ];
-            },
-            
-            salvar: function(cliente) {
-                const clientes = this.obterTodos();
-                cliente.id = 'CLI-' + Date.now();
-                cliente.dataCriacao = new Date().toISOString();
-                cliente.ativo = true;
-                clientes.push(cliente);
-                localStorage.setItem('helpdesk_clientes', JSON.stringify(clientes));
-                return cliente;
-            }
-        };
+    <div id="modal-historico-cliente" class="modal">
+        <div class="card modal-body">
+            <h3>Histórico de Ações do Cliente</h3>
+            <ul id="historico-cliente-body"></ul>
+            <button type="button" class="btn btn-ghost" data-close-modal="modal-historico-cliente">Fechar</button>
+        </div>
+    </div>
 
-        function verificarAutenticacao() {
-            const session = localStorage.getItem('adminSession');
-            if (!session) {
-                window.location.href = 'login-admin.html';
-            }
-        }
-
-        function logoutAdmin() {
-            if (confirm('Deseja realmente sair?')) {
-                localStorage.removeItem('adminSession');
-                window.location.href = 'login-admin.html';
-            }
-        }
-
-        function carregarClientes() {
-            const clientes = ClientesDB.obterTodos();
-            const tbody = document.getElementById('tbodyClientes');
-            tbody.innerHTML = '';
-
-            clientes.forEach(cliente => {
-                const chamadosCliente = ChamadosDB.obterPorCliente(cliente.id);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${cliente.id}</td>
-                    <td><strong>${cliente.nome}</strong></td>
-                    <td>${cliente.email}</td>
-                    <td>${cliente.telefone || '-'}</td>
-                    <td><span style="background: #f0f0f0; padding: 0.4rem 0.8rem; border-radius: 20px;">${chamadosCliente.length}</span></td>
-                    <td><span style="color: #28A745; font-weight: 600;">${cliente.ativo ? '✓ Ativo' : '✗ Inativo'}</span></td>
-                    <td>
-                        <a href="#" onclick="editarCliente('${cliente.id}')" style="color: #C9A66B; margin-right: 1rem;">Editar</a>
-                        <a href="#" onclick="excluirCliente('${cliente.id}')" style="color: #DC143C;">Excluir</a>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function abrirFormNovoCliente() {
-            document.getElementById('modalNovoCliente').style.display = 'flex';
-        }
-
-        function fecharFormNovoCliente() {
-            document.getElementById('modalNovoCliente').style.display = 'none';
-            document.getElementById('formNovoCliente').reset();
-        }
-
-        function salvarCliente(e) {
-            e.preventDefault();
-            
-            const cliente = {
-                nome: document.getElementById('nomeCliente').value,
-                email: document.getElementById('emailCliente').value,
-                telefone: document.getElementById('telefoneCliente').value,
-                endereco: document.getElementById('enderecoCliente').value
-            };
-
-            ClientesDB.salvar(cliente);
-            alert('✅ Cliente cadastrado com sucesso!');
-            fecharFormNovoCliente();
-            carregarClientes();
-        }
-
-        function editarCliente(id) {
-            alert('Função de editar em desenvolvimento');
-        }
-
-        function excluirCliente(id) {
-            if (confirm('Deseja realmente excluir este cliente?')) {
-                alert('Cliente excluído com sucesso');
-                carregarClientes();
-            }
-        }
-
-        window.addEventListener('load', () => {
-            verificarAutenticacao();
-            carregarClientes();
-        });
-    </script>
+    <script src="../assets/js/admin-panel.js"></script>
 </body>
 </html>
