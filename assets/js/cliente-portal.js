@@ -1465,6 +1465,12 @@
       }
     });
     const score = Math.round((correct / state.quizQuestions.length) * 100);
+    saveQuizOutcome(clientId, trainingId, score);
+    renderTrainings(clientId, document.getElementById('trainingStatusFilter').value);
+    renderTrainingDetail(clientId, trainingId);
+  }
+
+  function saveQuizOutcome(clientId, trainingId, score) {
     if (score >= 70) {
     upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'concluido', atualizadoEm: new Date().toISOString(), ultimoResultado: score });
     const record = issueTrainingAward(clientId, trainingId, score);
@@ -1479,8 +1485,7 @@
       text: `Você acertou ${score}%. Tente novamente para liberar o certificado.`
     };
     }
-    renderTrainings(clientId, document.getElementById('trainingStatusFilter').value);
-    renderTrainingDetail(clientId, trainingId);
+    return score >= 70;
   }
 
   function issueTrainingAward(clientId, trainingId, score) {
@@ -1548,7 +1553,7 @@
         </div>
         <div class="inline-actions">
           <button type="button" class="btn btn-outline" data-cert-download="${escapeHtml(record.id)}">Download PDF</button>
-          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(record.id)}" aria-controls="linkedinShareBox">Publicar no LinkedIn</button>
+          <button type="button" class="btn btn-primary" data-cert-share="${escapeHtml(record.id)}" aria-controls="linkedinShareBox">Compartilhar no LinkedIn (simulado)</button>
         </div>
       </article>`).join('');
 
@@ -1575,17 +1580,18 @@
     if (!record || !profile) return;
     const certificateDate = new Date(record.dataConclusao);
     const safeDate = Number.isNaN(certificateDate.getTime()) ? new Date() : certificateDate;
-    const url = `https://www.linkedin.com/profile/add?name=${encodeURIComponent(record.nomeTreinamento)}&organizationName=${encodeURIComponent('BPI Governança')}&issueYear=${safeDate.getFullYear()}&issueMonth=${safeDate.getMonth() + 1}&certId=${encodeURIComponent(record.numeroCertificado)}#startTask=CERTIFICATION_NAME`;
-    record.linkedinUrl = url;
+    const linkedinUrl = 'https://www.linkedin.com/feed/';
+    const shareText = `Concluí o treinamento ${record.nomeTreinamento} na BPI Governança em ${formatDate(safeDate.toISOString())}. Certificado ${record.numeroCertificado}.`;
+    record.linkedinUrl = linkedinUrl;
     writeJson(STORAGE_KEYS.completedTrainings, records);
     const shareBox = document.getElementById('linkedinShareBox');
     if (shareBox) {
       shareBox.innerHTML = `
         <section class="info-banner is-visible" aria-live="polite">
-          <strong>Link pronto para publicação</strong>
+          <strong>Compartilhamento manual para LinkedIn</strong>
           <p>${escapeHtml(record.nomeTreinamento)} • ${escapeHtml(record.numeroCertificado)}</p>
-          <div class="link-box">${escapeHtml(url)}</div>
-          <div class="inline-actions"><a class="btn btn-primary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir LinkedIn</a></div>
+          <div class="link-box">${escapeHtml(shareText)}</div>
+          <div class="inline-actions"><a class="btn btn-primary" href="${escapeHtml(linkedinUrl)}" target="_blank" rel="noopener noreferrer">Abrir LinkedIn</a></div>
         </section>`;
     }
   }
@@ -1812,6 +1818,14 @@
     bindGlobalActions();
     const page = document.body.getAttribute('data-page');
     window.BPIClientePortal = { logout, getCurrentSession };
+    window.BPIClientePortalTest = {
+      ensureSeedData,
+      saveQuizOutcome,
+      readJson,
+      getTrainingAwards,
+      getTrainingProgress,
+      STORAGE_KEYS
+    };
 
     if (page === 'login') {
       initLogin();
