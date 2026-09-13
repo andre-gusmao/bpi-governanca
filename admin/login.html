@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="login" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f1117,#1a2232);">
+    <main class="card" style="max-width:430px;width:92%;">
+        <h1 class="title">Portal de Administrador</h1>
+        <p class="subtitle">Use sua conta admin para acessar.</p>
+        <form id="admin-login-form">
+            <label for="email">Email</label>
+            <input id="email" type="text" required autocomplete="username">
+            <label for="senha" style="margin-top:.8rem;display:block;">Senha</label>
+            <input id="senha" type="password" required autocomplete="current-password">
+            <button class="btn-primary" type="submit" style="width:100%;margin-top:1rem;">Entrar</button>
+        </form>
+        <p id="login-feedback" class="muted" style="margin-top:.7rem;"></p>
+    </main>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>

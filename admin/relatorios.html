@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Relatórios | BPI</title>
+    <link rel="stylesheet" href="../assets/css/admin-panel.css">
+</head>
+<body data-page="relatorios">
+    <div class="app">
+        <aside class="sidebar">
+            <h2>BPI Admin</h2>
+            <a href="/admin/dashboard.html">Dashboard</a>
+            <a href="/admin/clientes.html">Clientes</a>
+            <a href="/admin/colaboradores.html">Colaboradores</a>
+            <a href="/admin/catalogo.html">Catálogo</a>
+            <a class="active" href="/admin/relatorios.html">Relatórios</a>
+            <a href="/admin/configuracoes.html">Configurações</a>
+            <a href="/admin/auditoria.html">Auditoria</a>
+            <button class="btn btn-primary" data-action="logout" style="width:100%;margin-top:1rem;">Logout</button>
+        </aside>
+        <main class="main">
+            <header class="topbar">
+                <div><h1 class="title">Relatórios</h1><p class="subtitle">Filtros globais + exportação</p></div>
+                <small data-admin-user class="muted"></small>
+            </header>
+            <section class="card">
+                <div class="filters">
+                    <input id="filtro-inicio" type="date" aria-label="Data início">
+                    <input id="filtro-fim" type="date" aria-label="Data fim">
+                    <select id="filtro-cliente"></select>
+                    <select id="filtro-status"><option value="todos">Todos os status</option><option value="planejamento">planejamento</option><option value="em_andamento">em_andamento</option><option value="encerrado">encerrado</option></select>
+                    <select id="filtro-modalidade"><option value="todos">Todas modalidades</option></select>
+                </div>
+            </section>
+            <section class="card" style="margin-top:1rem;">
+                <div class="tabs">
+                    <button class="btn tab-btn active" data-tab="tab-clientes">Clientes</button>
+                    <button class="btn tab-btn" data-tab="tab-projetos">Projetos</button>
+                    <button class="btn tab-btn" data-tab="tab-financeiro">Financeiro</button>
+                    <button class="btn tab-btn" data-tab="tab-atividades">Atividades</button>
+                </div>
+
+                <div id="tab-clientes" class="tab-panel active" style="margin-top:1rem;">
+                    <button class="btn btn-ghost" data-download-pdf="tab-clientes">Download PDF</button>
+                    <table><thead><tr><th>Nome</th><th>CNPJ</th><th>Email</th><th>Telefone</th><th>Projetos Ativos</th><th>Valor Total</th><th>Status</th></tr></thead><tbody id="rel-clientes-body"></tbody></table>
+                    <p><strong>Total clientes:</strong> <span id="tot-clientes">0</span> · <strong>Valor total:</strong> <span id="tot-clientes-valor">R$ 0</span></p>
+                </div>
+
+                <div id="tab-projetos" class="tab-panel" style="margin-top:1rem;">
+                    <button class="btn btn-ghost" data-download-pdf="tab-projetos">Download PDF</button>
+                    <table><thead><tr><th>ID</th><th>Nome</th><th>Cliente</th><th>Gestor</th><th>Status</th><th>% Conclusão</th><th>Data Início</th><th>Data Fim</th><th>Valor</th></tr></thead><tbody id="rel-projetos-body"></tbody></table>
+                    <p><strong>Total projetos:</strong> <span id="tot-projetos">0</span> · <strong>Valor total:</strong> <span id="tot-projetos-valor">R$ 0</span> · <strong>% conclusão média:</strong> <span id="tot-projetos-conclusao">0%</span></p>
+                </div>
+
+                <div id="tab-financeiro" class="tab-panel" style="margin-top:1rem;">
+                    <button class="btn btn-ghost" data-download-pdf="tab-financeiro">Download PDF</button>
+                    <table><thead><tr><th>Cliente</th><th>Valor Setup</th><th>Valor Recorrente</th><th>Valor Total</th><th>Pago</th><th>Devido</th></tr></thead><tbody id="rel-financeiro-body"></tbody></table>
+                    <div id="chart-financeiro" class="chart"></div>
+                    <p><strong>Total receita:</strong> <span id="tot-fin-receita">R$ 0</span> · <strong>Média mensal:</strong> <span id="tot-fin-media">R$ 0</span></p>
+                </div>
+
+                <div id="tab-atividades" class="tab-panel" style="margin-top:1rem;">
+                    <div class="filters"><select id="filtro-atraso"><option value="todos">Todos</option><option value="noprazo">No prazo</option><option value="lt7">Atraso &lt; 7 dias</option><option value="gt7">Atraso &gt;= 7 dias</option></select><button class="btn btn-ghost" data-download-pdf="tab-atividades">Download PDF</button></div>
+                    <table><thead><tr><th>Projeto</th><th>Atividade</th><th>Responsável</th><th>Status</th><th>Prazo</th><th>Atraso</th></tr></thead><tbody id="rel-atividades-body"></tbody></table>
+                    <p><strong>Total atividades:</strong> <span id="tot-atividades">0</span> · <strong>% conclusão:</strong> <span id="tot-atividades-conclusao">0%</span></p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="../assets/js/admin-panel.js"></script>
+</body>
+</html>
