@@ -1,5 +1,7 @@
 (function (global) {
   const STORAGE_KEY = 'helpdesk_catalogo';
+  const STORAGE_META_KEY = 'helpdesk_catalogo_meta';
+  const CATALOGO_VERSION = 1;
   const TIPO_TODOS = 'todos';
   const MODALIDADE_TODAS = 'todas';
 
@@ -356,8 +358,32 @@
     global.localStorage.setItem(STORAGE_KEY, JSON.stringify(produtos));
   }
 
+  function lerMetaCatalogo() {
+    try {
+      return JSON.parse(global.localStorage.getItem(STORAGE_META_KEY) || 'null');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function salvarMetaCatalogo() {
+    global.localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ version: CATALOGO_VERSION }));
+  }
+
   function inicializarSeed() {
     const atual = lerCatalogo();
+    const meta = lerMetaCatalogo();
+
+    if (atual.length === 0) {
+      salvarCatalogo(seedCatalogo.map(produto => normalizarProduto(produto)));
+      salvarMetaCatalogo();
+      return;
+    }
+
+    if (meta && Number(meta.version) >= CATALOGO_VERSION) {
+      return;
+    }
+
     const produtosAtuais = atual
       .map(normalizarProduto)
       .filter(produto => validarProduto(produto));
@@ -375,6 +401,8 @@
     if (produtosPorId.size === 0 || houveMudanca) {
       salvarCatalogo(Array.from(produtosPorId.values()));
     }
+
+    salvarMetaCatalogo();
   }
 
   const CatalogoDB = {

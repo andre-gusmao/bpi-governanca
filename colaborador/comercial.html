@@ -574,7 +574,7 @@
         }
 
         const pendentesUnicos = [...new Set(pendentes)];
-        const naoImportados = pendentesUnicos.filter(produtoId => adicionarProduto(produtoId) !== 'added');
+        const naoImportados = pendentesUnicos.filter(produtoId => adicionarProduto(produtoId) === 'invalid');
 
         const filaRestante = [...new Set(naoImportados)];
         if (filaRestante.length > 0) {
