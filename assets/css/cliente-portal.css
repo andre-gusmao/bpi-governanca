@@ -205,8 +205,10 @@ body.cliente-auth {
 .status-em-atendimento,
 .status-em_atendimento { background: rgba(245, 158, 11, 0.12); color: #B45309; }
 .status-encerrado,
+.status-concluido,
 .status-finalizada,
 .status-fechado { background: rgba(16, 185, 129, 0.12); color: #047857; }
+.status-disponivel { background: rgba(59, 130, 246, 0.12); color: #1D4ED8; }
 .status-nao_iniciada,
 .status-aberto { background: rgba(156, 163, 175, 0.15); color: #4B5563; }
 .status-atrasado,

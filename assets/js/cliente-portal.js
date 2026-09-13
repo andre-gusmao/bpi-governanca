@@ -231,6 +231,8 @@
       planejamento: 'Planejamento',
       em_andamento: 'Em andamento',
       encerrado: 'Encerrado',
+      concluido: 'Concluído',
+      disponivel: 'Disponível',
       nao_iniciada: 'Não iniciada',
       finalizada: 'Finalizada',
       aberto: 'Aberto',
@@ -1386,9 +1388,9 @@
     state.selectedQuizTrainingId = trainingId;
     state.quizQuestions = shuffle(QUESTION_POOL).slice(0, 20);
     upsertTrainingProgress({ clientId, treinamentoId: trainingId, status: 'em_andamento', atualizadoEm: new Date().toISOString() });
-    renderQuiz(clientId, trainingId);
     renderTrainings(clientId, document.getElementById('trainingStatusFilter').value);
     renderTrainingDetail(clientId, trainingId);
+    renderQuiz(clientId, trainingId);
   }
 
   function renderQuiz(clientId, trainingId) {
